@@ -1,15 +1,23 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# ═══════════════════════════════════════════
+# VoltCheck — .gitignore
+# SECURITY: Prevents API keys, Firebase config,
+# and sensitive data from entering the repository
+# ═══════════════════════════════════════════
 
-# dependencies
+# ── Dependencies ──
 node_modules/
+functions/node_modules/
+functions/lib/
 
-# Expo
+# ── Expo ──
 .expo/
 dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# ── Native Builds ──
+/ios/
+/android/
 .kotlin/
 *.orig.*
 *.jks
@@ -18,24 +26,62 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
-# Metro
+# ── Metro ──
 .metro-health-check*
 
-# debug
+# ── Debug ──
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
+# ════════════════════════════════════
+# 🔒 SECURITY — SENSITIVE FILES
+# ════════════════════════════════════
+
+# Environment variables (ALL variants)
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.staging
+!.env.example
+
+# Firebase service account keys
+*-firebase-adminsdk-*.json
+service-account*.json
+serviceAccountKey*.json
+firebase-adminsdk*.json
+
+# Firebase emulator data
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+.firebase/
+.firebaserc
+
+# Google Cloud credentials
+gcloud-*.json
+application_default_credentials.json
+
+# Stripe keys file
+stripe-keys.json
+
+# ── IDE & OS ──
 .DS_Store
 *.pem
+Thumbs.db
+.vscode/settings.json
+.idea/
 
-# local env files
-.env*.local
-
-# typescript
+# ── TypeScript ──
 *.tsbuildinfo
 
-# generated native folders
-/ios
-/android
+# ── Vercel ──
+.vercel/
+
+# ── Test & Coverage ──
+coverage/
+.nyc_output/
+jest-results/

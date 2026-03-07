@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Reports PDFs — only owner can read, only server can write
+    match /reports/{userId}/{reportFile} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false; // Cloud Functions only (uses Admin SDK)
+    }
+
+    // Default: deny all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

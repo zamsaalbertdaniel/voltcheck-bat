@@ -1,0 +1,142 @@
+/**
+ * VoltCheck — Cloud Function: Stripe Payment Intent
+ * Creates a PaymentIntent for Level 1 (15 RON) or Level 2 (99 RON)
+ *
+ * SECURITY: onCall (authenticated) + Rate Limited + VIN Validated
+ */
+
+import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
+import Stripe from 'stripe';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
+import { validateVIN } from '../utils/vinValidator';
+
+if (!admin.apps.length) {
+    admin.initializeApp();
+}
+
+const db = admin.firestore();
+
+const stripe = new Stripe(
+    process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder',
+    { apiVersion: '2023-10-16' }
+);
+
+// Prices in RON (bani = smallest unit)
+const PRICES: Record<number, number> = {
+    1: 1500,  // 15.00 RON
+    2: 9900,  // 99.00 RON
+};
+
+/**
+ * Creates a Stripe PaymentIntent
+ */
+export const createPaymentIntent = functions.https.onCall(
+    async (request) => {
+        // Auth check
+        if (!request.auth) {
+            throw new functions.https.HttpsError(
+                'unauthenticated',
+                'Authentication required'
+            );
+        }
+
+        const userId = request.auth.uid;
+
+        // Rate limiting
+        await checkRateLimit(userId, 'payment', RATE_LIMITS.payment);
+
+        const { level, vin, vehicleMake, vehicleModel, vehicleId } = request.data;
+
+        // Validate level
+        if (level !== 1 && level !== 2) {
+            throw new functions.https.HttpsError(
+                'invalid-argument',
+                'Level must be 1 or 2'
+            );
+        }
+
+        // Server-side VIN validation (ISO 3779)
+        const vinCheck = validateVIN(vin);
+        if (!vinCheck.valid) {
+            throw new functions.https.HttpsError(
+                'invalid-argument',
+                vinCheck.error || 'Invalid VIN'
+            );
+        }
+
+        const cleanVin = vin.toUpperCase().trim();
+        const amount = PRICES[level];
+
+        // TTL for payment + report
+        const ttlDays = level === 1 ? 30 : 365;
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + ttlDays);
+
+        try {
+            // Create or retrieve Stripe customer
+            let customerId: string;
+            const userDoc = await db.collection('users').doc(userId).get();
+
+            if (userDoc.exists && userDoc.data()?.stripeCustomerId) {
+                customerId = userDoc.data()!.stripeCustomerId;
+            } else {
+                const customer = await stripe.customers.create({
+                    metadata: { firebaseUserId: userId },
+                });
+                customerId = customer.id;
+
+                await db.collection('users').doc(userId).set(
+                    { stripeCustomerId: customerId },
+                    { merge: true }
+                );
+            }
+
+            // Create PaymentIntent with full metadata
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount,
+                currency: 'ron',
+                customer: customerId,
+                metadata: {
+                    userId,
+                    vin: cleanVin,
+                    level: level.toString(),
+                    vehicleMake: vehicleMake || '',
+                    vehicleModel: vehicleModel || '',
+                    vehicleId: vehicleId || '',
+                },
+                automatic_payment_methods: {
+                    enabled: true,
+                },
+            });
+
+            // Create payment record with expiry
+            await db.collection('payments').doc(paymentIntent.id).set({
+                userId,
+                vin: cleanVin,
+                level,
+                vehicleId: vehicleId || null,
+                amount,
+                currency: 'ron',
+                status: 'pending',
+                stripePaymentIntentId: paymentIntent.id,
+                expiresAt,
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            functions.logger.info(
+                `[Payment] Intent ${paymentIntent.id} — User:${userId} Level:${level} ${amount} bani`
+            );
+
+            return {
+                clientSecret: paymentIntent.client_secret,
+                paymentIntentId: paymentIntent.id,
+                ephemeralKey: '',
+                customerId,
+            };
+        } catch (error) {
+            functions.logger.error('[Payment] Intent creation failed:', error);
+            throw new functions.https.HttpsError('internal', 'Payment setup failed');
+        }
+    }
+);

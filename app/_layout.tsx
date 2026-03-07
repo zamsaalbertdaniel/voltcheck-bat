@@ -1,59 +1,110 @@
+/**
+ * VoltCheck — Root Layout
+ * Dark theme, i18n, font loading, Dual Splash Sequence,
+ * Toast + Error Boundary wrappers
+ * FAZA 1 — BAT (Battery Analysis Technology)
+ */
+
+import SplashSequence from '@/components/SplashSequence';
+import { ToastProvider } from '@/components/ToastProvider';
+import VoltErrorBoundary from '@/components/VoltErrorBoundary';
+import { VoltColors } from '@/constants/Theme';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { StatusBar } from 'react-native';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
+// Initialize i18n
+import '../utils/i18n';
 
 export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+const VoltCheckTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: VoltColors.neonGreen,
+    background: VoltColors.bgPrimary,
+    card: VoltColors.bgSecondary,
+    text: VoltColors.textPrimary,
+    border: VoltColors.border,
+    notification: VoltColors.neonGreen,
+  },
+};
+
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  const [splashComplete, setSplashComplete] = useState(false);
 
   useEffect(() => {
-    if (loaded) {
+    if (fontError) throw fontError;
+  }, [fontError]);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      // Hide the native splash screen once fonts are ready
+      // Our custom SplashSequence takes over from here
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [fontsLoaded]);
 
-  if (!loaded) {
+  if (!fontsLoaded) {
     return null;
   }
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <VoltErrorBoundary>
+      <ToastProvider>
+        <ThemeProvider value={VoltCheckTheme}>
+          <StatusBar barStyle="light-content" backgroundColor={VoltColors.bgPrimary} />
+
+          {/* Dual Splash Sequence (Probabilistic AI → BAT) */}
+          {!splashComplete && (
+            <SplashSequence onComplete={() => setSplashComplete(true)} />
+          )}
+
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="report/[id]"
+              options={{
+                headerShown: true,
+                headerTitle: 'Raport VoltCheck',
+                headerStyle: { backgroundColor: VoltColors.bgSecondary },
+                headerTintColor: VoltColors.textPrimary,
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="payment"
+              options={{
+                presentation: 'modal',
+                headerShown: true,
+                headerTitle: 'Plată',
+                headerStyle: { backgroundColor: VoltColors.bgSecondary },
+                headerTintColor: VoltColors.textPrimary,
+              }}
+            />
+          </Stack>
+        </ThemeProvider>
+      </ToastProvider>
+    </VoltErrorBoundary>
   );
 }

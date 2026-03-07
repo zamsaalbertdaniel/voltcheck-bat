@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ═══════════════════════════════════════════
+    // Helper Functions
+    // ═══════════════════════════════════════════
+
+    // Check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Check if user owns the document
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // Check if the request is from a Cloud Function (admin SDK)
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Validate VIN format
+    function isValidVin(vin) {
+      return vin is string && vin.size() == 17;
+    }
+
+    // ═══════════════════════════════════════════
+    // Users Collection
+    // ═══════════════════════════════════════════
+    match /users/{userId} {
+      // Users can read and update their own profile
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) &&
+        // Prevent users from modifying critical fields
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['stripeCustomerId', 'createdAt']);
+      allow delete: if false; // Users can't delete profiles
+
+      // Device fingerprints subcollection
+      match /devices/{deviceId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // Vehicles Collection
+    // ═══════════════════════════════════════════
+    match /vehicles/{vehicleId} {
+      // Users can read their own vehicles
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow create: if isAuth() &&
+        request.resource.data.userId == request.auth.uid &&
+        isValidVin(request.resource.data.vin);
+      allow update: if isAuth() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ═══════════════════════════════════════════
+    // Reports Collection
+    // ═══════════════════════════════════════════
+    match /reports/{reportId} {
+      // Users can only read their own reports
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      // Only Cloud Functions can create/update reports
+      allow create: if false; // Server-side only
+      allow update: if false; // Server-side only
+      allow delete: if false; // Handled by TTL scheduler
+
+      // Report subcollections (Level 1 / Level 2 data)
+      match /level1_data/{docId} {
+        allow read: if isAuth() &&
+          get(/databases/$(database)/documents/reports/$(reportId)).data.userId == request.auth.uid;
+        allow write: if false; // Server-side only
+      }
+
+      match /level2_data/{docId} {
+        allow read: if isAuth() &&
+          get(/databases/$(database)/documents/reports/$(reportId)).data.userId == request.auth.uid;
+        allow write: if false; // Server-side only
+      }
+    }
+
+    // ═══════════════════════════════════════════
+    // Payments Collection
+    // ═══════════════════════════════════════════
+    match /payments/{paymentId} {
+      // Users can read their own payments
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      // Only Cloud Functions can write payments
+      allow write: if false;
+    }
+
+    // ═══════════════════════════════════════════
+    // Report Deliveries Collection
+    // ═══════════════════════════════════════════
+    match /report_deliveries/{deliveryId} {
+      // Users can read their own deliveries
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Server-side only
+    }
+
+    // ═══════════════════════════════════════════
+    // VIN Cache (Server-side only)
+    // ═══════════════════════════════════════════
+    match /vin_cache/{vinId} {
+      allow read, write: if false; // Cloud Functions only
+    }
+
+    // ═══════════════════════════════════════════
+    // System Logs (Server-side only)
+    // ═══════════════════════════════════════════
+    match /system_logs/{logId} {
+      allow read, write: if false; // Cloud Functions only
+    }
+
+    // ═══════════════════════════════════════════
+    // Default: Deny everything else
+    // ═══════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

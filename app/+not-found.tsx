@@ -1,17 +1,26 @@
-import { Link, Stack } from 'expo-router';
-import { StyleSheet } from 'react-native';
+/**
+ * VoltCheck — 404 Not Found Screen
+ */
 
-import { Text, View } from '@/components/Themed';
+import { VoltBorderRadius, VoltColors, VoltFontSize, VoltSpacing } from '@/constants/Theme';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, Stack } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function NotFoundScreen() {
   return (
     <>
-      <Stack.Screen options={{ title: 'Oops!' }} />
+      <Stack.Screen options={{ title: 'Pagină negăsită' }} />
       <View style={styles.container}>
-        <Text style={styles.title}>This screen doesn't exist.</Text>
-
-        <Link href="/" style={styles.link}>
-          <Text style={styles.linkText}>Go to home screen!</Text>
+        <View style={styles.iconCircle}>
+          <Ionicons name="compass-outline" size={48} color={VoltColors.textTertiary} />
+        </View>
+        <Text style={styles.title}>404</Text>
+        <Text style={styles.subtitle}>Această pagină nu există.</Text>
+        <Link href="/" asChild>
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Înapoi la VoltCheck</Text>
+          </TouchableOpacity>
         </Link>
       </View>
     </>
@@ -21,20 +30,40 @@ export default function NotFoundScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: VoltColors.bgPrimary,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    padding: VoltSpacing.xl,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: VoltColors.bgSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: VoltSpacing.lg,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: VoltFontSize.xxxl,
+    fontWeight: '800',
+    color: VoltColors.textPrimary,
   },
-  link: {
-    marginTop: 15,
-    paddingVertical: 15,
+  subtitle: {
+    fontSize: VoltFontSize.md,
+    color: VoltColors.textSecondary,
+    marginTop: VoltSpacing.sm,
+    marginBottom: VoltSpacing.xl,
   },
-  linkText: {
-    fontSize: 14,
-    color: '#2e78b7',
+  button: {
+    backgroundColor: VoltColors.neonGreen,
+    borderRadius: VoltBorderRadius.md,
+    paddingHorizontal: VoltSpacing.xl,
+    paddingVertical: VoltSpacing.md,
+  },
+  buttonText: {
+    fontSize: VoltFontSize.md,
+    fontWeight: '700',
+    color: VoltColors.textOnGreen,
   },
 });

@@ -1,0 +1,209 @@
+{
+  "app": {
+    "name": "VoltCheck",
+    "tagline": "Verifică bateria. Cumpără în siguranță.",
+    "version": "v1.0"
+  },
+  "tabs": {
+    "scan": "Scanare",
+    "insight": "BAT Insight",
+    "garage": "Garaj",
+    "settings": "Setări"
+  },
+  "scan": {
+    "title": "Verifică-ți EV-ul",
+    "subtitle": "Introdu VIN-ul pentru a obține un raport complet",
+    "vinPlaceholder": "Ex: WVWZZZE3ZWE123456",
+    "vinLabel": "Număr VIN (17 caractere)",
+    "scanCamera": "Scanare cu camera",
+    "orType": "sau introdu manual",
+    "startScan": "Începe Verificarea",
+    "invalidVin": "VIN invalid. Trebuie să conțină exact 17 caractere (fără I, O, Q).",
+    "scanning": "Se analizează...",
+    "scanProgress": {
+      "decoding": "Decodare VIN...",
+      "searchingEU": "Căutare baze de date EU...",
+      "searchingGlobal": "Căutare baze de date globale...",
+      "crossReferencing": "Verificare încrucișată...",
+      "analyzingRisk": "Analiză AI de risc...",
+      "generatingReport": "Generare raport...",
+      "complete": "Raport gata!"
+    }
+  },
+  "levels": {
+    "select": "Alege nivelul de inspecție",
+    "level1": {
+      "name": "The Detective",
+      "price": "15 RON",
+      "description": "Istoric VIN + Decodare Tehnică + AI Risk Score",
+      "features": [
+        "Istoric complet al vehiculului",
+        "Decodare specifică bateriei",
+        "Algoritm AI de evaluare a riscului",
+        "Alertă automată pentru discrepanțe",
+        "Raport PDF pe email"
+      ]
+    },
+    "level2": {
+      "name": "The Surgeon",
+      "price": "99 RON",
+      "description": "Diagnoză Live Baterie + Certificat SoH",
+      "features": [
+        "Tot ce include The Detective",
+        "State of Health (SoH) live",
+        "Cicluri de încărcare DC/AC",
+        "Echilibru celule baterie",
+        "Capacitate reală utilizabilă (kWh)",
+        "Certificat PDF oficial",
+        "Stocare 365 zile în Garaj"
+      ]
+    }
+  },
+  "report": {
+    "title": "Raport VoltCheck",
+    "riskScore": "Scor de Risc AI",
+    "riskCategories": {
+      "LOW": "Risc Scăzut",
+      "MEDIUM": "Risc Moderat",
+      "HIGH": "Risc Ridicat",
+      "CRITICAL": "Risc Critic"
+    },
+    "sections": {
+      "vehicleInfo": "Informații Vehicul",
+      "batteryHealth": "Sănătate Baterie",
+      "history": "Istoric Vehicul",
+      "alerts": "Alerte Detectate",
+      "recommendation": "Recomandare"
+    },
+    "battery": {
+      "soh": "State of Health",
+      "capacity": "Capacitate Utilizabilă",
+      "cycles": "Cicluri Încărcare",
+      "dcRatio": "Încărcări Rapide (DC)",
+      "cellBalance": "Echilibru Celule"
+    },
+    "cellStatus": {
+      "Balanced": "Echilibrat",
+      "Imbalanced": "Dezechilibrat",
+      "Critical": "Critic"
+    },
+    "expiresIn": "Expiră în {{days}} zile",
+    "downloadPdf": "Descarcă PDF",
+    "shareReport": "Distribuie Raportul"
+  },
+  "garage": {
+    "title": "Garajul Tău",
+    "subtitle": "Rapoartele tale de diagnosticare",
+    "empty": "Niciun raport încă. Scanează primul tău VIN!",
+    "level1Badge": "Detective",
+    "level2Badge": "Surgeon",
+    "expired": "Expirat",
+    "viewReport": "Vezi Raport"
+  },
+  "settings": {
+    "title": "Setări",
+    "language": "Limbă",
+    "notifications": "Notificări",
+    "about": "Despre VoltCheck",
+    "privacy": "Confidențialitate",
+    "terms": "Termeni și Condiții",
+    "logout": "Deconectare",
+    "version": "Versiunea"
+  },
+  "insight": {
+    "title": "BAT Insight",
+    "subtitle": "Cunoașterea este putere.",
+    "paradox": {
+      "sectionTitle": "⚡ Paradoxul Bateriei",
+      "analogyTitle": "🏃 Analogia Atletului",
+      "narrative": "Imaginează-ți doi atleți. Primul a parcurs 50.000 km, dar aproape exclusiv pe sprint-uri intense — încărcare rapidă DC, accelerări bruște, temperaturi extreme. Al doilea a parcurs 100.000 km, dar pe jogging constant — încărcare lentă AC acasă, fără suprasolicitare.\n\nCine e mai sănătos? Atletul cu mai puțini km, dar cu un stil de viață agresiv, are genunchii (celulele bateriei) uzați prematur. Cel cu mai mulți km dar cu disciplină are articulațiile intacte.\n\nLa fel funcționează și bateria EV-ului tău.",
+      "conclusion": "Kilometrajul te minte. SoH-ul îți spune adevărul.",
+      "tableTitle": "📊 Tabel Comparativ",
+      "headers": [
+        "Parametru",
+        "🏎️ 50.000 km",
+        "🚗 100.000 km"
+      ],
+      "rows": [
+        [
+          "State of Health (SoH)",
+          "78% ⚠️",
+          "92% ✅"
+        ],
+        [
+          "Raport DC / AC",
+          "70% / 30%",
+          "15% / 85%"
+        ],
+        [
+          "Cicluri încărcare",
+          "890",
+          "1.200"
+        ],
+        [
+          "Capacitate reală",
+          "52 kWh din 75",
+          "69 kWh din 75"
+        ],
+        [
+          "Verdictul BAT",
+          "RISC RIDICAT 🔴",
+          "SĂNĂTOS 🟢"
+        ]
+      ]
+    },
+    "faq": {
+      "sectionTitle": "❓ Întrebări Frecvente",
+      "items": [
+        {
+          "question": "E rău dacă încarc la 100% în fiecare seară?",
+          "answer": "Nu e ideal, dar nici catastrofal. Bateriile Li-Ion suferă cel mai mult stres chimic la extremități — sub 10% și peste 90%. Încărcarea zilnică la 100% accelerează ușor degradarea, dar mai puțin decât o singură sesiune de DC Fast Charging la temperaturi ridicate.\n\n💡 Regula de aur: menține între 20%-80% pentru uz zilnic. Încarcă la 100% doar înainte de drumuri lungi."
+        },
+        {
+          "question": "Ce fac dacă raportul îmi dă ROȘU (Risc Mare)?",
+          "answer": "Un scor ROȘU nu înseamnă automat 'nu cumpăra'. Înseamnă 'nu cumpăra fără o a doua opinie'.\n\n🔍 Recomandăm:\n1. Solicită o Diagnoză Nivel 2 (The Surgeon) pentru date live din baterie.\n2. Dacă SoH-ul confirmat este sub 75%, solicită o inspecție fizică la un service autorizat.\n3. Folosește raportul ca instrument de negociere — un SoH de 78% vs. 92% poate face diferența de mii de EUR la preț."
+        },
+        {
+          "question": "Cât de precis este Scorul de Risc AI?",
+          "answer": "Scorul nostru nu îți spune 'bateria are exact 87.3% sănătate'. Asta ar fi o minciună fără date live. Ce face AI-ul nostru este modelare probabilistică — analizează:\n\n• Istoricul VIN-ului (accidente, piață de origine, recall-uri)\n• Tiparele statistice ale modelului specific (degradarea medie NMC vs LFP)\n• Indicatori de risc (schimbări frecvente de proprietar, import din piețe nesigure)\n\nEste un scor de risc, nu o citire live. Pentru SoH real, ai nevoie de Level 2 (The Surgeon)."
+        },
+        {
+          "question": "Pot trimite raportul vânzătorului?",
+          "answer": "Da! Fiecare raport VoltCheck poate fi distribuit direct prin WhatsApp sau Email cu un singur tap. Raportul include un link securizat valid pe durata de viață a raportului (30 zile Level 1 / 365 zile Level 2). Vânzătorul poate vedea raportul complet fără cont VoltCheck."
+        }
+      ]
+    },
+    "poweredBy": "Powered by Probabilistic AI"
+  },
+  "auth": {
+    "welcome": "Bine ai venit la VoltCheck",
+    "subtitle": "Verifică sănătatea bateriei EV-ului tău",
+    "loginGoogle": "Continuă cu Google",
+    "loginApple": "Continuă cu Apple",
+    "termsAgree": "Prin continuare, accepți Termenii și Condițiile"
+  },
+  "payment": {
+    "title": "Finalizare Plată",
+    "processing": "Se procesează plata...",
+    "success": "Plată reușită!",
+    "failed": "Plata a eșuat. Încearcă din nou.",
+    "secure": "Plată securizată prin Stripe"
+  },
+  "alerts": {
+    "salvageTitle": "Vehicul cu Salvage Title",
+    "mileageRollback": "Posibilă Manipulare Kilometraj",
+    "dcDegradation": "Degradare Accelerată din Fast Charging",
+    "cellImbalance": "Dezechilibru Celule Baterie",
+    "floodDamage": "Posibilă Expunere la Inundație"
+  },
+  "common": {
+    "loading": "Se încarcă...",
+    "error": "A apărut o eroare",
+    "retry": "Reîncearcă",
+    "cancel": "Anulează",
+    "confirm": "Confirmă",
+    "close": "Închide",
+    "next": "Continuă",
+    "back": "Înapoi"
+  }
+}

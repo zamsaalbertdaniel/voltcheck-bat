@@ -1,0 +1,209 @@
+{
+    "app": {
+        "name": "VoltCheck",
+        "tagline": "Check the battery. Buy with confidence.",
+        "version": "v1.0"
+    },
+    "tabs": {
+        "scan": "Scan",
+        "insight": "BAT Insight",
+        "garage": "Garage",
+        "settings": "Settings"
+    },
+    "scan": {
+        "title": "Check Your EV",
+        "subtitle": "Enter the VIN to get a full report",
+        "vinPlaceholder": "Ex: WVWZZZE3ZWE123456",
+        "vinLabel": "VIN Number (17 characters)",
+        "scanCamera": "Scan with camera",
+        "orType": "or enter manually",
+        "startScan": "Start Verification",
+        "invalidVin": "Invalid VIN. Must contain exactly 17 characters (no I, O, Q).",
+        "scanning": "Analyzing...",
+        "scanProgress": {
+            "decoding": "Decoding VIN...",
+            "searchingEU": "Searching EU databases...",
+            "searchingGlobal": "Searching global databases...",
+            "crossReferencing": "Cross-referencing data...",
+            "analyzingRisk": "AI risk analysis...",
+            "generatingReport": "Generating report...",
+            "complete": "Report ready!"
+        }
+    },
+    "levels": {
+        "select": "Choose inspection level",
+        "level1": {
+            "name": "The Detective",
+            "price": "15 RON",
+            "description": "VIN History + Technical Decoding + AI Risk Score",
+            "features": [
+                "Complete vehicle history",
+                "Battery-specific decoding",
+                "AI risk evaluation algorithm",
+                "Automatic discrepancy alert",
+                "PDF report via email"
+            ]
+        },
+        "level2": {
+            "name": "The Surgeon",
+            "price": "99 RON",
+            "description": "Live Battery Diagnosis + SoH Certificate",
+            "features": [
+                "Everything in The Detective",
+                "Live State of Health (SoH)",
+                "DC/AC charging cycles",
+                "Battery cell balance",
+                "Real usable capacity (kWh)",
+                "Official PDF certificate",
+                "365-day storage in Garage"
+            ]
+        }
+    },
+    "report": {
+        "title": "VoltCheck Report",
+        "riskScore": "AI Risk Score",
+        "riskCategories": {
+            "LOW": "Low Risk",
+            "MEDIUM": "Medium Risk",
+            "HIGH": "High Risk",
+            "CRITICAL": "Critical Risk"
+        },
+        "sections": {
+            "vehicleInfo": "Vehicle Information",
+            "batteryHealth": "Battery Health",
+            "history": "Vehicle History",
+            "alerts": "Detected Alerts",
+            "recommendation": "Recommendation"
+        },
+        "battery": {
+            "soh": "State of Health",
+            "capacity": "Usable Capacity",
+            "cycles": "Charge Cycles",
+            "dcRatio": "Fast Charging (DC)",
+            "cellBalance": "Cell Balance"
+        },
+        "cellStatus": {
+            "Balanced": "Balanced",
+            "Imbalanced": "Imbalanced",
+            "Critical": "Critical"
+        },
+        "expiresIn": "Expires in {{days}} days",
+        "downloadPdf": "Download PDF",
+        "shareReport": "Share Report"
+    },
+    "garage": {
+        "title": "Your Garage",
+        "subtitle": "Your diagnostic reports",
+        "empty": "No reports yet. Scan your first VIN!",
+        "level1Badge": "Detective",
+        "level2Badge": "Surgeon",
+        "expired": "Expired",
+        "viewReport": "View Report"
+    },
+    "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "notifications": "Notifications",
+        "about": "About VoltCheck",
+        "privacy": "Privacy",
+        "terms": "Terms & Conditions",
+        "logout": "Log Out",
+        "version": "Version"
+    },
+    "insight": {
+        "title": "BAT Insight",
+        "subtitle": "Knowledge is power.",
+        "paradox": {
+            "sectionTitle": "⚡ The Battery Paradox",
+            "analogyTitle": "🏃 The Athlete Analogy",
+            "narrative": "Imagine two athletes. The first ran 50,000 km, but almost exclusively on intense sprints — DC fast charging, harsh accelerations, extreme temperatures. The second ran 100,000 km, but on steady jogging — slow AC charging at home, no overexertion.\n\nWho's healthier? The athlete with fewer km but an aggressive lifestyle has prematurely worn-out knees (battery cells). The one with more km but discipline has intact joints.\n\nThis is exactly how your EV battery works.",
+            "conclusion": "Mileage lies. SoH tells the truth.",
+            "tableTitle": "📊 Comparison Table",
+            "headers": [
+                "Parameter",
+                "🏎️ 50,000 km",
+                "🚗 100,000 km"
+            ],
+            "rows": [
+                [
+                    "State of Health (SoH)",
+                    "78% ⚠️",
+                    "92% ✅"
+                ],
+                [
+                    "DC / AC Ratio",
+                    "70% / 30%",
+                    "15% / 85%"
+                ],
+                [
+                    "Charge Cycles",
+                    "890",
+                    "1,200"
+                ],
+                [
+                    "Real Capacity",
+                    "52 kWh of 75",
+                    "69 kWh of 75"
+                ],
+                [
+                    "BAT Verdict",
+                    "HIGH RISK 🔴",
+                    "HEALTHY 🟢"
+                ]
+            ]
+        },
+        "faq": {
+            "sectionTitle": "❓ Frequently Asked Questions",
+            "items": [
+                {
+                    "question": "Is it bad to charge to 100% every night?",
+                    "answer": "Not ideal, but not catastrophic. Li-Ion batteries suffer the most chemical stress at extremes — below 10% and above 90%. Daily charging to 100% slightly accelerates degradation, but less than a single DC Fast Charging session at high temperatures.\n\n💡 Golden rule: keep between 20%-80% for daily use. Charge to 100% only before long trips."
+                },
+                {
+                    "question": "What do I do if the report shows RED (High Risk)?",
+                    "answer": "A RED score doesn't automatically mean 'don't buy'. It means 'don't buy without a second opinion'.\n\n🔍 We recommend:\n1. Request a Level 2 Diagnosis (The Surgeon) for live battery data.\n2. If confirmed SoH is below 75%, request a physical inspection at an authorized service center.\n3. Use the report as a negotiation tool — a SoH of 78% vs. 92% can make a difference of thousands of EUR in price."
+                },
+                {
+                    "question": "How accurate is the AI Risk Score?",
+                    "answer": "Our score doesn't tell you 'the battery has exactly 87.3% health'. That would be a lie without live data. What our AI does is probabilistic modeling — it analyzes:\n\n• VIN history (accidents, market of origin, recalls)\n• Statistical patterns of the specific model (average NMC vs LFP degradation)\n• Risk indicators (frequent owner changes, imports from unreliable markets)\n\nIt's a risk score, not a live reading. For real SoH, you need Level 2 (The Surgeon)."
+                },
+                {
+                    "question": "Can I send the report to the seller?",
+                    "answer": "Yes! Every VoltCheck report can be shared directly via WhatsApp or Email with a single tap. The report includes a secure link valid for the report's lifetime (30 days Level 1 / 365 days Level 2). The seller can view the full report without a VoltCheck account."
+                }
+            ]
+        },
+        "poweredBy": "Powered by Probabilistic AI"
+    },
+    "auth": {
+        "welcome": "Welcome to VoltCheck",
+        "subtitle": "Verify your EV's battery health",
+        "loginGoogle": "Continue with Google",
+        "loginApple": "Continue with Apple",
+        "termsAgree": "By continuing, you agree to the Terms & Conditions"
+    },
+    "payment": {
+        "title": "Complete Payment",
+        "processing": "Processing payment...",
+        "success": "Payment successful!",
+        "failed": "Payment failed. Please try again.",
+        "secure": "Secure payment via Stripe"
+    },
+    "alerts": {
+        "salvageTitle": "Salvage Title Vehicle",
+        "mileageRollback": "Possible Mileage Rollback",
+        "dcDegradation": "Accelerated Degradation from Fast Charging",
+        "cellImbalance": "Battery Cell Imbalance",
+        "floodDamage": "Possible Flood Exposure"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "retry": "Retry",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "close": "Close",
+        "next": "Continue",
+        "back": "Back"
+    }
+}

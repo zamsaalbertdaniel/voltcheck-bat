@@ -1,57 +1,69 @@
+/**
+ * VoltCheck — Tab Layout
+ * Dark Mode Tech navigation with 4 tabs: Scanare, BAT Insight, Garaj, Setări
+ * FAZA 1 — Updated tab structure
+ */
+
+import { VoltColors, VoltFontSize } from '@/constants/Theme';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Tabs } from 'expo-router';
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: false,
+        tabBarActiveTintColor: VoltColors.neonGreen,
+        tabBarInactiveTintColor: VoltColors.textTertiary,
+        tabBarStyle: {
+          backgroundColor: VoltColors.bgSecondary,
+          borderTopColor: VoltColors.border,
+          borderTopWidth: 1,
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: VoltFontSize.xs,
+          fontWeight: '600',
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          title: 'Scanare',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="magnify-scan" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="insight"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'BAT Insight',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="bulb-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="garage"
+        options={{
+          title: 'Garaj',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="garage" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Setări',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>
