@@ -19,6 +19,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { calculateRiskScore, RiskInput } from '../utils/riskEngine';
+import { deriveAssessmentType, deriveSourceTraceability } from '../utils/reportDerivations';
 import { PipelineLogger } from '../utils/pipelineLogger';
 import { AssessmentType, SourceTraceability } from '../../../types/firestore';
 
@@ -224,27 +225,15 @@ export const reportPipeline = functions
             const riskResult = calculateRiskScore(riskInput);
 
             // ── Step 4: Calculate Assessment and Traceability ──
-            let assessmentType: AssessmentType = 'risk_assessment';
-            if (hasLiveBatterySignals) {
-                assessmentType = 'battery_verified';
-            } else if (providerSuccessCount > 0) {
-                assessmentType = 'battery_estimated';
-            }
+            const derivationInput = {
+                hasNhtsaDecode: !nhtsaFailed,
+                hasRecallsData: recallsQuerySucceeded,
+                providerSuccessCount,
+                hasLiveBatterySignals,
+            };
 
-            const sourceTraceability: SourceTraceability[] = [];
-            if (!nhtsaFailed) {
-                sourceTraceability.push({ tag: 'nhtsa_decode', labelKey: 'report.sources.nhtsaDecode', contribution: 30, sourceType: 'official_public_data' });
-            }
-            if (recallsQuerySucceeded) {
-                sourceTraceability.push({ tag: 'nhtsa_recalls', labelKey: 'report.sources.nhtsaRecalls', contribution: 10, sourceType: 'official_public_data' });
-            }
-            if (providerSuccessCount > 0) {
-                const pContrib = Math.min(providerSuccessCount * 25, 50);
-                sourceTraceability.push({ tag: 'provider_history', labelKey: 'report.sources.providerHistory', contribution: pContrib, sourceType: 'partner_database' });
-            }
-            if (hasLiveBatterySignals) {
-                sourceTraceability.push({ tag: 'live_battery_telematics', labelKey: 'report.sources.liveBatteryTelematics', contribution: 10, sourceType: 'live_telemetry' });
-            }
+            const assessmentType = deriveAssessmentType(derivationInput);
+            const sourceTraceability = deriveSourceTraceability(derivationInput);
 
             // ── Step 5: Generate PDF ──
             await updateStatus(reportId, STATUS.GENERATING_PDF, logger);
