@@ -44,6 +44,14 @@
 - Pas 7 este independent (poate rula paralel cu Pas 4)
 - Pas 8 vine la final (depinde de toate celelalte)
 
+### Ordine de execuție recomandată
+```
+Pas 1 ✅ → Pas 2 ✅ → Pas 3 ✅ → Pas 7 ⬜ → Pas 4 ⬜ → Pas 5 ⬜ → Pas 6 ⬜ → Pas 8 ⬜
+```
+**De ce Pas 7 înainte de Pas 4:** Structured logging e esențial înainte de modificările
+complexe din pipeline (4→5→6). Fără correlation IDs și logging bun,
+debugging-ul Stripe + Firestore + report pipeline e mult mai dificil.
+
 ---
 
 ## User Actions Required
