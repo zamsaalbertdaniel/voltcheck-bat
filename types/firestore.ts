@@ -23,18 +23,24 @@ export interface UserDoc {
     photoURL?: string;                 // Avatar din Google/Apple Sign-In
 }
 
+// ─── Common Types ───
+export type ReportStatus = 'processing' | 'completed' | 'failed' | 'manual_review_needed';
+export type DataCoverageTag = 'nhtsa_decode' | 'nhtsa_recalls' | 'provider_history' | 'live_battery_telematics';
+export type AssessmentType = 'risk_assessment' | 'battery_estimated' | 'battery_verified';
+
+export interface ConfidenceBreakdown {
+    nhtsaDecode: number;
+    providers: number;
+    recalls: number;
+    liveBattery: number;
+}
+
 // ─── Vehicles Collection ───
 export interface VehicleDoc {
     vehicleId: string;                 // ID-ul documentului Firestore
     userId: string;                    // Owner-ul vehiculului
     pdfUrl?: string;                   // Public signed URL către PDF
     storagePath?: string;              // Calea internă gs://
-
-    // ── Faza 4 & 6 additions ──
-    confidence?: number;               // 0-100% (ex: 85)
-    dataCoverage?: DataCoverageTag[];  // ['nhtsa_decode', 'provider_history']
-    confidenceBreakdown?: ConfidenceBreakdown;
-    assessmentType?: 'risk_assessment' | 'battery_estimated' | 'battery_verified';
 
     // ── Faza 1 additions ──
     vin: string;
@@ -68,6 +74,12 @@ export interface ReportDoc {
     paymentId?: string;                // Legătura cu PaymentDoc
     pdfUrl?: string;                   // URL-ul PDF-ului generat
     sharedVia?: ('whatsapp' | 'email')[];  // Tracking share channels
+    
+    // ── Faza 4 & 5 additions ──
+    confidence?: number;               // 0-100% (ex: 85)
+    dataCoverage?: DataCoverageTag[];  // ['nhtsa_decode', 'provider_history']
+    confidenceBreakdown?: ConfidenceBreakdown;
+    assessmentType?: AssessmentType;
 }
 
 // ─── Level 1 Subcollection ───

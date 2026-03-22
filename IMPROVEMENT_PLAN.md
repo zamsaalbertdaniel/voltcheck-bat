@@ -1,7 +1,7 @@
 # VoltCheck — Master Improvement Plan
 # ⚡ ACEST FIȘIER ESTE SURSA DE ADEVĂR PENTRU PLANUL DE ÎMBUNĂTĂȚIRI
-# Actualizat: 2026-03-22T16:50:00+02:00
-# Status: APROBAT — Pas 1 ✅ Pas 2 ✅ Pas 3 ✅ Pas 7 ✅ Pas 4 ✅ | Următorul: Pas 5
+# Actualizat: 2026-03-22T17:05:00+02:00
+# Status: APROBAT — Pas 1 ✅ Pas 2 ✅ Pas 3 ✅ Pas 7 ✅ Pas 4 ✅ Pas 5 ✅ | Următorul: Pas 6
 
 ---
 
@@ -13,7 +13,7 @@
 | 2 | Mapping paymentId → reportId pe client | ✅ DONE | `cloudFunctions.ts`, `report/[id].tsx` |
 | 3 | Idempotență webhook Stripe | ✅ DONE | `handleStripeWebhook.ts` |
 | 4 | Confidence & Data Coverage în riskEngine | ✅ DONE | `riskEngine.ts`, `reportPipeline.ts` |
-| 5 | Assessment Type Labels | ⬜ NOT STARTED | `reportPipeline.ts`, `report/[id].tsx` |
+| 5 | Assessment Type Labels | ✅ DONE | `reportPipeline.ts`, `report/[id].tsx` |
 | 6 | Surse exacte în PDF și UI | ⬜ NOT STARTED | `reportPipeline.ts`, `report/[id].tsx` |
 | 7 | Structured Logging | ✅ DONE | `pipelineLogger.ts` (NEW), `reportPipeline.ts` |
 | 8 | Test Matrix | ⬜ NOT STARTED | `functions/src/__tests__/*.test.ts` (NEW) |
@@ -46,7 +46,7 @@
 
 ### Ordine de execuție recomandată
 ```
-Pas 1 ✅ → Pas 2 ✅ → Pas 3 ✅ → Pas 7 ✅ → Pas 4 ✅ → Pas 5 ⬜ → Pas 6 ⬜ → Pas 8 ⬜
+Pas 1 ✅ → Pas 2 ✅ → Pas 3 ✅ → Pas 7 ✅ → Pas 4 ✅ → Pas 5 ✅ → Pas 6 ⬜ → Pas 8 ⬜
 ```
 **De ce Pas 7 înainte de Pas 4:** Structured logging e esențial înainte de modificările
 complexe din pipeline (4→5→6). Fără correlation IDs și logging bun,

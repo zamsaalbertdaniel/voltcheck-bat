@@ -268,6 +268,13 @@ export const reportPipeline = functions
 
             // ── Step 6: Finalize ──
             const pipelineDuration = Date.now() - pipelineStart;
+            
+            let assessmentType = 'risk_assessment';
+            if (hasLiveBatterySignals) {
+                assessmentType = 'battery_verified';
+            } else if (providerSuccessCount > 0) {
+                assessmentType = 'battery_estimated';
+            }
 
             await db.collection('reports').doc(reportId).update({
                 status: 'completed',
@@ -280,6 +287,7 @@ export const reportPipeline = functions
                 confidence: riskResult.confidence,
                 dataCoverage: riskResult.dataCoverage,
                 confidenceBreakdown: riskResult.confidenceBreakdown,
+                assessmentType,
                 pdfUrl: downloadUrl,
                 storagePath: filePath,
                 expiresAt,

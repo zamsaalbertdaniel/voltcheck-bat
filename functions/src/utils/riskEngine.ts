@@ -7,6 +7,8 @@
  * authoritative source of truth for scoring.
  */
 
+import { DataCoverageTag, ConfidenceBreakdown } from '../../../types/firestore';
+
 export interface RiskInput {
     // Vehicle data
     make: string;
@@ -47,8 +49,8 @@ export interface RiskOutput {
     factors: RiskFactor[];
     recommendation: string;
     confidence: number;
-    dataCoverage: string[];
-    confidenceBreakdown: Record<string, number>;
+    dataCoverage: DataCoverageTag[];
+    confidenceBreakdown: ConfidenceBreakdown;
 }
 
 export interface RiskFactor {
@@ -76,8 +78,8 @@ export function calculateRiskScore(input: RiskInput): RiskOutput {
 
     // --- Confidence Calculation ---
     let confidence = 0;
-    const dataCoverage: string[] = [];
-    const confidenceBreakdown: Record<string, number> = {
+    const dataCoverage: DataCoverageTag[] = [];
+    const confidenceBreakdown: ConfidenceBreakdown = {
         nhtsaDecode: 0,
         providers: 0,
         recalls: 0,

@@ -48,6 +48,7 @@ const MOCK_REPORT = {
     expiresAt: '2027-02-10',
     // Level 1 data
     titleStatus: 'Clean',
+    assessmentType: 'risk_assessment',
     mileageKm: 45200,
     accidentCount: 0,
     ownerCount: 2,
@@ -211,6 +212,7 @@ export default function ReportScreen() {
                 cellBalanceStatus: data.cellBalanceStatus || 'Unknown',
                 riskFactors: data.riskFactors || [],
                 recommendation: data.recommendation || '',
+                assessmentType: data.assessmentType || 'risk_assessment',
                 pdfUrl: data.pdfUrl || null,
             });
             setScreenState('ready');
@@ -287,6 +289,15 @@ export default function ReportScreen() {
     const make = report.vehicleMeta?.make || '';
     const model = report.vehicleMeta?.model || '';
 
+    function getAssessmentBadge(type: string) {
+        switch (type) {
+            case 'battery_verified': return { label: 'Baterie Verificată 🔬', bg: '#0D2818', text: VoltColors.success };
+            case 'battery_estimated': return { label: 'Estimare Statistică 📊', bg: '#1A2332', text: VoltColors.warning };
+            default: return { label: 'Evaluare Istoric ℹ️', bg: '#1E293B', text: VoltColors.textSecondary };
+        }
+    }
+    const badge = getAssessmentBadge(report.assessmentType || 'risk_assessment');
+
     return (
         <ScrollView
             style={styles.container}
@@ -328,6 +339,12 @@ export default function ReportScreen() {
                     {t(`report.riskCategories.${riskCat}`)}
                 </Text>
                 <Text style={styles.riskTitle}>{t('report.riskScore')}</Text>
+
+                <View style={[styles.assessmentBadge, { backgroundColor: badge.bg }]}>
+                    <Text style={[styles.assessmentBadgeText, { color: badge.text }]}>
+                        {badge.label}
+                    </Text>
+                </View>
             </Animated.View>
 
             {/* Vehicle Info Card */}
@@ -798,6 +815,19 @@ const styles = StyleSheet.create({
     alertInfo: {
         flex: 1,
     },
+    
+    // Assessment Badge
+    assessmentBadge: {
+        marginTop: VoltSpacing.md,
+        paddingHorizontal: VoltSpacing.md,
+        paddingVertical: 6,
+        borderRadius: VoltBorderRadius.full,
+    },
+    assessmentBadgeText: {
+        fontSize: VoltFontSize.sm,
+        fontWeight: '600',
+    },
+
     alertLabel: {
         fontSize: VoltFontSize.sm,
         fontWeight: '600',
