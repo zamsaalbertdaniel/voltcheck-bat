@@ -7,7 +7,10 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 
-const db = admin.firestore();
+// Lazy init — db is accessed only inside functions, after initializeApp()
+function getDb() {
+    return admin.firestore();
+}
 
 interface RateLimitConfig {
     /** Max requests allowed in the window */
@@ -37,9 +40,9 @@ export async function checkRateLimit(
 ): Promise<void> {
     const cfg = { ...DEFAULT_CONFIG, ...config };
     const docId = `${endpoint}_${uid}`;
-    const ref = db.collection(cfg.collection!).doc(docId);
+    const ref = getDb().collection(cfg.collection!).doc(docId);
 
-    await db.runTransaction(async (tx) => {
+    await getDb().runTransaction(async (tx) => {
         const doc = await tx.get(ref);
         const now = Date.now();
         const windowMs = cfg.windowSeconds * 1000;

@@ -6,6 +6,12 @@
  *       → Firestore trigger in reportPipeline.ts handles the rest
  *
  * FAIL-SAFE: Failed payments are logged, report is NOT created
+ *
+ * IDEMPOTENCY (Pas 3):
+ *   - Pre-check: skip if payment already completed
+ *   - Transaction: atomic payment update + report creation
+ *   - Re-check inside transaction for race conditions
+ *   - Tracks stripeEventId + processedAt for debugging
  */
 
 import * as admin from 'firebase-admin';
@@ -50,13 +56,13 @@ export const handleStripeWebhook = functions.https.onRequest(
             return;
         }
 
-        functions.logger.info(`[Webhook] Event: ${event.type}`);
+        functions.logger.info(`[Webhook] Event: ${event.type} (id: ${event.id})`);
 
         try {
             switch (event.type) {
                 case 'payment_intent.succeeded': {
                     const paymentIntent = event.data.object as Stripe.PaymentIntent;
-                    await handlePaymentSuccess(paymentIntent);
+                    await handlePaymentSuccess(paymentIntent, event.id);
                     break;
                 }
 
@@ -79,25 +85,31 @@ export const handleStripeWebhook = functions.https.onRequest(
 );
 
 /**
- * Payment succeeded → Full report doc creation → Triggers reportPipeline
+ * Payment succeeded → Idempotent report creation via Firestore transaction
+ *
+ * Protection layers:
+ *   1. Pre-check: read payment doc, skip if already completed (fast path)
+ *   2. Transaction re-check: prevents race conditions from concurrent webhooks
+ *   3. Atomic write: payment update + report creation in single transaction
  */
-async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeEventId: string) {
     const { userId, vin, level, vehicleMake, vehicleModel, vehicleId } = paymentIntent.metadata;
+    const paymentRef = db.collection('payments').doc(paymentIntent.id);
+
+    // ── Layer 1: Pre-check (fast path, avoids transaction overhead) ──
+    const existingPayment = await paymentRef.get();
+    if (existingPayment.exists && existingPayment.data()?.status === 'completed') {
+        functions.logger.warn(
+            `[Webhook] Idempotent skip — ${paymentIntent.id} already completed ` +
+            `(event: ${stripeEventId})`
+        );
+        return;
+    }
 
     functions.logger.info(
         `[Payment ✅] User:${userId} VIN:${vin} Level:${level} Amount:${paymentIntent.amount}`
     );
 
-    // 1. Update payment doc
-    await db.collection('payments').doc(paymentIntent.id).update({
-        status: 'completed',
-        completedAt: admin.firestore.FieldValue.serverTimestamp(),
-        receiptUrl: paymentIntent.latest_charge
-            ? `https://dashboard.stripe.com/payments/${paymentIntent.latest_charge}`
-            : null,
-    });
-
-    // 2. Create complete report doc — this triggers reportPipeline via Firestore onCreate
     const parsedLevel = parseInt(level) as 1 | 2;
     const ttlDays = parsedLevel === 1 ? 30 : 365;
     const expiresAt = new Date();
@@ -105,35 +117,65 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
 
     const reportId = `rpt_${Date.now()}_${userId.slice(0, 6)}`;
 
-    await db.collection('reports').doc(reportId).set({
-        // Core
-        userId,
-        vin,
-        level: parsedLevel,
-        vehicleId: vehicleId || null,
+    // ── Layer 2 & 3: Atomic transaction with race condition re-check ──
+    await db.runTransaction(async (tx) => {
+        // Re-check inside transaction (handles concurrent webhook deliveries)
+        const freshPayment = await tx.get(paymentRef);
+        if (freshPayment.exists && freshPayment.data()?.status === 'completed') {
+            functions.logger.warn(
+                `[Webhook] Idempotent skip (in-tx) — ${paymentIntent.id} ` +
+                `(event: ${stripeEventId})`
+            );
+            return;
+        }
 
-        // Status — triggers reportPipeline.ts
-        status: 'processing',
-        statusDetails: 'payment_confirmed',
+        // Update payment doc → completed + reportId + event tracking
+        tx.update(paymentRef, {
+            status: 'completed',
+            completedAt: admin.firestore.FieldValue.serverTimestamp(),
+            reportId,
+            stripeEventId,
+            processedAt: admin.firestore.FieldValue.serverTimestamp(),
+            receiptUrl: paymentIntent.latest_charge
+                ? `https://dashboard.stripe.com/payments/${paymentIntent.latest_charge}`
+                : null,
+        });
 
-        // Payment link
-        paymentId: paymentIntent.id,
+        // Create report doc — triggers reportPipeline via Firestore onCreate
+        const reportRef = db.collection('reports').doc(reportId);
+        tx.set(reportRef, {
+            // Core
+            userId,
+            vin,
+            level: parsedLevel,
+            vehicleId: vehicleId || null,
 
-        // TTL
-        expiresAt,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            // Status — triggers reportPipeline.ts
+            status: 'processing',
+            statusDetails: 'payment_confirmed',
 
-        // Vehicle context (from payment metadata)
-        vehicleMeta: {
-            make: vehicleMake || null,
-            model: vehicleModel || null,
-        },
+            // Payment link
+            paymentId: paymentIntent.id,
 
-        // Share tracking (empty initially)
-        sharedVia: [],
+            // TTL
+            expiresAt,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+
+            // Vehicle context (from payment metadata)
+            vehicleMeta: {
+                make: vehicleMake || null,
+                model: vehicleModel || null,
+            },
+
+            // Share tracking (empty initially)
+            sharedVia: [],
+        });
     });
 
-    functions.logger.info(`[Payment → Pipeline] Report ${reportId} created → pipeline will trigger`);
+    functions.logger.info(
+        `[Payment → Pipeline] Report ${reportId} created (atomic) → pipeline will trigger ` +
+        `(event: ${stripeEventId})`
+    );
 }
 
 /**

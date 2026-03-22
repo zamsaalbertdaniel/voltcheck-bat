@@ -16,7 +16,7 @@ import { getFirebaseServices } from './firebase';
 // ═══════════════════════════════════════════
 
 /** Toggle mock mode for testing without Cloud Functions */
-const USE_MOCK_DATA = true;
+export const USE_MOCK_DATA = process.env.EXPO_PUBLIC_USE_MOCK_DATA === 'true';
 
 const FUNCTIONS_REGION = process.env.EXPO_PUBLIC_FUNCTIONS_REGION || 'europe-west1';
 
@@ -58,6 +58,12 @@ export interface ReportStatus {
     riskScore?: number;
     riskCategory?: string;
     pdfUrl?: string;
+    failureReason?: string;
+}
+
+export interface PaymentStatusUpdate {
+    paymentStatus: 'pending' | 'completed' | 'failed';
+    reportId?: string;
     failureReason?: string;
 }
 
@@ -223,6 +229,81 @@ export function subscribeToReportStatus(
                                 riskCategory: data.riskCategory,
                                 pdfUrl: data.pdfUrl,
                                 failureReason: data.failureReason,
+                            });
+                        }
+                    }, (err: Error) => {
+                        onError?.(err);
+                    });
+            }
+        } catch (err: any) {
+            onError?.(err);
+        }
+    })();
+
+    return () => {
+        if (unsubscribe) unsubscribe();
+    };
+}
+
+/**
+ * Subscribe to payment status to discover the reportId
+ * The webhook creates the report and saves reportId on the payment doc.
+ * This function listens for that update and returns the reportId.
+ */
+export function subscribeToPaymentStatus(
+    paymentIntentId: string,
+    onUpdate: (update: PaymentStatusUpdate) => void,
+    onError?: (error: Error) => void
+): () => void {
+    if (USE_MOCK_DATA) {
+        let cancelled = false;
+        // Simulate: payment processing → completed with mock reportId
+        setTimeout(() => {
+            if (!cancelled) {
+                onUpdate({
+                    paymentStatus: 'completed',
+                    reportId: 'demo_report_001',
+                });
+            }
+        }, 1500);
+        return () => { cancelled = true; };
+    }
+
+    // Real Firestore listener on payments/{paymentIntentId}
+    let unsubscribe: (() => void) | null = null;
+
+    (async () => {
+        try {
+            const { db } = await getFirebaseServices();
+
+            if (Platform.OS === 'web') {
+                const { doc, onSnapshot } = await import('firebase/firestore');
+                const paymentRef = doc(db, 'payments', paymentIntentId);
+                unsubscribe = onSnapshot(paymentRef, (snap: any) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        onUpdate({
+                            paymentStatus: data.status || 'pending',
+                            reportId: data.reportId || undefined,
+                            failureReason: data.failureReason || undefined,
+                        });
+                    }
+                }, (err: Error) => {
+                    onError?.(err);
+                });
+            } else {
+                // @react-native-firebase
+                const rnFirestore = await import('@react-native-firebase/firestore');
+                unsubscribe = rnFirestore.default()
+                    .collection('payments')
+                    .doc(paymentIntentId)
+                    .onSnapshot((snap: any) => {
+                        if (snap.exists) {
+                            const data = snap.data();
+                            onUpdate({
+                                paymentStatus: data.status || 'pending',
+                                reportId: data.reportId || undefined,
+                                failureReason: data.failureReason || undefined,
                             });
                         }
                     }, (err: Error) => {

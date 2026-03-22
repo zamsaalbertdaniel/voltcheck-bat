@@ -38,7 +38,11 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      ["@stripe/stripe-react-native", {
+        "merchantIdentifier": "merchant.com.voltcheck.app",
+        "enableGooglePay": true
+      }]
     ],
     "experiments": {
       "typedRoutes": true

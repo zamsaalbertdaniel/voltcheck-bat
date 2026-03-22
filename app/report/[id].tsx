@@ -1,6 +1,8 @@
 /**
  * VoltCheck — Report Detail Screen
  * Full report view: risk score gauge, vehicle info, alerts, battery data
+ *
+ * Pas 2: Real Firestore fetch + loading/error states
  */
 
 import {
@@ -12,11 +14,13 @@ import {
     getRiskCategory,
     getRiskColor,
 } from '@/constants/Theme';
+import { subscribeToReportStatus, USE_MOCK_DATA } from '@/services/cloudFunctions';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    ActivityIndicator,
     Animated,
     ScrollView,
     StyleSheet,
@@ -25,18 +29,21 @@ import {
     View,
 } from 'react-native';
 
-// Mock report for demo
+// ═══════════════════════════════════════════
+// MOCK DATA (used only when USE_MOCK_DATA is true)
+// ═══════════════════════════════════════════
 const MOCK_REPORT = {
     reportId: 'rpt_001',
     vin: '5YJ3E1EA1NF123456',
-    make: 'Tesla',
-    model: 'Model 3 Long Range',
+    vehicleMeta: { make: 'Tesla', model: 'Model 3 Long Range' },
     year: 2022,
     market: 'US',
     batteryType: 'NCA',
     level: 2,
     riskScore: 32,
     riskCategory: 'MEDIUM' as const,
+    status: 'completed' as const,
+    statusDetails: 'completed',
     createdAt: '2026-02-10',
     expiresAt: '2027-02-10',
     // Level 1 data
@@ -46,10 +53,10 @@ const MOCK_REPORT = {
     ownerCount: 2,
     recallCount: 1,
     mileageDiscrepancy: false,
+    nominalCapacityKwh: 82,
     // Level 2 data
     stateOfHealth: 91.4,
     usableCapacityKwh: 72.8,
-    nominalCapacityKwh: 82,
     cycleCount: 380,
     dcChargingRatio: 0.35,
     acChargingRatio: 0.65,
@@ -80,33 +87,198 @@ const MOCK_REPORT = {
     ],
     recommendation:
         'Stare acceptabilă cu observații. Verificați condițiile de garanție și istoricul service.',
+    pdfUrl: null as string | null,
 };
+
+type ReportData = typeof MOCK_REPORT;
+type ScreenState = 'loading' | 'processing' | 'ready' | 'error';
 
 export default function ReportScreen() {
     const { t } = useTranslation();
-    const { id } = useLocalSearchParams();
-    const report = MOCK_REPORT; // TODO: fetch from Firestore
+    const { id } = useLocalSearchParams<{ id: string }>();
+    const [screenState, setScreenState] = useState<ScreenState>('loading');
+    const [report, setReport] = useState<ReportData | null>(null);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [pipelineStep, setPipelineStep] = useState('');
 
     const gaugeAnim = useRef(new Animated.Value(0)).current;
     const fadeIn = useRef(new Animated.Value(0)).current;
 
+    // ═══════════════════════════════════════════
+    // DATA FETCHING
+    // ═══════════════════════════════════════════
     useEffect(() => {
-        Animated.parallel([
-            Animated.timing(gaugeAnim, {
-                toValue: report.riskScore / 100,
-                duration: 1500,
-                useNativeDriver: false,
-            }),
-            Animated.timing(fadeIn, {
-                toValue: 1,
-                duration: 800,
-                useNativeDriver: true,
-            }),
-        ]).start();
-    }, []);
+        if (!id) {
+            setScreenState('error');
+            setErrorMessage('ID raport lipsă');
+            return;
+        }
 
+        // Mock mode: use static data
+        if (USE_MOCK_DATA) {
+            setReport({ ...MOCK_REPORT, reportId: id });
+            setScreenState('ready');
+            return;
+        }
+
+        // Real mode: subscribe to Firestore report doc
+        const unsubscribe = subscribeToReportStatus(
+            id,
+            (status) => {
+                if (status.status === 'completed') {
+                    // Report is ready — fetch full document from Firestore
+                    fetchReportDoc(id);
+                } else if (status.status === 'failed') {
+                    setScreenState('error');
+                    setErrorMessage(status.failureReason || 'Generarea raportului a eșuat');
+                } else {
+                    // Still processing
+                    setScreenState('processing');
+                    setPipelineStep(getStatusLabel(status.statusDetails));
+                }
+            },
+            (err) => {
+                setScreenState('error');
+                setErrorMessage(err.message || 'Eroare la încărcarea raportului');
+            }
+        );
+
+        return () => unsubscribe();
+    }, [id]);
+
+    // Fetch the full report document from Firestore
+    async function fetchReportDoc(reportId: string) {
+        try {
+            const { Platform } = await import('react-native');
+            const { getFirebaseServices } = await import('@/services/firebase');
+            const { db } = await getFirebaseServices();
+
+            let data: any;
+
+            if (Platform.OS === 'web') {
+                const { doc, getDoc } = await import('firebase/firestore');
+                const snap = await getDoc(doc(db, 'reports', reportId));
+                if (!snap.exists()) {
+                    throw new Error('Raportul nu a fost găsit');
+                }
+                data = snap.data();
+            } else {
+                const rnFirestore = await import('@react-native-firebase/firestore');
+                const snap = await rnFirestore.default()
+                    .collection('reports')
+                    .doc(reportId)
+                    .get();
+                if (!snap.exists) {
+                    throw new Error('Raportul nu a fost găsit');
+                }
+                data = snap.data();
+            }
+
+            // Map Firestore data to report shape
+            setReport({
+                reportId: data.reportId || reportId,
+                vin: data.vin || '',
+                vehicleMeta: data.vehicleMeta || { make: '', model: '' },
+                year: data.vehicleMeta?.year || new Date().getFullYear(),
+                market: data.market || 'EU',
+                batteryType: data.batteryType || 'Unknown',
+                level: data.level || 1,
+                riskScore: data.riskScore || 0,
+                riskCategory: data.riskCategory || 'LOW',
+                status: data.status,
+                statusDetails: data.statusDetails || '',
+                createdAt: data.createdAt?.toDate?.()?.toISOString?.()?.split('T')[0] || '',
+                expiresAt: data.expiresAt?.toDate?.()?.toISOString?.()?.split('T')[0] || '',
+                titleStatus: data.titleStatus || 'Unknown',
+                mileageKm: data.mileageKm || 0,
+                accidentCount: data.accidentCount || 0,
+                ownerCount: data.ownerCount || 0,
+                recallCount: data.recallCount || 0,
+                mileageDiscrepancy: data.mileageDiscrepancy || false,
+                nominalCapacityKwh: data.nominalCapacityKwh || 0,
+                stateOfHealth: data.stateOfHealth || 0,
+                usableCapacityKwh: data.usableCapacityKwh || 0,
+                cycleCount: data.cycleCount || 0,
+                dcChargingRatio: data.dcChargingRatio || 0,
+                acChargingRatio: data.acChargingRatio || 0,
+                cellBalanceStatus: data.cellBalanceStatus || 'Unknown',
+                riskFactors: data.riskFactors || [],
+                recommendation: data.recommendation || '',
+                pdfUrl: data.pdfUrl || null,
+            });
+            setScreenState('ready');
+        } catch (err: any) {
+            setScreenState('error');
+            setErrorMessage(err.message || 'Eroare la încărcarea raportului');
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // ANIMATIONS (when report is ready)
+    // ═══════════════════════════════════════════
+    useEffect(() => {
+        if (screenState === 'ready' && report) {
+            Animated.parallel([
+                Animated.timing(gaugeAnim, {
+                    toValue: report.riskScore / 100,
+                    duration: 1500,
+                    useNativeDriver: false,
+                }),
+                Animated.timing(fadeIn, {
+                    toValue: 1,
+                    duration: 800,
+                    useNativeDriver: true,
+                }),
+            ]).start();
+        }
+    }, [screenState, report]);
+
+    // ═══════════════════════════════════════════
+    // LOADING STATE
+    // ═══════════════════════════════════════════
+    if (screenState === 'loading') {
+        return (
+            <View style={styles.centeredContainer}>
+                <ActivityIndicator size="large" color={VoltColors.neonGreen} />
+                <Text style={styles.loadingText}>Se încarcă raportul...</Text>
+            </View>
+        );
+    }
+
+    // ═══════════════════════════════════════════
+    // PROCESSING STATE (pipeline running)
+    // ═══════════════════════════════════════════
+    if (screenState === 'processing') {
+        return (
+            <View style={styles.centeredContainer}>
+                <ActivityIndicator size="large" color={VoltColors.neonGreen} />
+                <Text style={styles.processingTitle}>Se generează raportul</Text>
+                <Text style={styles.processingStep}>{pipelineStep}</Text>
+                <Text style={styles.processingHint}>Durează ~30 secunde</Text>
+            </View>
+        );
+    }
+
+    // ═══════════════════════════════════════════
+    // ERROR STATE
+    // ═══════════════════════════════════════════
+    if (screenState === 'error' || !report) {
+        return (
+            <View style={styles.centeredContainer}>
+                <Ionicons name="alert-circle" size={64} color={VoltColors.error} />
+                <Text style={styles.errorTitle}>Eroare</Text>
+                <Text style={styles.errorMessage}>{errorMessage || 'Raportul nu a putut fi încărcat'}</Text>
+            </View>
+        );
+    }
+
+    // ═══════════════════════════════════════════
+    // REPORT READY — FULL UI
+    // ═══════════════════════════════════════════
     const riskColor = getRiskColor(report.riskScore);
     const riskCat = getRiskCategory(report.riskScore);
+    const make = report.vehicleMeta?.make || '';
+    const model = report.vehicleMeta?.model || '';
 
     return (
         <ScrollView
@@ -114,6 +286,13 @@ export default function ReportScreen() {
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
         >
+            {/* Demo Mode Banner */}
+            {USE_MOCK_DATA && (
+                <View style={styles.demoBanner}>
+                    <Text style={styles.demoBannerText}>🧪 Date Demo</Text>
+                </View>
+            )}
+
             {/* Risk Score Hero */}
             <Animated.View style={[styles.heroSection, { opacity: fadeIn }]}>
                 <View style={styles.gaugeContainer}>
@@ -151,7 +330,7 @@ export default function ReportScreen() {
                     <Text style={styles.cardTitle}>{t('report.sections.vehicleInfo')}</Text>
                 </View>
                 <View style={styles.infoGrid}>
-                    <InfoRow label="Producător" value={`${report.make} ${report.model}`} />
+                    <InfoRow label="Producător" value={`${make} ${model}`} />
                     <InfoRow label="An" value={report.year.toString()} />
                     <InfoRow label="Piață" value={report.market} />
                     <InfoRow label="Baterie" value={`${report.batteryType} • ${report.nominalCapacityKwh} kWh`} />
@@ -221,46 +400,50 @@ export default function ReportScreen() {
             )}
 
             {/* Detected Alerts Card */}
-            <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                    <Ionicons name="warning" size={22} color={VoltColors.warning} />
-                    <Text style={styles.cardTitle}>{t('report.sections.alerts')}</Text>
-                    <View style={styles.alertCount}>
-                        <Text style={styles.alertCountText}>{report.riskFactors.length}</Text>
+            {report.riskFactors.length > 0 && (
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="warning" size={22} color={VoltColors.warning} />
+                        <Text style={styles.cardTitle}>{t('report.sections.alerts')}</Text>
+                        <View style={styles.alertCount}>
+                            <Text style={styles.alertCountText}>{report.riskFactors.length}</Text>
+                        </View>
                     </View>
-                </View>
 
-                {report.riskFactors.map((factor, index) => (
-                    <View key={factor.id} style={[
-                        styles.alertItem,
-                        index === report.riskFactors.length - 1 && styles.alertItemLast,
-                    ]}>
-                        <View style={[styles.alertDot, {
-                            backgroundColor:
-                                factor.severity === 'critical' ? VoltColors.error :
-                                    factor.severity === 'high' ? VoltColors.riskHigh :
-                                        factor.severity === 'medium' ? VoltColors.warning :
-                                            VoltColors.success,
-                        }]} />
-                        <View style={styles.alertInfo}>
-                            <Text style={styles.alertLabel}>{factor.label}</Text>
-                            <Text style={styles.alertDesc}>{factor.description}</Text>
+                    {report.riskFactors.map((factor: any, index: number) => (
+                        <View key={factor.id} style={[
+                            styles.alertItem,
+                            index === report.riskFactors.length - 1 && styles.alertItemLast,
+                        ]}>
+                            <View style={[styles.alertDot, {
+                                backgroundColor:
+                                    factor.severity === 'critical' ? VoltColors.error :
+                                        factor.severity === 'high' ? VoltColors.riskHigh :
+                                            factor.severity === 'medium' ? VoltColors.warning :
+                                                VoltColors.success,
+                            }]} />
+                            <View style={styles.alertInfo}>
+                                <Text style={styles.alertLabel}>{factor.label}</Text>
+                                <Text style={styles.alertDesc}>{factor.description}</Text>
+                            </View>
+                            <View style={styles.alertWeight}>
+                                <Text style={styles.alertWeightText}>+{factor.weight}</Text>
+                            </View>
                         </View>
-                        <View style={styles.alertWeight}>
-                            <Text style={styles.alertWeightText}>+{factor.weight}</Text>
-                        </View>
-                    </View>
-                ))}
-            </View>
+                    ))}
+                </View>
+            )}
 
             {/* Recommendation Card */}
-            <View style={[styles.card, styles.recommendationCard]}>
-                <View style={styles.cardHeader}>
-                    <Ionicons name="bulb" size={22} color={VoltColors.neonGreen} />
-                    <Text style={styles.cardTitle}>{t('report.sections.recommendation')}</Text>
+            {report.recommendation && (
+                <View style={[styles.card, styles.recommendationCard]}>
+                    <View style={styles.cardHeader}>
+                        <Ionicons name="bulb" size={22} color={VoltColors.neonGreen} />
+                        <Text style={styles.cardTitle}>{t('report.sections.recommendation')}</Text>
+                    </View>
+                    <Text style={styles.recommendationText}>{report.recommendation}</Text>
                 </View>
-                <Text style={styles.recommendationText}>{report.recommendation}</Text>
-            </View>
+            )}
 
             {/* Action Buttons */}
             <View style={styles.actionsRow}>
@@ -283,6 +466,10 @@ export default function ReportScreen() {
         </ScrollView>
     );
 }
+
+// ═══════════════════════════════════════════
+// SUB-COMPONENTS
+// ═══════════════════════════════════════════
 
 function InfoRow({ label, value, valueColor }: {
     label: string;
@@ -315,6 +502,27 @@ function BatteryMetric({ icon, label, value, subValue }: {
     );
 }
 
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+
+function getStatusLabel(statusDetails: string): string {
+    const labels: Record<string, string> = {
+        payment_confirmed: 'Plată confirmată',
+        decoding_vin: 'Se decodifică VIN-ul...',
+        searching_eu_databases: 'Se caută în bazele de date EU...',
+        searching_global_databases: 'Se caută în bazele de date globale...',
+        calculating_risk_score: 'Se calculează scorul de risc...',
+        generating_pdf: 'Se generează PDF-ul...',
+        uploading_report: 'Se finalizează raportul...',
+    };
+    return labels[statusDetails] || 'Se procesează...';
+}
+
+// ═══════════════════════════════════════════
+// STYLES
+// ═══════════════════════════════════════════
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -324,6 +532,61 @@ const styles = StyleSheet.create({
         paddingHorizontal: VoltSpacing.lg,
         paddingTop: VoltSpacing.lg,
         paddingBottom: VoltSpacing.xxxl,
+    },
+
+    // Centered states (loading, processing, error)
+    centeredContainer: {
+        flex: 1,
+        backgroundColor: VoltColors.bgPrimary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: VoltSpacing.xl,
+        gap: VoltSpacing.md,
+    },
+    loadingText: {
+        fontSize: VoltFontSize.md,
+        color: VoltColors.textSecondary,
+    },
+    processingTitle: {
+        fontSize: VoltFontSize.xl,
+        fontWeight: '700',
+        color: VoltColors.textPrimary,
+    },
+    processingStep: {
+        fontSize: VoltFontSize.md,
+        color: VoltColors.neonGreen,
+        textAlign: 'center',
+    },
+    processingHint: {
+        fontSize: VoltFontSize.sm,
+        color: VoltColors.textTertiary,
+        fontStyle: 'italic',
+    },
+    errorTitle: {
+        fontSize: VoltFontSize.xl,
+        fontWeight: '700',
+        color: VoltColors.error,
+    },
+    errorMessage: {
+        fontSize: VoltFontSize.md,
+        color: VoltColors.textSecondary,
+        textAlign: 'center',
+    },
+
+    // Demo banner
+    demoBanner: {
+        backgroundColor: 'rgba(255, 179, 0, 0.15)',
+        borderWidth: 1,
+        borderColor: 'rgba(255, 179, 0, 0.3)',
+        borderRadius: VoltBorderRadius.md,
+        padding: VoltSpacing.sm,
+        marginBottom: VoltSpacing.md,
+        alignItems: 'center',
+    },
+    demoBannerText: {
+        fontSize: VoltFontSize.sm,
+        fontWeight: '700',
+        color: VoltColors.warning,
     },
 
     // Hero

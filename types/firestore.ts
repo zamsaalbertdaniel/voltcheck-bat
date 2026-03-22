@@ -133,6 +133,10 @@ export interface PaymentDoc {
     // ── Faza 1 additions ──
     expiresAt: Timestamp;              // TTL sincronizat cu raportul
     receiptUrl?: string;               // Link către receipt Stripe
+    // ── Pas 3: Idempotency tracking ──
+    stripeEventId?: string;            // Stripe event ID — tracks which webhook processed this
+    processedAt?: Timestamp;           // Când a fost procesat webhook-ul cu succes
+    completedAt?: Timestamp;           // Când a fost completată plata
 }
 
 // ─── Report Deliveries Collection ───
