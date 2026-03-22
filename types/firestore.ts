@@ -27,6 +27,16 @@ export interface UserDoc {
 export interface VehicleDoc {
     vehicleId: string;                 // ID-ul documentului Firestore
     userId: string;                    // Owner-ul vehiculului
+    pdfUrl?: string;                   // Public signed URL către PDF
+    storagePath?: string;              // Calea internă gs://
+
+    // ── Faza 4 & 6 additions ──
+    confidence?: number;               // 0-100% (ex: 85)
+    dataCoverage?: DataCoverageTag[];  // ['nhtsa_decode', 'provider_history']
+    confidenceBreakdown?: ConfidenceBreakdown;
+    assessmentType?: 'risk_assessment' | 'battery_estimated' | 'battery_verified';
+
+    // ── Faza 1 additions ──
     vin: string;
     make: string;
     model: string;
@@ -48,7 +58,7 @@ export interface ReportDoc {
     userId: string;
     vehicleId: string;                 // Legătura cu VehicleDoc
     level: 1 | 2;
-    status: 'pending_payment' | 'processing' | 'completed' | 'failed' | 'expired';
+    status: ReportStatus;
     riskScore: number;
     riskCategory: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
     discrepancyAlerts: string[];

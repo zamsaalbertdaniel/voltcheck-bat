@@ -133,8 +133,10 @@ export const reportPipeline = functions
             await updateStatus(reportId, STATUS.SEARCHING_EU, logger);
 
             let recalls: any[] = [];
+            let recallsQuerySucceeded = false;
             try {
                 recalls = await fetchNHTSARecalls(vin);
+                recallsQuerySucceeded = true;
             } catch (err: any) {
                 logger.error('nhtsa_recalls', err);
             }
@@ -169,6 +171,16 @@ export const reportPipeline = functions
             // ── Step 3: Calculate AI Risk Score ──
             await updateStatus(reportId, STATUS.CALCULATING_RISK, logger);
 
+            // Determine data success/coverage flags
+            let providerSuccessCount = 0;
+            let hasLiveBatterySignals = false;
+
+            if (providerData && Array.isArray(providerData)) {
+                // If a provider returned success or has valid data
+                providerSuccessCount = providerData.filter(p => p.success !== false).length;
+                hasLiveBatterySignals = providerData.some(p => p.data?.stateOfHealth !== undefined || p.data?.cellBalanceStatus !== undefined);
+            }
+
             const vehicle = {
                 make: nhtsaResult?.Make || 'Unknown',
                 model: nhtsaResult?.Model || 'Unknown',
@@ -190,6 +202,12 @@ export const reportPipeline = functions
                 titleStatus: 'Clean',
                 mileageDiscrepancy: false,
                 recallCount: recalls.length,
+
+                // Metadata for Confidence Calculation
+                hasNhtsaDecode: !nhtsaFailed,
+                hasRecallsData: recallsQuerySucceeded,
+                providerSuccessCount,
+                hasLiveBatterySignals,
             };
 
             // Enrich from provider data if available
@@ -259,6 +277,9 @@ export const reportPipeline = functions
                 discrepancyAlerts: riskResult.factors
                     .filter(f => f.severity === 'critical' || f.severity === 'high')
                     .map(f => f.label),
+                confidence: riskResult.confidence,
+                dataCoverage: riskResult.dataCoverage,
+                confidenceBreakdown: riskResult.confidenceBreakdown,
                 pdfUrl: downloadUrl,
                 storagePath: filePath,
                 expiresAt,

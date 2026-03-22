@@ -33,6 +33,12 @@ export interface RiskInput {
 
     // Climate / region
     averageAnnualTempC?: number;
+
+    // Metadata for Confidence Calculation
+    hasNhtsaDecode: boolean;
+    hasRecallsData: boolean;
+    providerSuccessCount: number;
+    hasLiveBatterySignals: boolean;
 }
 
 export interface RiskOutput {
@@ -40,6 +46,9 @@ export interface RiskOutput {
     category: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
     factors: RiskFactor[];
     recommendation: string;
+    confidence: number;
+    dataCoverage: string[];
+    confidenceBreakdown: Record<string, number>;
 }
 
 export interface RiskFactor {
@@ -64,6 +73,42 @@ export function calculateRiskScore(input: RiskInput): RiskOutput {
     const factors: RiskFactor[] = [];
     let totalWeight = 0;
     const vehicleAge = new Date().getFullYear() - input.year;
+
+    // --- Confidence Calculation ---
+    let confidence = 0;
+    const dataCoverage: string[] = [];
+    const confidenceBreakdown: Record<string, number> = {
+        nhtsaDecode: 0,
+        providers: 0,
+        recalls: 0,
+        liveBattery: 0
+    };
+
+    if (input.hasNhtsaDecode) {
+        confidence += 30;
+        confidenceBreakdown.nhtsaDecode = 30;
+        dataCoverage.push('nhtsa_decode');
+    }
+
+    if (input.hasRecallsData) {
+        confidence += 10;
+        confidenceBreakdown.recalls = 10;
+        dataCoverage.push('nhtsa_recalls');
+    }
+
+    if (input.providerSuccessCount > 0) {
+        const provConf = Math.min(input.providerSuccessCount * 25, 50);
+        confidence += provConf;
+        confidenceBreakdown.providers = provConf;
+        dataCoverage.push('provider_history');
+    }
+
+    if (input.hasLiveBatterySignals) {
+        confidence += 10;
+        confidenceBreakdown.liveBattery = 10;
+        dataCoverage.push('live_battery_telematics');
+    }
+    // ------------------------------
 
     // Factor 1: Title Status
     if (input.titleStatus === 'Salvage' || input.titleStatus === 'Flood') {
@@ -247,7 +292,15 @@ export function calculateRiskScore(input: RiskInput): RiskOutput {
 
     factors.sort((a, b) => b.weight - a.weight);
 
-    return { score: finalScore, category, factors, recommendation };
+    return { 
+        score: finalScore, 
+        category, 
+        factors, 
+        recommendation, 
+        confidence, 
+        dataCoverage, 
+        confidenceBreakdown 
+    };
 }
 
 function generateRecommendation(
