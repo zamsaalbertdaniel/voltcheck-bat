@@ -87,6 +87,12 @@
             "providerHistory": "Partner History Databases",
             "liveBatteryTelematics": "Live Telemetry Diagnosis"
         },
+        "sourceTypes": {
+          "official_public_data": "official",
+          "partner_database": "partner",
+          "live_telemetry": "live"
+        },
+        "assessmentTypeLabel": "Assessment Type",
         "dataTrust": "Data Confidence",
         "completeness": "Completeness and source quality",
         "battery": {

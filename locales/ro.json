@@ -87,6 +87,12 @@
       "providerHistory": "Baze de Date Istoric Partenere",
       "liveBatteryTelematics": "Diagnoză Live Telemetrie"
     },
+    "sourceTypes": {
+      "official_public_data": "oficial",
+      "partner_database": "partener",
+      "live_telemetry": "live"
+    },
+    "assessmentTypeLabel": "Tip Evaluare",
     "dataTrust": "Încredere Date",
     "completeness": "Completitudine și calitatea surselor",
     "battery": {

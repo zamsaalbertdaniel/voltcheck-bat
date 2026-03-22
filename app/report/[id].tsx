@@ -488,14 +488,35 @@ export default function ReportScreen() {
                     </View>
 
                     <View style={styles.confidenceRow}>
-                        <Text style={styles.confidenceLabel}>{t('report.completeness')}:</Text>
-                        <Text style={styles.confidenceValue}>{report.confidence} / 100</Text>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.confidenceLabel}>{t('report.assessmentTypeLabel')}:</Text>
+                        </View>
+                        <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                            <Text style={styles.confidenceLabel}>{t('report.completeness')}:</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.confidenceRow, { paddingTop: 0, marginTop: -VoltSpacing.md }]}>
+                        <View style={{ flex: 1 }}>
+                            <View style={[styles.assessmentBadge, { backgroundColor: badge.bg, marginTop: 4, alignSelf: 'flex-start' }]}>
+                                <Text style={[styles.assessmentBadgeText, { color: badge.text }]}>
+                                    {badge.label}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={{ flex: 1, alignItems: 'flex-end', justifyContent: 'center' }}>
+                            <Text style={styles.confidenceValue}>{report.confidence} / 100</Text>
+                        </View>
                     </View>
                     
                     <View style={styles.traceGrid}>
                         {report.sourceTraceability.map((src: any) => (
                             <View key={src.tag} style={styles.traceChip}>
-                                <Text style={styles.traceLabel}>{t(src.labelKey)}</Text>
+                                <View style={styles.traceInfo}>
+                                    <Text style={styles.traceLabel}>{t(src.labelKey)}</Text>
+                                    <View style={styles.sourceTypeBadge}>
+                                        <Text style={styles.sourceTypeText}>{t(`report.sourceTypes.${src.sourceType}`)}</Text>
+                                    </View>
+                                </View>
                                 <Text style={styles.traceContrib}>+{src.contribution}</Text>
                             </View>
                         ))}
@@ -926,10 +947,26 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#1E293B',
     },
+    traceInfo: {
+        flex: 1,
+        gap: 6,
+    },
+    sourceTypeBadge: {
+        backgroundColor: '#1E293B',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: VoltBorderRadius.sm,
+    },
+    sourceTypeText: {
+        fontSize: 10,
+        color: VoltColors.textTertiary,
+        textTransform: 'uppercase',
+        fontWeight: '700',
+    },
     traceLabel: {
         fontSize: VoltFontSize.sm,
         color: VoltColors.textPrimary,
-        flex: 1,
     },
     traceContrib: {
         fontSize: VoltFontSize.sm,

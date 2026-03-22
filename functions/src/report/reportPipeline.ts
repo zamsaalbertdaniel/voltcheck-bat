@@ -405,6 +405,19 @@ interface PDFInput {
     sourceTraceability: SourceTraceability[];
 }
 
+const RO_TRANSLATIONS: Record<string, string> = {
+    'report.sources.nhtsaDecode': 'Decodare Publică',
+    'report.sources.nhtsaRecalls': 'Registrul Rechemări',
+    'report.sources.providerHistory': 'Istoric Parteneri',
+    'report.sources.liveBatteryTelematics': 'Telemetrie Live',
+    'official_public_data': 'Oficial',
+    'partner_database': 'Partener',
+    'live_telemetry': 'Live',
+    'battery_verified': 'Baterie Verificată',
+    'battery_estimated': 'Estimare Statistică',
+    'risk_assessment': 'Evaluare Istoric'
+};
+
 async function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument({
@@ -523,26 +536,17 @@ async function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
         doc.fillColor('#1A2332').rect(50, yPos, 495, 80).fill();
         doc.fontSize(12).fillColor('#00E676').text('Traceabilitate Date & Surse', 70, yPos + 10);
         
-        const assessmentLabels: Record<string, string> = {
-            'battery_verified': 'Baterie Verificată',
-            'battery_estimated': 'Estimare Statistică',
-            'risk_assessment': 'Evaluare Istoric'
-        };
-        const aLabel = assessmentLabels[data.assessmentType] || data.assessmentType;
+        const aLabel = RO_TRANSLATIONS[data.assessmentType] || data.assessmentType;
         doc.fontSize(10).fillColor('#F0F4F8').text(`Tip Evaluare: ${aLabel}`, 70, yPos + 30);
         doc.text(`Încredere Date (Completitudine): ${data.confidence}/100`, 70, yPos + 45);
         
         const sourceNames = data.sourceTraceability.map(s => {
-            const labelMap: Record<string, string> = {
-                'report.sources.nhtsaDecode': 'Decodare Publică Oficială',
-                'report.sources.nhtsaRecalls': 'Registrul de Rechemări',
-                'report.sources.providerHistory': 'Baze de Date Istoric',
-                'report.sources.liveBatteryTelematics': 'Diagnoză Live Telemetrie'
-            };
-            return labelMap[s.labelKey] || s.tag;
+            const srcLabel = RO_TRANSLATIONS[s.labelKey] || s.tag;
+            const typeLabel = RO_TRANSLATIONS[s.sourceType] || s.sourceType;
+            return `${srcLabel} (${typeLabel})`;
         }).join(' • ');
         
-        doc.fontSize(8).fillColor('#8896AB').text(`Surse confimate: ${sourceNames}`, 70, yPos + 60, { width: 450 });
+        doc.fontSize(8).fillColor('#8896AB').text(`Surse confirmate: ${sourceNames}`, 70, yPos + 60, { width: 450 });
 
         // — Footer ─
         const footerY = 770;
