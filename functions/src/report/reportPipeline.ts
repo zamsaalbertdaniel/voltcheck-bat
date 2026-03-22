@@ -19,6 +19,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { calculateRiskScore, RiskInput } from '../utils/riskEngine';
+import { PipelineLogger } from '../utils/pipelineLogger';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -47,6 +48,7 @@ const STATUS = {
 async function updateStatus(
     reportId: string,
     statusDetails: string,
+    logger: PipelineLogger,
     extra: Record<string, any> = {}
 ): Promise<void> {
     await db.collection('reports').doc(reportId).update({
@@ -54,7 +56,8 @@ async function updateStatus(
         statusUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
         ...extra,
     });
-    functions.logger.info(`[Pipeline] ${reportId}: ${statusDetails}`);
+    
+    logger.step(statusDetails, extra);
 }
 
 // ── NHTSA helpers (inline to avoid circular deps with decodeVin) ──
@@ -102,13 +105,19 @@ export const reportPipeline = functions
         const { vin, userId, level, vehicleId, paymentId } = reportData;
         const pipelineStart = Date.now();
 
-        functions.logger.info(
-            `[Pipeline] Starting for ${reportId} — VIN:${vin} Level:${level} User:${userId}`
-        );
+        const logger = new PipelineLogger({
+            reportId,
+            userId,
+            level: level || 1,
+            vin: vin || '',
+            paymentId,
+        });
+
+        logger.start();
 
         try {
             // ── Step 1: Decoding VIN ──
-            await updateStatus(reportId, STATUS.DECODING_VIN);
+            await updateStatus(reportId, STATUS.DECODING_VIN, logger);
 
             let nhtsaResult: any = null;
             let nhtsaFailed = false;
@@ -117,18 +126,20 @@ export const reportPipeline = functions
                 nhtsaResult = await fetchNHTSADecode(vin);
             } catch (err: any) {
                 nhtsaFailed = true;
-                functions.logger.warn(`[Pipeline] NHTSA decode failed: ${err.message}`);
+                logger.error('nhtsa_decode', err);
             }
 
             // ── Step 2: Search Databases ──
-            await updateStatus(reportId, STATUS.SEARCHING_EU);
+            await updateStatus(reportId, STATUS.SEARCHING_EU, logger);
 
             let recalls: any[] = [];
             try {
                 recalls = await fetchNHTSARecalls(vin);
-            } catch { /* non-critical */ }
+            } catch (err: any) {
+                logger.error('nhtsa_recalls', err);
+            }
 
-            await updateStatus(reportId, STATUS.SEARCHING_GLOBAL);
+            await updateStatus(reportId, STATUS.SEARCHING_GLOBAL, logger);
 
             // Check VIN cache for paid provider data
             let providerData: any = null;
@@ -140,12 +151,12 @@ export const reportPipeline = functions
 
             // ── FAIL-SAFE: If NHTSA failed AND no cached provider data ──
             if (nhtsaFailed && !providerData) {
-                functions.logger.error(
-                    `[Pipeline FAIL-SAFE] All providers failed for ${reportId}. ` +
-                    `Marking as manual_review_needed. Payment NOT consumed.`
-                );
+                logger.fail(STATUS.SEARCHING_GLOBAL, new Error('All VIN data providers failed'), {
+                    manualReview: true,
+                    retryable: true,
+                });
 
-                await updateStatus(reportId, STATUS.MANUAL_REVIEW, {
+                await updateStatus(reportId, STATUS.MANUAL_REVIEW, logger, {
                     status: 'manual_review_needed',
                     failureReason: 'All VIN data providers failed. Manual review required.',
                     pipelineDurationMs: Date.now() - pipelineStart,
@@ -156,7 +167,7 @@ export const reportPipeline = functions
             }
 
             // ── Step 3: Calculate AI Risk Score ──
-            await updateStatus(reportId, STATUS.CALCULATING_RISK);
+            await updateStatus(reportId, STATUS.CALCULATING_RISK, logger);
 
             const vehicle = {
                 make: nhtsaResult?.Make || 'Unknown',
@@ -194,7 +205,7 @@ export const reportPipeline = functions
             const riskResult = calculateRiskScore(riskInput);
 
             // ── Step 4: Generate PDF ──
-            await updateStatus(reportId, STATUS.GENERATING_PDF);
+            await updateStatus(reportId, STATUS.GENERATING_PDF, logger);
 
             const pdfBuffer = await generatePDFBuffer({
                 reportId,
@@ -209,7 +220,7 @@ export const reportPipeline = functions
             });
 
             // ── Step 5: Upload to Storage ──
-            await updateStatus(reportId, STATUS.UPLOADING);
+            await updateStatus(reportId, STATUS.UPLOADING, logger);
 
             const bucket = storage.bucket();
             const filePath = `reports/${userId}/${reportId}.pdf`;
@@ -283,13 +294,18 @@ export const reportPipeline = functions
                 lastActiveAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            functions.logger.info(
-                `[Pipeline] ✅ Complete for ${reportId} in ${pipelineDuration}ms — ` +
-                `Risk: ${riskResult.score} (${riskResult.category})`
-            );
+            logger.complete({
+                pipelineDurationMs: pipelineDuration,
+                riskScore: riskResult.score,
+                riskCategory: riskResult.category,
+                pdfUrl: downloadUrl,
+            });
 
         } catch (error: any) {
-            functions.logger.error(`[Pipeline] ❌ Failed for ${reportId}:`, error);
+            logger.fail('unknown_step', error, {
+                retryable: false,
+                pipelineDurationMs: Date.now() - pipelineStart,
+            });
 
             await db.collection('reports').doc(reportId).update({
                 status: 'failed',

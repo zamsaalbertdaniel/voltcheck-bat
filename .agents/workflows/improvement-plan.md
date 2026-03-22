@@ -68,7 +68,7 @@ The master plan is stored in `IMPROVEMENT_PLAN.md` at the project root.
 ```
 Pas 1 ✅ → Pas 2 ✅ (secvențial)
 Pas 3 ✅ (independent)
-Pas 7 ⬜ (logging — mutat înainte de 4 pentru debugging suport)
+Pas 7 ✅ (logging — mutat înainte de 4 pentru debugging suport)
 Pas 4 ⬜ → Pas 5 ⬜ → Pas 6 ⬜ (lanț secvențial)
 Pas 8 ⬜ (final, depinde de toate)
 ```
