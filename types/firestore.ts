@@ -128,7 +128,7 @@ export interface PaymentDoc {
     stripePaymentIntentId: string;
     amountRON: number;                 // in bani (cents) — e.g. 1500 = 15 RON
     currency: 'RON';
-    status: 'pending' | 'succeeded' | 'failed' | 'refunded';
+    status: 'pending' | 'completed' | 'succeeded' | 'failed' | 'refunded';
     createdAt: Timestamp;
     // ── Faza 1 additions ──
     expiresAt: Timestamp;              // TTL sincronizat cu raportul

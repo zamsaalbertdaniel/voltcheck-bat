@@ -131,6 +131,13 @@ export default function ReportScreen() {
                 } else if (status.status === 'failed') {
                     setScreenState('error');
                     setErrorMessage(status.failureReason || 'Generarea raportului a eșuat');
+                } else if (status.status === 'manual_review_needed') {
+                    setScreenState('error');
+                    setErrorMessage(
+                        'Raportul necesită verificare manuală. ' +
+                        'Datele VIN nu au putut fi obținute automat. ' +
+                        'Echipa noastră va reveni cu un răspuns în cel mai scurt timp.'
+                    );
                 } else {
                     // Still processing
                     setScreenState('processing');
@@ -179,7 +186,7 @@ export default function ReportScreen() {
                 reportId: data.reportId || reportId,
                 vin: data.vin || '',
                 vehicleMeta: data.vehicleMeta || { make: '', model: '' },
-                year: data.vehicleMeta?.year || new Date().getFullYear(),
+                year: data.vehicle?.year || data.vehicleMeta?.year || 0,
                 market: data.market || 'EU',
                 batteryType: data.batteryType || 'Unknown',
                 level: data.level || 1,

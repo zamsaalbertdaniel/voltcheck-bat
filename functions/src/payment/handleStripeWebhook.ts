@@ -93,7 +93,7 @@ export const handleStripeWebhook = functions.https.onRequest(
  *   3. Atomic write: payment update + report creation in single transaction
  */
 async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeEventId: string) {
-    const { userId, vin, level, vehicleMake, vehicleModel, vehicleId } = paymentIntent.metadata;
+    const { userId, vin, level, vehicleMake, vehicleModel, vehicleYear, vehicleId } = paymentIntent.metadata;
     const paymentRef = db.collection('payments').doc(paymentIntent.id);
 
     // ── Layer 1: Pre-check (fast path, avoids transaction overhead) ──
@@ -165,6 +165,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeE
             vehicleMeta: {
                 make: vehicleMake || null,
                 model: vehicleModel || null,
+                year: vehicleYear ? parseInt(vehicleYear) : null,
             },
 
             // Share tracking (empty initially)
