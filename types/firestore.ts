@@ -35,6 +35,13 @@ export interface ConfidenceBreakdown {
     liveBattery: number;
 }
 
+export interface SourceTraceability {
+    tag: DataCoverageTag;
+    labelKey: string;
+    contribution: number;
+    sourceType: 'official_public_data' | 'partner_database' | 'live_telemetry';
+}
+
 // ─── Vehicles Collection ───
 export interface VehicleDoc {
     vehicleId: string;                 // ID-ul documentului Firestore
@@ -75,11 +82,12 @@ export interface ReportDoc {
     pdfUrl?: string;                   // URL-ul PDF-ului generat
     sharedVia?: ('whatsapp' | 'email')[];  // Tracking share channels
     
-    // ── Faza 4 & 5 additions ──
+    // ── Faza 4, 5 & 6 additions ──
     confidence?: number;               // 0-100% (ex: 85)
     dataCoverage?: DataCoverageTag[];  // ['nhtsa_decode', 'provider_history']
     confidenceBreakdown?: ConfidenceBreakdown;
     assessmentType?: AssessmentType;
+    sourceTraceability?: SourceTraceability[];
 }
 
 // ─── Level 1 Subcollection ───

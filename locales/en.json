@@ -73,8 +73,22 @@
             "batteryHealth": "Battery Health",
             "history": "Vehicle History",
             "alerts": "Detected Alerts",
-            "recommendation": "Recommendation"
+            "recommendation": "Recommendation",
+            "dataSources": "Data Traceability"
         },
+        "assessment": {
+            "batteryVerified": "Verified Battery 🔬",
+            "batteryEstimated": "Statistical Estimate 📊",
+            "riskAssessment": "History Assessment ℹ️"
+        },
+        "sources": {
+            "nhtsaDecode": "Official Public Decoding",
+            "nhtsaRecalls": "NHTSA Recalls Registry",
+            "providerHistory": "Partner History Databases",
+            "liveBatteryTelematics": "Live Telemetry Diagnosis"
+        },
+        "dataTrust": "Data Confidence",
+        "completeness": "Completeness and source quality",
         "battery": {
             "soh": "State of Health",
             "capacity": "Usable Capacity",

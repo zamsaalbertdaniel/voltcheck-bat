@@ -49,6 +49,12 @@ const MOCK_REPORT = {
     // Level 1 data
     titleStatus: 'Clean',
     assessmentType: 'risk_assessment',
+    confidence: 85,
+    sourceTraceability: [
+        { tag: 'nhtsa_decode', labelKey: 'report.sources.nhtsaDecode', contribution: 30, sourceType: 'official_public_data' },
+        { tag: 'provider_history', labelKey: 'report.sources.providerHistory', contribution: 45, sourceType: 'partner_database' },
+        { tag: 'live_battery_telematics', labelKey: 'report.sources.liveBatteryTelematics', contribution: 10, sourceType: 'live_telemetry' }
+    ],
     mileageKm: 45200,
     accidentCount: 0,
     ownerCount: 2,
@@ -213,6 +219,8 @@ export default function ReportScreen() {
                 riskFactors: data.riskFactors || [],
                 recommendation: data.recommendation || '',
                 assessmentType: data.assessmentType || 'risk_assessment',
+                confidence: data.confidence || 0,
+                sourceTraceability: data.sourceTraceability || [],
                 pdfUrl: data.pdfUrl || null,
             });
             setScreenState('ready');
@@ -291,9 +299,9 @@ export default function ReportScreen() {
 
     function getAssessmentBadge(type: string) {
         switch (type) {
-            case 'battery_verified': return { label: 'Baterie Verificată 🔬', bg: '#0D2818', text: VoltColors.success };
-            case 'battery_estimated': return { label: 'Estimare Statistică 📊', bg: '#1A2332', text: VoltColors.warning };
-            default: return { label: 'Evaluare Istoric ℹ️', bg: '#1E293B', text: VoltColors.textSecondary };
+            case 'battery_verified': return { label: t('report.assessment.batteryVerified'), bg: '#0D2818', text: VoltColors.success };
+            case 'battery_estimated': return { label: t('report.assessment.batteryEstimated'), bg: '#1A2332', text: VoltColors.warning };
+            default: return { label: t('report.assessment.riskAssessment'), bg: '#1E293B', text: VoltColors.textSecondary };
         }
     }
     const badge = getAssessmentBadge(report.assessmentType || 'risk_assessment');
@@ -371,9 +379,11 @@ export default function ReportScreen() {
                     <View style={styles.cardHeader}>
                         <MaterialCommunityIcons name="battery-heart" size={22} color={VoltColors.neonGreen} />
                         <Text style={styles.cardTitle}>{t('report.sections.batteryHealth')}</Text>
-                        <View style={styles.liveBadge}>
-                            <Text style={styles.liveText}>LIVE</Text>
-                        </View>
+                        {report.assessmentType === 'battery_verified' && (
+                            <View style={styles.liveBadge}>
+                                <Text style={styles.liveText}>LIVE</Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* SoH gauge */}
@@ -466,6 +476,30 @@ export default function ReportScreen() {
                         <Text style={styles.cardTitle}>{t('report.sections.recommendation')}</Text>
                     </View>
                     <Text style={styles.recommendationText}>{report.recommendation}</Text>
+                </View>
+            )}
+
+            {/* Traceability Card */}
+            {(report.sourceTraceability && report.sourceTraceability.length > 0) && (
+                <View style={styles.card}>
+                    <View style={styles.cardHeader}>
+                        <MaterialCommunityIcons name="shield-check" size={22} color={VoltColors.neonGreen} />
+                        <Text style={styles.cardTitle}>{t('report.sections.dataSources')}</Text>
+                    </View>
+
+                    <View style={styles.confidenceRow}>
+                        <Text style={styles.confidenceLabel}>{t('report.completeness')}:</Text>
+                        <Text style={styles.confidenceValue}>{report.confidence} / 100</Text>
+                    </View>
+                    
+                    <View style={styles.traceGrid}>
+                        {report.sourceTraceability.map((src: any) => (
+                            <View key={src.tag} style={styles.traceChip}>
+                                <Text style={styles.traceLabel}>{t(src.labelKey)}</Text>
+                                <Text style={styles.traceContrib}>+{src.contribution}</Text>
+                            </View>
+                        ))}
+                    </View>
                 </View>
             )}
 
@@ -856,6 +890,52 @@ const styles = StyleSheet.create({
         fontSize: VoltFontSize.md,
         color: VoltColors.textSecondary,
         lineHeight: 22,
+    },
+
+    // Traceability
+    confidenceRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: '#0D1623',
+        padding: VoltSpacing.md,
+        borderRadius: VoltBorderRadius.sm,
+        marginBottom: VoltSpacing.md,
+    },
+    confidenceLabel: {
+        fontSize: VoltFontSize.sm,
+        fontWeight: '500',
+        color: VoltColors.textSecondary,
+    },
+    confidenceValue: {
+        fontSize: VoltFontSize.lg,
+        fontWeight: '700',
+        color: VoltColors.success,
+    },
+    traceGrid: {
+        gap: VoltSpacing.sm,
+    },
+    traceChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: VoltColors.bgSecondary,
+        paddingHorizontal: VoltSpacing.md,
+        paddingVertical: 12,
+        borderRadius: VoltBorderRadius.sm,
+        borderWidth: 1,
+        borderColor: '#1E293B',
+    },
+    traceLabel: {
+        fontSize: VoltFontSize.sm,
+        color: VoltColors.textPrimary,
+        flex: 1,
+    },
+    traceContrib: {
+        fontSize: VoltFontSize.sm,
+        fontWeight: '700',
+        color: VoltColors.neonGreen,
+        marginLeft: VoltSpacing.sm,
     },
 
     // Actions

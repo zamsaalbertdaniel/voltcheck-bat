@@ -60,6 +60,9 @@ The master plan is stored in `IMPROVEMENT_PLAN.md` at the project root.
 - Report screen: `app/report/[id].tsx`
 - Stripe webhook: `functions/src/payment/handleStripeWebhook.ts`
 - Report pipeline: `functions/src/report/reportPipeline.ts`
+  * [x] [Modificare `functions/src/report/reportPipeline.ts`]
+  * [x] [Pasul 6 Rezolvat? DA]
+  * [x] [Modificare `app/report/[id].tsx` pt a indica sursele]
 - Risk engine (server): `functions/src/utils/riskEngine.ts`
 - Risk engine (client): `utils/riskEngine.ts`
 - Security placeholders: `utils/encryption.ts`, `utils/fingerprint.ts`
@@ -69,6 +72,6 @@ The master plan is stored in `IMPROVEMENT_PLAN.md` at the project root.
 Pas 1 ✅ → Pas 2 ✅ (secvențial)
 Pas 3 ✅ (independent)
 Pas 7 ✅ (logging — mutat înainte de 4 pentru debugging suport)
-Pas 4 ✅ → Pas 5 ✅ → Pas 6 ⬜ (lanț secvențial)
+Pas 4 ✅ → Pas 5 ✅ → Pas 6 ✅ (lanț secvențial finalizat complet)
 Pas 8 ⬜ (final, depinde de toate)
 ```

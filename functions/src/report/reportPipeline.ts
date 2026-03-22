@@ -20,6 +20,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { calculateRiskScore, RiskInput } from '../utils/riskEngine';
 import { PipelineLogger } from '../utils/pipelineLogger';
+import { AssessmentType, SourceTraceability } from '../../../types/firestore';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -222,7 +223,30 @@ export const reportPipeline = functions
 
             const riskResult = calculateRiskScore(riskInput);
 
-            // ── Step 4: Generate PDF ──
+            // ── Step 4: Calculate Assessment and Traceability ──
+            let assessmentType: AssessmentType = 'risk_assessment';
+            if (hasLiveBatterySignals) {
+                assessmentType = 'battery_verified';
+            } else if (providerSuccessCount > 0) {
+                assessmentType = 'battery_estimated';
+            }
+
+            const sourceTraceability: SourceTraceability[] = [];
+            if (!nhtsaFailed) {
+                sourceTraceability.push({ tag: 'nhtsa_decode', labelKey: 'report.sources.nhtsaDecode', contribution: 30, sourceType: 'official_public_data' });
+            }
+            if (recallsQuerySucceeded) {
+                sourceTraceability.push({ tag: 'nhtsa_recalls', labelKey: 'report.sources.nhtsaRecalls', contribution: 10, sourceType: 'official_public_data' });
+            }
+            if (providerSuccessCount > 0) {
+                const pContrib = Math.min(providerSuccessCount * 25, 50);
+                sourceTraceability.push({ tag: 'provider_history', labelKey: 'report.sources.providerHistory', contribution: pContrib, sourceType: 'partner_database' });
+            }
+            if (hasLiveBatterySignals) {
+                sourceTraceability.push({ tag: 'live_battery_telematics', labelKey: 'report.sources.liveBatteryTelematics', contribution: 10, sourceType: 'live_telemetry' });
+            }
+
+            // ── Step 5: Generate PDF ──
             await updateStatus(reportId, STATUS.GENERATING_PDF, logger);
 
             const pdfBuffer = await generatePDFBuffer({
@@ -235,9 +259,12 @@ export const reportPipeline = functions
                 riskFactors: riskResult.factors,
                 recommendation: riskResult.recommendation,
                 recalls,
+                confidence: riskResult.confidence,
+                assessmentType,
+                sourceTraceability,
             });
 
-            // ── Step 5: Upload to Storage ──
+            // ── Step 6: Upload to Storage ──
             await updateStatus(reportId, STATUS.UPLOADING, logger);
 
             const bucket = storage.bucket();
@@ -266,15 +293,8 @@ export const reportPipeline = functions
                 expires: expiresAt.getTime(),
             });
 
-            // ── Step 6: Finalize ──
+            // ── Step 7: Finalize ──
             const pipelineDuration = Date.now() - pipelineStart;
-            
-            let assessmentType = 'risk_assessment';
-            if (hasLiveBatterySignals) {
-                assessmentType = 'battery_verified';
-            } else if (providerSuccessCount > 0) {
-                assessmentType = 'battery_estimated';
-            }
 
             await db.collection('reports').doc(reportId).update({
                 status: 'completed',
@@ -288,6 +308,7 @@ export const reportPipeline = functions
                 dataCoverage: riskResult.dataCoverage,
                 confidenceBreakdown: riskResult.confidenceBreakdown,
                 assessmentType,
+                sourceTraceability,
                 pdfUrl: downloadUrl,
                 storagePath: filePath,
                 expiresAt,
@@ -379,6 +400,9 @@ interface PDFInput {
     riskFactors: Array<{ id: string; label: string; severity: string; weight: number; description: string }>;
     recommendation: string;
     recalls: any[];
+    confidence: number;
+    assessmentType: AssessmentType;
+    sourceTraceability: SourceTraceability[];
 }
 
 async function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
@@ -492,6 +516,33 @@ async function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
         doc.fontSize(10).fillColor('#B2DFDB').text(
             data.recommendation, 70, yPos + 28, { width: 450 }
         );
+
+        // — Source Traceability ─
+        yPos += 70;
+        if (yPos > 650) { doc.addPage(); yPos = 50; }
+        doc.fillColor('#1A2332').rect(50, yPos, 495, 80).fill();
+        doc.fontSize(12).fillColor('#00E676').text('Traceabilitate Date & Surse', 70, yPos + 10);
+        
+        const assessmentLabels: Record<string, string> = {
+            'battery_verified': 'Baterie Verificată',
+            'battery_estimated': 'Estimare Statistică',
+            'risk_assessment': 'Evaluare Istoric'
+        };
+        const aLabel = assessmentLabels[data.assessmentType] || data.assessmentType;
+        doc.fontSize(10).fillColor('#F0F4F8').text(`Tip Evaluare: ${aLabel}`, 70, yPos + 30);
+        doc.text(`Încredere Date (Completitudine): ${data.confidence}/100`, 70, yPos + 45);
+        
+        const sourceNames = data.sourceTraceability.map(s => {
+            const labelMap: Record<string, string> = {
+                'report.sources.nhtsaDecode': 'Decodare Publică Oficială',
+                'report.sources.nhtsaRecalls': 'Registrul de Rechemări',
+                'report.sources.providerHistory': 'Baze de Date Istoric',
+                'report.sources.liveBatteryTelematics': 'Diagnoză Live Telemetrie'
+            };
+            return labelMap[s.labelKey] || s.tag;
+        }).join(' • ');
+        
+        doc.fontSize(8).fillColor('#8896AB').text(`Surse confimate: ${sourceNames}`, 70, yPos + 60, { width: 450 });
 
         // — Footer ─
         const footerY = 770;

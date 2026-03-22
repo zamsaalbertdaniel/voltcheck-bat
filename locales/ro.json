@@ -73,8 +73,22 @@
       "batteryHealth": "Sănătate Baterie",
       "history": "Istoric Vehicul",
       "alerts": "Alerte Detectate",
-      "recommendation": "Recomandare"
+      "recommendation": "Recomandare",
+      "dataSources": "Trasabilitate Date"
     },
+    "assessment": {
+      "batteryVerified": "Baterie Verificată 🔬",
+      "batteryEstimated": "Estimare Statistică 📊",
+      "riskAssessment": "Evaluare Istoric ℹ️"
+    },
+    "sources": {
+      "nhtsaDecode": "Decodare Publică Oficială",
+      "nhtsaRecalls": "Registrul de Rechemări",
+      "providerHistory": "Baze de Date Istoric Partenere",
+      "liveBatteryTelematics": "Diagnoză Live Telemetrie"
+    },
+    "dataTrust": "Încredere Date",
+    "completeness": "Completitudine și calitatea surselor",
     "battery": {
       "soh": "State of Health",
       "capacity": "Capacitate Utilizabilă",
