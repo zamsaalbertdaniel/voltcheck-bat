@@ -4,8 +4,21 @@
  * Updated: FAZA 1 — BAT (Battery Analysis Technology)
  */
 
-import { Timestamp } from '@react-native-firebase/firestore';
-
+/**
+ * Environment-agnostic Firestore timestamp shape.
+ *
+ * This project shares Firestore document interfaces between the Expo app and
+ * Cloud Functions tests/builds. Importing `Timestamp` from
+ * `@react-native-firebase/firestore` here couples server-side TypeScript to a
+ * React Native package that is not installed in `functions/`.
+ *
+ * Both React Native Firebase and Firebase Admin timestamps expose `toDate()`,
+ * which is the only behavior the shared code relies on, so a structural type
+ * keeps the contract portable across runtimes.
+ */
+export type Timestamp = {
+    toDate(): Date;
+};
 // ─── Users Collection ───
 export interface UserDoc {
     uid: string;
