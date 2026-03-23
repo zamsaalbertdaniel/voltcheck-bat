@@ -44,6 +44,25 @@ const VoltCheckTheme = {
   },
 };
 
+const WebScrollbarCSS = `
+  /* Custom Scrollbar for Web */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0A0E17;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #00E676; 
+    border-radius: 5px;
+    border: 2px solid #0A0E17;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #00C853; 
+  }
+`;
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -58,8 +77,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      // Hide the native splash screen once fonts are ready
-      // Our custom SplashSequence takes over from here
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
@@ -68,13 +85,14 @@ export default function RootLayout() {
     return null;
   }
 
+  // Inject Web scrollbar CSS directly inside standard return
   return (
     <VoltErrorBoundary>
+      {Platform.OS === 'web' && <style>{WebScrollbarCSS}</style>}
       <ToastProvider>
         <ThemeProvider value={VoltCheckTheme}>
           <StatusBar barStyle="light-content" backgroundColor={VoltColors.bgPrimary} />
 
-          {/* Dual Splash Sequence (Probabilistic AI → BAT) */}
           {!splashComplete && (
             <SplashSequence onComplete={() => setSplashComplete(true)} />
           )}

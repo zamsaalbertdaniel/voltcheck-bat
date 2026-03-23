@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingHorizontal: VoltSpacing.lg,
         paddingTop: VoltSpacing.xxl,
-        paddingBottom: VoltSpacing.xxxl + 20,
+        paddingBottom: 120, // Account for glass tab bar
     },
 
     // ── Header ──
@@ -388,22 +388,31 @@ const styles = StyleSheet.create({
         marginBottom: VoltSpacing.md,
     },
 
-    // ── Conclusion Box ──
+    // ── Conclusion Box (Futuristic) ──
     conclusionBox: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: VoltColors.neonGreenMuted,
-        borderRadius: VoltBorderRadius.md,
-        padding: VoltSpacing.md,
+        backgroundColor: 'rgba(0, 230, 118, 0.08)',
+        borderRadius: 8,
+        padding: VoltSpacing.lg,
         borderLeftWidth: 3,
         borderLeftColor: VoltColors.neonGreen,
+        borderColor: 'rgba(0, 230, 118, 0.3)',
+        borderWidth: 1,
+        // Neon Glow
+        shadowColor: VoltColors.neonGreen,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+        elevation: 4,
     },
     conclusionText: {
-        fontSize: VoltFontSize.md,
-        fontWeight: '700',
+        fontSize: 15,
+        fontWeight: '800',
         color: VoltColors.neonGreen,
-        marginLeft: VoltSpacing.sm,
+        marginLeft: VoltSpacing.md,
         flex: 1,
+        letterSpacing: 0.5,
     },
 
     // ── Comparison Table ──

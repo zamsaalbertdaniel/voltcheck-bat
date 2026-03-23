@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: VoltSpacing.lg,
-    paddingBottom: VoltSpacing.xxxl,
+    paddingBottom: 120, // Account for glass tab bar
   },
 
   // Card
@@ -327,11 +327,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: VoltSpacing.xs,
+    backgroundColor: 'rgba(0, 230, 118, 0.08)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 230, 118, 0.3)',
   },
   viewButtonText: {
     fontSize: VoltFontSize.sm,
     color: VoltColors.neonGreen,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 
   // Empty state

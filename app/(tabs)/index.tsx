@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: VoltSpacing.lg,
     paddingTop: VoltSpacing.xxl,
-    paddingBottom: VoltSpacing.xxxl,
+    paddingBottom: 120, // Increased to account for absolute glass tab bar
   },
 
   // Header
@@ -597,26 +597,37 @@ const styles = StyleSheet.create({
     color: VoltColors.error,
   },
 
-  // Decode button
+  // Decode button (FUTURISTIC)
   decodeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: VoltColors.neonGreen,
-    borderRadius: VoltBorderRadius.md,
-    paddingVertical: VoltSpacing.md,
+    backgroundColor: 'rgba(0, 230, 118, 0.08)',
+    borderWidth: 1.5,
+    borderColor: VoltColors.neonGreen,
+    borderRadius: 8,
+    paddingVertical: 16,
     marginBottom: VoltSpacing.lg,
-    gap: VoltSpacing.sm,
-    ...VoltShadow.glow,
+    gap: VoltSpacing.md,
+    // Cyberpunk Glow
+    shadowColor: VoltColors.neonGreen,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 8,
   },
   decodeButtonText: {
-    fontSize: VoltFontSize.lg,
-    fontWeight: '700',
-    color: VoltColors.textOnGreen,
+    fontSize: 15,
+    fontWeight: '800',
+    color: VoltColors.neonGreen,
+    textTransform: 'uppercase',
+    letterSpacing: 3,
   },
   buttonDisabled: {
-    backgroundColor: VoltColors.bgTertiary,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderColor: VoltColors.border,
     shadowOpacity: 0,
+    elevation: 0,
   },
 
   // Decoding spinner

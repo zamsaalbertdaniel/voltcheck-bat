@@ -6,8 +6,10 @@
 
 import { VoltColors, VoltFontSize } from '@/constants/Theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { StyleSheet, Platform } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -17,13 +19,21 @@ export default function TabLayout() {
         tabBarActiveTintColor: VoltColors.neonGreen,
         tabBarInactiveTintColor: VoltColors.textTertiary,
         tabBarStyle: {
-          backgroundColor: VoltColors.bgSecondary,
-          borderTopColor: VoltColors.border,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          elevation: 0,
+          backgroundColor: Platform.OS === 'android' ? 'rgba(10, 14, 23, 0.85)' : 'transparent',
+          borderTopColor: 'rgba(0, 230, 118, 0.2)', // Subtle neon line
           borderTopWidth: 1,
           height: 65,
           paddingBottom: 8,
           paddingTop: 8,
         },
+        tabBarBackground: () => (
+          <BlurView tint="dark" intensity={80} style={StyleSheet.absoluteFill} />
+        ),
         tabBarLabelStyle: {
           fontSize: VoltFontSize.xs,
           fontWeight: '600',

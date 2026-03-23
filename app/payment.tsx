@@ -623,21 +623,30 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 
-    // Pay button
+    // Pay button (Futuristic)
     payButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: VoltColors.neonGreen,
-        borderRadius: VoltBorderRadius.md,
-        paddingVertical: VoltSpacing.lg,
-        gap: VoltSpacing.sm,
-        ...VoltShadow.glow,
+        backgroundColor: 'rgba(0, 230, 118, 0.08)',
+        borderWidth: 1.5,
+        borderColor: VoltColors.neonGreen,
+        borderRadius: 8,
+        paddingVertical: 18,
+        gap: VoltSpacing.md,
+        // Neon Glow
+        shadowColor: VoltColors.neonGreen,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 15,
+        elevation: 8,
     },
     payButtonText: {
-        fontSize: VoltFontSize.xl,
+        fontSize: 18,
         fontWeight: '800',
-        color: VoltColors.textOnGreen,
+        color: VoltColors.neonGreen,
+        textTransform: 'uppercase',
+        letterSpacing: 2,
     },
 
     // Processing

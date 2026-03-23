@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     content: {
         paddingHorizontal: VoltSpacing.lg,
         paddingTop: VoltSpacing.xxl,
-        paddingBottom: VoltSpacing.xxxl,
+        paddingBottom: 120, // Account for glass tab bar
     },
     header: {
         marginBottom: VoltSpacing.lg,
