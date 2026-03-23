@@ -17,6 +17,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
+import { maskVin } from '../utils/pipelineLogger';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -107,7 +108,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeE
     }
 
     functions.logger.info(
-        `[Payment ✅] User:${userId} VIN:${vin} Level:${level} Amount:${paymentIntent.amount}`
+        `[Payment ✅] User:${userId} VIN:${maskVin(vin)} Level:${level} Amount:${paymentIntent.amount}`
     );
 
     const parsedLevel = parseInt(level) as 1 | 2;

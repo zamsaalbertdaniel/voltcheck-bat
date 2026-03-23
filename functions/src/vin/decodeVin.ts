@@ -15,6 +15,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 import { sanitizeVIN, validateVIN } from '../utils/vinValidator';
+import { maskVin } from '../utils/pipelineLogger';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -153,7 +154,7 @@ export const decodeVin = functions.https.onCall(
         const vin = sanitizeVIN(rawVin);
         const level: number = request.data?.level || 1;
 
-        functions.logger.info(`[VIN Decode] UID:${uid} VIN:${vin} Level:${level}`);
+        functions.logger.info(`[VIN Decode] UID:${uid} VIN:${maskVin(vin)} Level:${level}`);
 
         try {
             const pipelineStart = Date.now();

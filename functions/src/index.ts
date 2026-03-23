@@ -10,6 +10,23 @@
  *   - Scheduler (TTL cleanup)
  */
 
+// ── Startup Secrets Validation ──
+import * as functions from 'firebase-functions';
+
+const REQUIRED_SECRETS = [
+    'STRIPE_SECRET_KEY',
+    'STRIPE_WEBHOOK_SECRET',
+    'CARVERTICAL_API_KEY',
+    'AUTODNA_API_KEY',
+    'EPICVIN_API_KEY'
+];
+
+for (const secret of REQUIRED_SECRETS) {
+    if (!process.env[secret]) {
+        functions.logger.warn(`[Startup Warning] Missing environment variable / secret: ${secret} - related features may fail.`);
+    }
+}
+
 // ── VIN Router ──
 export { decodeVin } from './vin/decodeVin';
 

@@ -1,4 +1,4 @@
-import { PipelineLogger } from '../utils/pipelineLogger';
+import { PipelineLogger, maskVin } from '../utils/pipelineLogger';
 import * as functions from 'firebase-functions';
 
 // Mock the firebase-functions logger to intercept output
@@ -30,12 +30,7 @@ describe('PipelineLogger (Observability & Privacy)', () => {
     };
 
     it('should VIN_MASKING_MATCHES_REAL_CONTRACT', () => {
-        const logger = new PipelineLogger(mockContext);
-        
-        // Expose a private method by brute casting for the sake of the unit test contract check
-        const masked = (logger as any).maskVin(mockContext.vin);
-        
-        // Exact contract from pipelineLogger: 'WVW***CDEF'
+        const masked = maskVin(mockContext.vin);
         expect(masked).toBe('WVW***CDEF');
     });
 

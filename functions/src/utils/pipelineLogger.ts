@@ -8,6 +8,11 @@ export interface PipelineLoggerContext {
     paymentId?: string;
 }
 
+export function maskVin(vin: string): string {
+    if (!vin || vin.length < 8) return '***';
+    return `${vin.substring(0, 3)}***${vin.substring(vin.length - 4)}`;
+}
+
 /**
  * VoltCheck — Structured JSON Logger for Report Pipeline
  * 
@@ -28,7 +33,7 @@ export class PipelineLogger {
         this.context = { ...context };
         this.startTime = Date.now();
         this.lastStepTime = this.startTime;
-        this.maskedVin = this.maskVin(context.vin);
+        this.maskedVin = maskVin(context.vin);
     }
 
     /**
@@ -52,10 +57,7 @@ export class PipelineLogger {
         }
     }
 
-    private maskVin(vin: string): string {
-        if (!vin || vin.length < 8) return '***';
-        return `${vin.substring(0, 3)}***${vin.substring(vin.length - 4)}`;
-    }
+
 
     start() {
         this.safeLog('info', {

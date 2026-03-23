@@ -73,19 +73,22 @@ async function fetchNHTSADecode(vin: string): Promise<any> {
     return data.Results?.[0] || null;
 }
 
-async function fetchNHTSARecalls(vin: string): Promise<any[]> {
+async function fetchNHTSARecalls(vin: string): Promise<{ success: boolean; recalls: any[] }> {
     try {
         const url = `https://api.nhtsa.gov/recalls/recallsByVin?vin=${vin}`;
         const response = await fetch(url);
-        if (!response.ok) return [];
+        if (!response.ok) return { success: false, recalls: [] };
         const data = await response.json();
-        return (data.results || []).slice(0, 10).map((r: any) => ({
-            campaignNumber: r.NHTSACampaignNumber || '',
-            component: r.Component || '',
-            summary: r.Summary || '',
-            date: r.ReportReceivedDate || '',
-        }));
-    } catch { return []; }
+        return {
+            success: true,
+            recalls: (data.results || []).slice(0, 10).map((r: any) => ({
+                campaignNumber: r.NHTSACampaignNumber || '',
+                component: r.Component || '',
+                summary: r.Summary || '',
+                date: r.ReportReceivedDate || '',
+            }))
+        };
+    } catch { return { success: false, recalls: [] }; }
 }
 
 /**
@@ -137,8 +140,9 @@ export const reportPipeline = functions
             let recalls: any[] = [];
             let recallsQuerySucceeded = false;
             try {
-                recalls = await fetchNHTSARecalls(vin);
-                recallsQuerySucceeded = true;
+                const recallResult = await fetchNHTSARecalls(vin);
+                recalls = recallResult.recalls;
+                recallsQuerySucceeded = recallResult.success;
             } catch (err: any) {
                 logger.error('nhtsa_recalls', err);
             }
@@ -285,8 +289,11 @@ export const reportPipeline = functions
             // ── Step 7: Finalize ──
             const pipelineDuration = Date.now() - pipelineStart;
 
+            const isPartial = riskResult.dataCoverage.length <= 1 || riskResult.confidence < 60;
+            const finalStatus = isPartial ? 'completed_partial' : 'completed';
+
             await db.collection('reports').doc(reportId).update({
-                status: 'completed',
+                status: finalStatus,
                 statusDetails: STATUS.COMPLETED,
                 riskScore: riskResult.score,
                 riskCategory: riskResult.category,
@@ -320,7 +327,7 @@ export const reportPipeline = functions
             // Update payment as consumed
             if (paymentId) {
                 await db.collection('payments').doc(paymentId).update({
-                    status: 'succeeded',
+                    status: 'completed',
                     reportId,
                     expiresAt,
                     completedAt: admin.firestore.FieldValue.serverTimestamp(),
