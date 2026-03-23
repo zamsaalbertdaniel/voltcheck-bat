@@ -1,4 +1,4 @@
-import { AssessmentType, SourceTraceability } from '../../../types/firestore';
+import { AssessmentType, SourceTraceability } from '../types/firestore';
 
 export interface DerivationInput {
     hasNhtsaDecode: boolean;

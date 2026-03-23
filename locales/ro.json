@@ -20,6 +20,13 @@
     "startScan": "Începe Verificarea",
     "invalidVin": "VIN invalid. Trebuie să conțină exact 17 caractere (fără I, O, Q).",
     "scanning": "Se analizează...",
+    "reportCompleted": "Raport finalizat!",
+    "riskScoreLabel": "Scor de Risc",
+    "viewReport": "Vezi Raportul",
+    "newScan": "Scanare Nouă",
+    "errorTitle": "Eroare",
+    "recommendation": "RECOMANDARE",
+    "recallsActive": "{{count}} rechemări active",
     "scanProgress": {
       "decoding": "Decodare VIN...",
       "searchingEU": "Căutare baze de date EU...",
@@ -241,14 +248,18 @@
     "uploading_report": "Încărcare raport...",
     "pipeline_started": "Se inițializează pipeline-ul..."
   },
-  "errors": {
-    "rateLimit": "Prea multe cereri. Te rugăm să aștepți {{seconds}} secunde.",
-    "authRequired": "Trebuie să fii autentificat pentru această acțiune.",
-    "networkError": "Eroare de conexiune. Verifică conexiunea la internet.",
-    "vinInvalid": "VIN invalid. Verifică și încearcă din nou.",
-    "paymentFailed": "Plata a eșuat. Te rugăm să încerci din nou.",
-    "unknownError": "A apărut o eroare neașteptată."
-  },
+    "errors": {
+      "rateLimit": "Prea multe cereri. Te rugăm să aștepți {{seconds}} secunde.",
+      "authRequired": "Trebuie să fii autentificat pentru această acțiune.",
+      "networkError": "Eroare de conexiune. Verifică conexiunea la internet.",
+      "vinInvalid": "VIN invalid. Verifică și încearcă din nou.",
+      "vin_required": "Seria VIN este obligatorie.",
+      "vin_length": "Seria VIN trebuie să aibă exact 17 caractere.",
+      "vin_characters": "Seria VIN trebuie să conțină doar litere și cifre.",
+      "vin_forbidden_chars": "Seria VIN nu poate conține literele I, O sau Q (ISO 3779).",
+      "paymentFailed": "Plata a eșuat. Te rugăm să încerci din nou.",
+      "unknownError": "A apărut o eroare neașteptată."
+    },
   "common": {
     "loading": "Se încarcă...",
     "error": "A apărut o eroare",

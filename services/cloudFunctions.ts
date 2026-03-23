@@ -331,22 +331,31 @@ export interface CloudFunctionError {
     isAuthError: boolean;
     isNetworkError: boolean;
     retryAfterSeconds?: number;
+    validationCode?: string;
 }
 
 /**
  * Parse Cloud Function errors into user-friendly format
  */
 export function parseCloudError(error: any): CloudFunctionError {
+    // Firebase HttpsError contains code and message
+    // Mobile SDKs might wrap this differently than Web SDK
     const code = error?.code || error?.details?.code || 'unknown';
-    const message = error?.message || 'An unexpected error occurred';
+    let message = error?.message || 'An unexpected error occurred';
+
+    // Cleanup generic Firebase prefix if present
+    if (message.includes('] ')) {
+        message = message.split('] ').pop() || message;
+    }
 
     return {
         code,
         message,
-        isRateLimit: code === 'resource-exhausted',
-        isAuthError: code === 'unauthenticated' || code === 'permission-denied',
-        isNetworkError: code === 'unavailable' || message.includes('network'),
+        isRateLimit: code === 'resource-exhausted' || code === 'functions/resource-exhausted',
+        isAuthError: ['unauthenticated', 'permission-denied', 'functions/unauthenticated', 'functions/permission-denied'].includes(code),
+        isNetworkError: ['unavailable', 'deadline-exceeded', 'functions/unavailable'].includes(code) || message.toLowerCase().includes('network'),
         retryAfterSeconds: error?.details?.retryAfterSeconds,
+        validationCode: error?.details?.validationCode,
     };
 }
 

@@ -12,6 +12,7 @@
  */
 
 import * as admin from 'firebase-admin';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as functions from 'firebase-functions';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 import { sanitizeVIN, validateVIN } from '../utils/vinValidator';
@@ -126,30 +127,38 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 // MAIN CLOUD FUNCTION
 // ═══════════════════════════════════════════
 
-export const decodeVin = functions.https.onCall(
-    async (request) => {
-        // ── 1. Auth Check ──
-        if (!request.auth) {
-            throw new functions.https.HttpsError(
-                'unauthenticated',
-                'Authentication required to decode VIN'
-            );
-        }
+export const decodeVin = onCall({
+    region: 'europe-west1',
+    memory: '256MiB',
+    maxInstances: 10,
+}, async (request) => {
+    // ── 1. Auth Check ──
+    if (!request.auth) {
+        throw new HttpsError(
+            'unauthenticated',
+            'Authentication required to decode VIN'
+        );
+    }
 
-        const uid = request.auth.uid;
+    const uid = request.auth.uid;
 
-        // ── 2. Rate Limiting ──
-        await checkRateLimit(uid, 'vinDecode', RATE_LIMITS.vinDecode);
+    // ── 2. Rate Limiting ──
+    await checkRateLimit(uid, 'vinDecode', RATE_LIMITS.vinDecode);
 
-        // ── 3. Input Validation ──
-        const rawVin = request.data?.vin;
-        const validation = validateVIN(rawVin);
-        if (!validation.valid) {
-            throw new functions.https.HttpsError(
-                'invalid-argument',
-                validation.error || 'Invalid VIN'
-            );
-        }
+    // ── 3. Input Validation ──
+    const rawVin = request.data?.vin;
+    if (!rawVin) {
+        throw new HttpsError('invalid-argument', 'VIN is required');
+    }
+
+    const validation = validateVIN(rawVin);
+    if (!validation.valid) {
+        throw new HttpsError(
+            'invalid-argument',
+            validation.error || 'Invalid VIN',
+            { validationCode: validation.code }
+        );
+    }
 
         const vin = sanitizeVIN(rawVin);
         const level: number = request.data?.level || 1;
@@ -324,13 +333,19 @@ export const decodeVin = functions.https.onCall(
 
             return result;
 
-        } catch (error: any) {
-            if (error instanceof functions.https.HttpsError) throw error;
-            functions.logger.error('[VIN Decode] Unexpected error:', error);
-            throw new functions.https.HttpsError('internal', 'VIN decode failed');
+    } catch (error: any) {
+        if (error instanceof HttpsError) throw error;
+        
+        // Check for specific error types that might be thrown by libraries
+        if (error.code && typeof error.code === 'string') {
+             // If it looks like an HttpsError but instance check failed
+             throw new HttpsError(error.code as any, error.message);
         }
+
+        functions.logger.error('[VIN Decode] Unexpected error:', error);
+        throw new HttpsError('internal', error.message || 'VIN decode failed');
     }
-);
+});
 
 // ═══════════════════════════════════════════
 // NHTSA API (FREE)

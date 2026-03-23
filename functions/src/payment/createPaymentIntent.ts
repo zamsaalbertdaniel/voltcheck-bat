@@ -6,6 +6,7 @@
  */
 
 import * as admin from 'firebase-admin';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as functions from 'firebase-functions';
 import Stripe from 'stripe';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
@@ -31,26 +32,33 @@ const PRICES: Record<number, number> = {
 /**
  * Creates a Stripe PaymentIntent
  */
-export const createPaymentIntent = functions.https.onCall(
-    async (request) => {
-        // Auth check
-        if (!request.auth) {
-            throw new functions.https.HttpsError(
-                'unauthenticated',
-                'Authentication required'
-            );
-        }
+export const createPaymentIntent = onCall({
+    region: 'europe-west1',
+    memory: '256MiB',
+    maxInstances: 10,
+}, async (request) => {
+    // Auth check
+    if (!request.auth) {
+        throw new HttpsError(
+            'unauthenticated',
+            'Authentication required'
+        );
+    }
 
         const userId = request.auth.uid;
 
         // Rate limiting
         await checkRateLimit(userId, 'payment', RATE_LIMITS.payment);
 
-        const { level, vin, vehicleMake, vehicleModel, vehicleId } = request.data;
+        const { level, vin, vehicleMake, vehicleModel, vehicleId } = request.data || {};
+
+        if (!vin) {
+            throw new HttpsError('invalid-argument', 'VIN is required');
+        }
 
         // Validate level
         if (level !== 1 && level !== 2) {
-            throw new functions.https.HttpsError(
+            throw new HttpsError(
                 'invalid-argument',
                 'Level must be 1 or 2'
             );
@@ -59,9 +67,10 @@ export const createPaymentIntent = functions.https.onCall(
         // Server-side VIN validation (ISO 3779)
         const vinCheck = validateVIN(vin);
         if (!vinCheck.valid) {
-            throw new functions.https.HttpsError(
+            throw new HttpsError(
                 'invalid-argument',
-                vinCheck.error || 'Invalid VIN'
+                vinCheck.error || 'Invalid VIN',
+                { validationCode: vinCheck.code }
             );
         }
 
@@ -134,9 +143,10 @@ export const createPaymentIntent = functions.https.onCall(
                 ephemeralKey: '',
                 customerId,
             };
-        } catch (error) {
+        } catch (error: any) {
+            if (error instanceof HttpsError) throw error;
             functions.logger.error('[Payment] Intent creation failed:', error);
-            throw new functions.https.HttpsError('internal', 'Payment setup failed');
+            throw new HttpsError('internal', error.message || 'Payment setup failed');
         }
     }
 );

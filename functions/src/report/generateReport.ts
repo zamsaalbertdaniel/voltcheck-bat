@@ -7,6 +7,7 @@
  */
 
 import * as admin from 'firebase-admin';
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import * as functions from 'firebase-functions';
 import PDFDocument from 'pdfkit';
 
@@ -52,15 +53,18 @@ interface ReportData {
 /**
  * Generates a PDF report and stores it in Firebase Storage
  */
-export const generateReport = functions.https.onCall(
-    async (request) => {
-        // Verify authentication
-        if (!request.auth) {
-            throw new functions.https.HttpsError(
-                'unauthenticated',
-                'Authentication required'
-            );
-        }
+export const generateReport = onCall({
+    region: 'europe-west1',
+    memory: '512MiB',
+    maxInstances: 5,
+}, async (request) => {
+    // Verify authentication
+    if (!request.auth) {
+        throw new HttpsError(
+            'unauthenticated',
+            'Authentication required'
+        );
+    }
 
         const data = request.data as ReportData;
         const userId = request.auth.uid;
@@ -123,9 +127,10 @@ export const generateReport = functions.https.onCall(
                 pdfUrl: downloadUrl,
                 generationTimeMs: duration,
             };
-        } catch (error) {
+        } catch (error: any) {
+            if (error instanceof HttpsError) throw error;
             functions.logger.error('[PDF] Generation failed:', error);
-            throw new functions.https.HttpsError('internal', 'PDF generation failed');
+            throw new HttpsError('internal', error.message || 'PDF generation failed');
         }
     }
 );

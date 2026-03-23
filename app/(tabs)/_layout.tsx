@@ -9,9 +9,12 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Platform } from 'react-native';
 
 export default function TabLayout() {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
@@ -43,7 +46,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Scanare',
+          title: t('tabs.scan'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="magnify-scan" size={size} color={color} />
           ),
@@ -52,7 +55,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="insight"
         options={{
-          title: 'BAT Insight',
+          title: t('tabs.insight'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bulb-outline" size={size} color={color} />
           ),
@@ -61,7 +64,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="garage"
         options={{
-          title: 'Garaj',
+          title: t('tabs.garage'),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="garage" size={size} color={color} />
           ),
@@ -70,7 +73,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Setări',
+          title: t('tabs.settings'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),

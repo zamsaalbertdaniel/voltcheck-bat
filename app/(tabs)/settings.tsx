@@ -4,7 +4,7 @@
  * FAZA 1 — Renamed from Profil to Setări
  */
 
-import { Platform, 
+import { 
     VoltBorderRadius,
     VoltColors,
     VoltFontSize,
@@ -21,6 +21,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Platform,
  } from 'react-native';
 
 export default function ProfileScreen() {

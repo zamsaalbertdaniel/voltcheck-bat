@@ -3,7 +3,7 @@
  * Shows stored reports with TTL badges and risk indicators
  */
 
-import { Platform, 
+import { 
   VoltBorderRadius,
   VoltColors,
   VoltFontSize,
@@ -21,6 +21,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Platform,
  } from 'react-native';
 
 // Mock data for development

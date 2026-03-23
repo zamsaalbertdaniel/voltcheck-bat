@@ -5,7 +5,7 @@
  * Pas 2: Real Firestore fetch + loading/error states
  */
 
-import { Platform, 
+import { 
     VoltBorderRadius,
     VoltColors,
     VoltFontSize,
@@ -27,6 +27,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    Platform,
  } from 'react-native';
 
 // ═══════════════════════════════════════════

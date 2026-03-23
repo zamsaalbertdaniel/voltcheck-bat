@@ -7,7 +7,7 @@
  * authoritative source of truth for scoring.
  */
 
-import { DataCoverageTag, ConfidenceBreakdown } from '../../../types/firestore';
+import { DataCoverageTag, ConfidenceBreakdown } from '../types/firestore';
 
 export interface RiskInput {
     // Vehicle data

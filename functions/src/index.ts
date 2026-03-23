@@ -12,6 +12,9 @@
 
 // ── Startup Secrets Validation ──
 import * as functions from 'firebase-functions';
+import { setGlobalOptions } from 'firebase-functions/v2';
+
+setGlobalOptions({ region: 'europe-west1' });
 
 const REQUIRED_SECRETS = [
     'STRIPE_SECRET_KEY',

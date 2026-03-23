@@ -120,6 +120,9 @@ export default function ScanScreen() {
         setErrorMessage(t('errors.authRequired'));
       } else if (parsed.isNetworkError) {
         setErrorMessage(t('errors.networkError'));
+      } else if (parsed.validationCode) {
+        // Specifically handle server-side VIN validation codes
+        setErrorMessage(t(`errors.vin_${parsed.validationCode.toLowerCase()}`, { defaultValue: parsed.message }));
       } else {
         setErrorMessage(parsed.message || t('errors.unknownError'));
       }
@@ -165,17 +168,17 @@ export default function ScanScreen() {
     setScreenState('complete');
     Alert.alert(
       '⚡ VoltCheck',
-      `Raport finalizat!\nScor de Risc: ${status.riskScore}/100 (${status.riskCategory})`,
+      `${t('scan.reportCompleted')}\n${t('scan.riskScoreLabel')}: ${status.riskScore}/100 (${status.riskCategory})`,
       [
         {
-          text: 'Vezi Raportul',
+          text: t('scan.viewReport'),
           onPress: () => {
             // TODO: Navigate to Garage / Report viewer
             handleReset();
           },
         },
         {
-          text: 'Scanare Nouă',
+          text: t('scan.newScan'),
           onPress: handleReset,
         },
       ]
@@ -184,7 +187,7 @@ export default function ScanScreen() {
 
   // ── Pipeline Error ──
   const handlePipelineError = useCallback((error: string) => {
-    Alert.alert('⚠️ Eroare', error, [
+    Alert.alert(`⚠️ ${t('scan.errorTitle')}`, error, [
       { text: 'OK', onPress: () => setScreenState('level_select') },
     ]);
   }, []);
@@ -362,7 +365,7 @@ export default function ScanScreen() {
                 <View style={styles.recallBanner}>
                   <Ionicons name="warning" size={16} color="#FFD600" />
                   <Text style={styles.recallText}>
-                    {decodedData.recalls.length} recall(s) active
+                    {t('scan.recallsActive', { count: decodedData.recalls.length })}
                   </Text>
                 </View>
               )}
@@ -424,7 +427,7 @@ export default function ScanScreen() {
                 disabled={screenState === 'paying'}
               >
                 <View style={styles.premiumBadge}>
-                  <Text style={styles.premiumText}>⚡ RECOMANDARE</Text>
+                  <Text style={styles.premiumText}>⚡ {t('scan.recommendation')}</Text>
                 </View>
                 <View style={styles.levelHeader}>
                   <View style={[styles.levelIconContainer, styles.levelIconPremium]}>

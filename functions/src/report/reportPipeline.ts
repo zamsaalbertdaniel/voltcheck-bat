@@ -21,7 +21,7 @@ import * as functions from 'firebase-functions';
 import { calculateRiskScore, RiskInput } from '../utils/riskEngine';
 import { deriveAssessmentType, deriveSourceTraceability } from '../utils/reportDerivations';
 import { PipelineLogger } from '../utils/pipelineLogger';
-import { AssessmentType, SourceTraceability } from '../../../types/firestore';
+import { AssessmentType, SourceTraceability } from '../types/firestore';
 
 if (!admin.apps.length) {
     admin.initializeApp();

@@ -6,6 +6,7 @@
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { HttpsError } from 'firebase-functions/v2/https';
 
 // Lazy init — db is accessed only inside functions, after initializeApp()
 function getDb() {
@@ -75,7 +76,7 @@ export async function checkRateLimit(
                 `[RateLimit] UID ${uid} exceeded ${cfg.maxRequests}/${cfg.windowSeconds}s on ${endpoint}`
             );
 
-            throw new functions.https.HttpsError(
+            throw new HttpsError(
                 'resource-exhausted',
                 `Rate limit exceeded. Try again in ${retryAfterSec} seconds.`,
                 { retryAfterSeconds: retryAfterSec }

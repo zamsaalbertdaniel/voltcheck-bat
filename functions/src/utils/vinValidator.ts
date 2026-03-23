@@ -11,23 +11,23 @@
  * - No I, O, Q (per ISO 3779)
  * - No special characters or whitespace
  */
-export function validateVIN(vin: string): { valid: boolean; error?: string } {
+export function validateVIN(vin: string): { valid: boolean; error?: string; code?: string } {
     if (!vin || typeof vin !== 'string') {
-        return { valid: false, error: 'VIN is required' };
+        return { valid: false, error: 'VIN is required', code: 'REQUIRED' };
     }
 
     const trimmed = vin.trim().toUpperCase();
 
     if (trimmed.length !== 17) {
-        return { valid: false, error: `VIN must be exactly 17 characters (got ${trimmed.length})` };
+        return { valid: false, error: `VIN must be exactly 17 characters (got ${trimmed.length})`, code: 'LENGTH' };
     }
 
     if (/[^A-Z0-9]/.test(trimmed)) {
-        return { valid: false, error: 'VIN must contain only letters and numbers' };
+        return { valid: false, error: 'VIN must contain only letters and numbers', code: 'CHARACTERS' };
     }
 
     if (/[IOQ]/.test(trimmed)) {
-        return { valid: false, error: 'VIN cannot contain letters I, O, or Q (ISO 3779)' };
+        return { valid: false, error: 'VIN cannot contain letters I, O, or Q (ISO 3779)', code: 'FORBIDDEN_CHARS' };
     }
 
     return { valid: true };
