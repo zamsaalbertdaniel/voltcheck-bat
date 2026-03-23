@@ -4,7 +4,7 @@
  * FAZA 1 — Renamed from Profil to Setări
  */
 
-import {
+import { Platform, 
     VoltBorderRadius,
     VoltColors,
     VoltFontSize,
@@ -21,7 +21,7 @@ import {
     Text,
     TouchableOpacity,
     View,
-} from 'react-native';
+ } from 'react-native';
 
 export default function ProfileScreen() {
     const { t, i18n } = useTranslation();
@@ -85,7 +85,7 @@ export default function ProfileScreen() {
         <ScrollView
             style={styles.container}
             contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={Platform.OS === 'web'}
         >
             {/* Header */}
             <View style={styles.header}>

@@ -15,7 +15,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { StatusBar } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 import 'react-native-reanimated';
 
 // Initialize i18n
@@ -46,20 +46,25 @@ const VoltCheckTheme = {
 
 const WebScrollbarCSS = `
   /* Custom Scrollbar for Web */
-  ::-webkit-scrollbar {
+  *::-webkit-scrollbar {
     width: 10px;
     height: 10px;
+    display: block;
   }
-  ::-webkit-scrollbar-track {
+  *::-webkit-scrollbar-track {
     background: #0A0E17;
   }
-  ::-webkit-scrollbar-thumb {
+  *::-webkit-scrollbar-thumb {
     background: #00E676; 
     border-radius: 5px;
     border: 2px solid #0A0E17;
   }
-  ::-webkit-scrollbar-thumb:hover {
+  *::-webkit-scrollbar-thumb:hover {
     background: #00C853; 
+  }
+  /* Global body scroll (just in case) */
+  body::-webkit-scrollbar {
+    width: 10px;
   }
 `;
 

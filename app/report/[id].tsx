@@ -5,7 +5,7 @@
  * Pas 2: Real Firestore fetch + loading/error states
  */
 
-import {
+import { Platform, 
     VoltBorderRadius,
     VoltColors,
     VoltFontSize,
@@ -27,7 +27,7 @@ import {
     Text,
     TouchableOpacity,
     View,
-} from 'react-native';
+ } from 'react-native';
 
 // ═══════════════════════════════════════════
 // MOCK DATA (used only when USE_MOCK_DATA is true)
@@ -310,7 +310,7 @@ export default function ReportScreen() {
         <ScrollView
             style={styles.container}
             contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
+            showsVerticalScrollIndicator={Platform.OS === 'web'}
         >
             {/* Demo Mode Banner */}
             {USE_MOCK_DATA && (

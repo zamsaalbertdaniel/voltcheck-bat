@@ -193,7 +193,7 @@ export default function InsightScreen() {
                 ref={scrollRef}
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
+                showsVerticalScrollIndicator={Platform.OS === 'web'}
             >
                 {/* ── Header ── */}
                 <View style={styles.header}>

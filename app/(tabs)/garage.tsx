@@ -3,7 +3,7 @@
  * Shows stored reports with TTL badges and risk indicators
  */
 
-import {
+import { Platform, 
   VoltBorderRadius,
   VoltColors,
   VoltFontSize,
@@ -21,7 +21,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
+ } from 'react-native';
 
 // Mock data for development
 const MOCK_REPORTS = [
@@ -177,7 +177,7 @@ export default function GarageScreen() {
         keyExtractor={(item) => item.reportId}
         renderItem={renderReport}
         contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={Platform.OS === 'web'}
         ListEmptyComponent={renderEmpty}
       />
     </View>
