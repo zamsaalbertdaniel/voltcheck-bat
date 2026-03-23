@@ -19,10 +19,7 @@ import {
     USE_MOCK_DATA,
 } from '@/services/cloudFunctions';
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import {
-    initPaymentSheet,
-    presentPaymentSheet,
-} from '@stripe/stripe-react-native';
+import { initializeStripePayment, presentStripePayment } from '@/services/stripeService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -146,13 +143,8 @@ export default function PaymentScreen() {
                 vehicleModel: params.model,
             });
 
-            // Step 2: Initialize Stripe Payment Sheet
-            const { error: initError } = await initPaymentSheet({
-                paymentIntentClientSecret: clientSecret,
-                merchantDisplayName: 'VoltCheck',
-                style: 'alwaysDark',
-                returnURL: 'voltcheck://payment-return',
-            });
+            // Step 2: Initialize Stripe Payment Sheet via abstracted service
+            const { error: initError } = await initializeStripePayment(clientSecret);
 
             if (initError) {
                 throw new Error(initError.message || 'Nu s-a putut inițializa plata');
@@ -168,7 +160,7 @@ export default function PaymentScreen() {
             setStatus('confirming');
             setStatusMessage('Confirmă plata...');
 
-            const { error: presentError } = await presentPaymentSheet();
+            const { error: presentError } = await presentStripePayment();
 
             if (presentError) {
                 // User cancelled or payment failed
