@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Expo Web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "C:\\Users\\Albert\\Desktop\\VoltCheck\\dist", "-l", "8081", "--no-clipboard"],
+      "port": 8081
+    },
+    {
+      "name": "Expo Dev Server",
+      "runtimeExecutable": "C:\\Users\\Albert\\Desktop\\VoltCheck\\node_modules\\.bin\\expo.cmd",
+      "runtimeArgs": ["start"],
+      "port": 8081
+    },
+    {
+      "name": "Firebase Emulators",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "C:\\Users\\Albert\\Desktop\\VoltCheck", "firebase", "emulators:start"],
+      "port": 4000
+    },
+    {
+      "name": "Functions Build Watch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:\\Users\\Albert\\Desktop\\VoltCheck\\functions", "run", "build:watch"],
+      "port": 0
+    }
+  ]
+}
