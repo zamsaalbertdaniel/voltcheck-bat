@@ -13,7 +13,7 @@ import {
   getRiskColor,
 } from '@/constants/Theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FlatList,
@@ -64,94 +64,82 @@ const MOCK_REPORTS = [
   },
 ];
 
+type ReportItem = typeof MOCK_REPORTS[0];
+
+function getDaysLeft(expiresAt: Date): number {
+  const diff = expiresAt.getTime() - Date.now();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
+const ReportCard = memo(function ReportCard({ item }: { item: ReportItem }) {
+  const { t } = useTranslation();
+  const daysLeft = getDaysLeft(item.expiresAt);
+  const isExpired = daysLeft <= 0;
+  const riskColor = getRiskColor(item.riskScore);
+  const riskCat = getRiskCategory(item.riskScore);
+
+  return (
+    <TouchableOpacity
+      style={[styles.card, isExpired && styles.cardExpired]}
+      activeOpacity={0.8}
+    >
+      <View style={[styles.levelBadge, item.level === 2 ? styles.levelBadgePremium : null]}>
+        <Text style={styles.levelBadgeText}>
+          {item.level === 1 ? t('garage.level1Badge') : t('garage.level2Badge')}
+        </Text>
+      </View>
+
+      <View style={styles.cardContent}>
+        <View style={styles.cardLeft}>
+          <MaterialCommunityIcons
+            name="car-electric"
+            size={36}
+            color={isExpired ? VoltColors.textTertiary : VoltColors.neonGreen}
+          />
+        </View>
+
+        <View style={styles.cardCenter}>
+          <Text style={[styles.carName, isExpired && styles.textExpired]}>
+            {item.make} {item.model}
+          </Text>
+          <Text style={styles.carYear}>{item.year}</Text>
+          <Text style={styles.vinText}>{item.vin}</Text>
+          <Text style={styles.dateText}>{item.createdAt.toLocaleDateString('ro-RO')}</Text>
+        </View>
+
+        <View style={styles.cardRight}>
+          <View style={[styles.riskCircle, { borderColor: riskColor }]}>
+            <Text style={[styles.riskScore, { color: riskColor }]}>{item.riskScore}</Text>
+          </View>
+          <Text style={[styles.riskLabel, { color: riskColor }]}>
+            {t(`report.riskCategories.${riskCat}`)}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.cardFooter}>
+        <View style={styles.expiryContainer}>
+          <Ionicons
+            name="time-outline"
+            size={14}
+            color={isExpired ? VoltColors.error : VoltColors.textTertiary}
+          />
+          <Text style={[styles.expiryText, isExpired && styles.expiryExpired]}>
+            {isExpired ? t('garage.expired') : t('report.expiresIn', { days: daysLeft })}
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.viewButton}>
+          <Text style={styles.viewButtonText}>{t('garage.viewReport')}</Text>
+          <Ionicons name="arrow-forward" size={14} color={VoltColors.neonGreen} />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
 export default function GarageScreen() {
   const { t } = useTranslation();
   const [reports] = useState(MOCK_REPORTS);
-
-  const getDaysLeft = (expiresAt: Date) => {
-    const now = new Date();
-    const diff = expiresAt.getTime() - now.getTime();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  };
-
-  const renderReport = ({ item }: { item: typeof MOCK_REPORTS[0] }) => {
-    const daysLeft = getDaysLeft(item.expiresAt);
-    const isExpired = daysLeft <= 0;
-    const riskColor = getRiskColor(item.riskScore);
-    const riskCat = getRiskCategory(item.riskScore);
-
-    return (
-      <TouchableOpacity
-        style={[styles.card, isExpired && styles.cardExpired]}
-        activeOpacity={0.8}
-      >
-        {/* Level badge */}
-        <View style={[
-          styles.levelBadge,
-          item.level === 2 ? styles.levelBadgePremium : null,
-        ]}>
-          <Text style={styles.levelBadgeText}>
-            {item.level === 1 ? t('garage.level1Badge') : t('garage.level2Badge')}
-          </Text>
-        </View>
-
-        {/* Card content */}
-        <View style={styles.cardContent}>
-          <View style={styles.cardLeft}>
-            <MaterialCommunityIcons
-              name="car-electric"
-              size={36}
-              color={isExpired ? VoltColors.textTertiary : VoltColors.neonGreen}
-            />
-          </View>
-
-          <View style={styles.cardCenter}>
-            <Text style={[styles.carName, isExpired && styles.textExpired]}>
-              {item.make} {item.model}
-            </Text>
-            <Text style={styles.carYear}>{item.year}</Text>
-            <Text style={styles.vinText}>{item.vin}</Text>
-            <Text style={styles.dateText}>
-              {item.createdAt.toLocaleDateString('ro-RO')}
-            </Text>
-          </View>
-
-          <View style={styles.cardRight}>
-            {/* Risk Score Circle */}
-            <View style={[styles.riskCircle, { borderColor: riskColor }]}>
-              <Text style={[styles.riskScore, { color: riskColor }]}>
-                {item.riskScore}
-              </Text>
-            </View>
-            <Text style={[styles.riskLabel, { color: riskColor }]}>
-              {t(`report.riskCategories.${riskCat}`)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Footer: Expiry + action */}
-        <View style={styles.cardFooter}>
-          <View style={styles.expiryContainer}>
-            <Ionicons
-              name="time-outline"
-              size={14}
-              color={isExpired ? VoltColors.error : VoltColors.textTertiary}
-            />
-            <Text style={[
-              styles.expiryText,
-              isExpired && styles.expiryExpired,
-            ]}>
-              {isExpired ? t('garage.expired') : t('report.expiresIn', { days: daysLeft })}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.viewButton}>
-            <Text style={styles.viewButtonText}>{t('garage.viewReport')}</Text>
-            <Ionicons name="arrow-forward" size={14} color={VoltColors.neonGreen} />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
-    );
-  };
 
   const renderEmpty = () => (
     <View style={styles.emptyState}>
@@ -176,7 +164,7 @@ export default function GarageScreen() {
       <FlatList
         data={reports}
         keyExtractor={(item) => item.reportId}
-        renderItem={renderReport}
+        renderItem={({ item }) => <ReportCard item={item} />}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={Platform.OS === 'web'}
         ListEmptyComponent={renderEmpty}
