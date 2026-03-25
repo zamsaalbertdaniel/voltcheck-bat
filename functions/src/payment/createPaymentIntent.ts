@@ -18,10 +18,12 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-const stripe = new Stripe(
-    process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder',
-    { apiVersion: '2023-10-16' }
-);
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
+if (!STRIPE_KEY) {
+    throw new Error('[FATAL] STRIPE_SECRET_KEY is not configured. Aborting.');
+}
+
+const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2024-12-18.acacia' });
 
 // Prices in RON (bani = smallest unit)
 const PRICES: Record<number, number> = {

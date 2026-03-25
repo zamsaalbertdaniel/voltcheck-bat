@@ -25,12 +25,17 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-const stripe = new Stripe(
-    process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder',
-    { apiVersion: '2023-10-16' }
-);
+const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
+if (!STRIPE_KEY) {
+    throw new Error('[FATAL] STRIPE_SECRET_KEY is not configured. Aborting.');
+}
 
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_placeholder';
+const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+if (!WEBHOOK_SECRET) {
+    throw new Error('[FATAL] STRIPE_WEBHOOK_SECRET is not configured. Aborting.');
+}
+
+const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2024-12-18.acacia' });
 
 /**
  * Handles Stripe webhook events
