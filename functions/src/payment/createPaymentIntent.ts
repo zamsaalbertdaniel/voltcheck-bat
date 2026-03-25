@@ -23,7 +23,7 @@ if (!STRIPE_KEY) {
     throw new Error('[FATAL] STRIPE_SECRET_KEY is not configured. Aborting.');
 }
 
-const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2024-12-18.acacia' });
+const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2023-10-16' });
 
 // Prices in RON (bani = smallest unit)
 const PRICES: Record<number, number> = {

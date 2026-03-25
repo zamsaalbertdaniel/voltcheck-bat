@@ -35,7 +35,7 @@ if (!WEBHOOK_SECRET) {
     throw new Error('[FATAL] STRIPE_WEBHOOK_SECRET is not configured. Aborting.');
 }
 
-const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2024-12-18.acacia' });
+const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2023-10-16' });
 
 /**
  * Handles Stripe webhook events
