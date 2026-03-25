@@ -12,6 +12,7 @@
 
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import cors from 'cors';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -19,17 +20,23 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
+const corsHandler = cors({
+    origin: ['https://voltcheck.app', 'https://www.voltcheck.app'],
+    methods: ['GET'],
+});
+
 /**
  * Generates a share page with Open Graph metadata for rich previews
  */
 export const shareReport = functions.https.onRequest(
-    async (req, res) => {
-        const reportId = req.path.split('/').pop();
+    (req, res) => {
+        corsHandler(req, res, async () => {
+            const reportId = req.path.split('/').pop();
 
-        if (!reportId || req.method !== 'GET') {
-            res.status(404).send('Report not found');
-            return;
-        }
+            if (!reportId || req.method !== 'GET') {
+                res.status(404).send('Report not found');
+                return;
+            }
 
         try {
             // Fetch report data
@@ -175,6 +182,7 @@ export const shareReport = functions.https.onRequest(
             functions.logger.error(`[Share] Error for ${reportId}:`, error);
             res.status(500).send(generateErrorPage('Eroare la încărcarea raportului'));
         }
+        });
     }
 );
 

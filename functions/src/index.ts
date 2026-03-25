@@ -16,17 +16,21 @@ import { setGlobalOptions } from 'firebase-functions/v2';
 
 setGlobalOptions({ region: 'europe-west1' });
 
-const REQUIRED_SECRETS = [
-    'STRIPE_SECRET_KEY',
-    'STRIPE_WEBHOOK_SECRET',
-    'CARVERTICAL_API_KEY',
-    'AUTODNA_API_KEY',
-    'EPICVIN_API_KEY'
-];
+// Critical secrets — functions MUST NOT start without these
+const CRITICAL_SECRETS = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
 
-for (const secret of REQUIRED_SECRETS) {
+for (const secret of CRITICAL_SECRETS) {
     if (!process.env[secret]) {
-        functions.logger.warn(`[Startup Warning] Missing environment variable / secret: ${secret} - related features may fail.`);
+        throw new Error(`[FATAL] Missing critical secret: ${secret}. Deploy will not proceed.`);
+    }
+}
+
+// Optional provider secrets — features degrade gracefully without these
+const OPTIONAL_SECRETS = ['CARVERTICAL_API_KEY', 'AUTODNA_API_KEY', 'EPICVIN_API_KEY'];
+
+for (const secret of OPTIONAL_SECRETS) {
+    if (!process.env[secret]) {
+        functions.logger.warn(`[Startup] Missing optional secret: ${secret} — provider will be skipped.`);
     }
 }
 
