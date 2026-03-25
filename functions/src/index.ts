@@ -50,3 +50,6 @@ export { shareReport } from './share/reportShare';
 
 // ── Scheduler ──
 export { cleanupExpiredReports } from './scheduler/cleanupExpired';
+
+// ── Health Check ──
+export { healthCheck } from './health/healthCheck';
