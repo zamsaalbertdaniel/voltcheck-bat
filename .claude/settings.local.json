@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"TODO\\\\|FIXME\\\\|BUG\\\\|HACK\\\\|XXX\\\\|SECURITY\" /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/functions/src --include=*.ts)",
+      "Bash(wc -l /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/*/*tsx /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/components/*.tsx)",
+      "Bash(npm outdated:*)",
+      "Bash(ls -la *.md)",
+      "Bash(grep -r \"SECURITY\\\\|security-related\\\\|vulnerability\" /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman --include=*.ts --include=*.tsx --include=*.md)",
+      "Bash(grep -r \"TODO\\\\|FIXME\" /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman --include=*.ts --include=*.tsx)",
+      "Bash(wc -l functions/src/__tests__/*.test.ts)",
+      "Bash(find /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman -maxdepth 3 -name *.test.ts -o -name *.spec.ts)",
+      "Bash(xargs wc:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_teams",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_projects",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_deployments",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_deployment_build_logs",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_deployment",
+      "Bash(wc -l \"/c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/\\(tabs\\)/index.tsx\" \"/c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/payment.tsx\" \"/c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/\\(tabs\\)/garage.tsx\")",
+      "Bash(npx tsc:*)",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__deploy_to_vercel",
+      "Bash(Start-Sleep -Seconds 8)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/)",
+      "Bash(netstat -ano)",
+      "Bash(tasklist /FI 'PID eq 14108')",
+      "Bash(curl -s -m 5 http://localhost:8081/)",
+      "Bash(curl -v -m 10 http://localhost:8081/)",
+      "Bash(npx expo:*)",
+      "Bash(ls \"C:\\\\Users\\\\Albert\\\\Desktop\\\\VoltCheck\\\\node_modules\\\\.bin\"\" | grep -i \"expo \")",
+      "Bash(ls \"C:\\\\Users\\\\Albert\\\\Desktop\\\\VoltCheck\\\\node_modules\\\\.bin | grep -i serve\")",
+      "Bash(http-server)",
+      "Bash(static)",
+      "Bash(npx --yes serve --version)",
+      "Bash(pkill -f \"serve dist\")"
+    ]
+  }
+}

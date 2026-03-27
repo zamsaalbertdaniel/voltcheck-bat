@@ -10,8 +10,10 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { Ionicons } from '@expo/vector-icons';
+import crashlytics from '@react-native-firebase/crashlytics';
 import React, { Component, ReactNode } from 'react';
 import {
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -40,7 +42,15 @@ export default class VoltErrorBoundary extends Component<Props, State> {
 
     componentDidCatch(error: Error, info: React.ErrorInfo) {
         console.error('[VoltCheck Error]', error, info.componentStack);
-        // TODO: Log to Firebase Crashlytics
+
+        if (Platform.OS !== 'web') {
+            try {
+                crashlytics().recordError(error);
+                crashlytics().log(`ComponentStack: ${info.componentStack ?? 'N/A'}`);
+            } catch {
+                // Crashlytics not available — ignore silently
+            }
+        }
     }
 
     handleRetry = () => {

@@ -10,6 +10,7 @@
 
 import { Platform } from 'react-native';
 import { getFirebaseServices } from './firebase';
+import { cacheGet, cacheSet, vinCacheKey } from './offlineCache';
 
 // ═══════════════════════════════════════════
 // CONFIG
@@ -117,23 +118,41 @@ export async function decodeVinRemote(vin: string, level: number = 1): Promise<V
         return { ...MOCK_VIN_RESPONSE, vin };
     }
 
-    const { app } = await getFirebaseServices();
+    // Check offline cache first
+    const cacheKey = vinCacheKey(vin);
+    const cached = await cacheGet<VINDecodeResponse>(cacheKey);
+    if (cached) {
+        return { ...cached, source: 'cache' };
+    }
 
-    if (Platform.OS === 'web') {
-        const { getFunctions, httpsCallable } = await import('firebase/functions');
-        const functions = getFunctions(app, FUNCTIONS_REGION);
-        const decodeVin = httpsCallable<{ vin: string; level: number }, VINDecodeResponse>(
-            functions, 'decodeVin'
-        );
-        const result = await decodeVin({ vin, level });
-        return result.data;
-    } else {
-        // Native: use @react-native-firebase/functions
-        const rnFunctions = (await import('@react-native-firebase/app')) as any;
-        const functionsModule = rnFunctions.default.functions();
-        const decodeVin = (functionsModule as any).httpsCallable('decodeVin');
-        const result = await decodeVin({ vin, level });
-        return result.data as VINDecodeResponse;
+    try {
+        const { app } = await getFirebaseServices();
+        let result: VINDecodeResponse;
+
+        if (Platform.OS === 'web') {
+            const { getFunctions, httpsCallable } = await import('firebase/functions');
+            const functions = getFunctions(app, FUNCTIONS_REGION);
+            const decodeVin = httpsCallable<{ vin: string; level: number }, VINDecodeResponse>(
+                functions, 'decodeVin'
+            );
+            result = (await decodeVin({ vin, level })).data;
+        } else {
+            const rnFunctions = (await import('@react-native-firebase/app')) as any;
+            const functionsModule = rnFunctions.default.functions();
+            const decodeVin = (functionsModule as any).httpsCallable('decodeVin');
+            result = (await decodeVin({ vin, level })).data as VINDecodeResponse;
+        }
+
+        // Cache successful results for 24h
+        await cacheSet(cacheKey, result, { ttlMs: 24 * 60 * 60 * 1000 });
+        return result;
+    } catch (err: any) {
+        // On network error, try cache (even expired would be better than nothing)
+        const parsed = parseCloudError(err);
+        if (parsed.isNetworkError && cached) {
+            return { ...cached, source: 'cache' };
+        }
+        throw err;
     }
 }
 
