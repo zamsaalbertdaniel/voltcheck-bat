@@ -13,10 +13,16 @@
 
 import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 import { sanitizeVIN, validateVIN } from '../utils/vinValidator';
 import { maskVin } from '../utils/pipelineLogger';
+import {
+    PROVIDER_URLS,
+    PROVIDER_TIMEOUT_MS,
+    TOTAL_TIMEOUT_MS,
+    CACHE_TTL_MS,
+} from '../config/providers';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -24,16 +30,14 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ── Constants ──
-const NHTSA_BASE = 'https://vpic.nhtsa.dot.gov/api/vehicles';
-const PROVIDER_TIMEOUT_MS = 8_000;   // 8s per provider
-const TOTAL_TIMEOUT_MS = 20_000;     // 20s max total
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+// ── Constants (from config) ──
+const NHTSA_BASE = PROVIDER_URLS.nhtsaDecode;
 
 // ── Types ──
 interface ProviderResponse {
     provider: string;
     status: 'success' | 'error' | 'timeout' | 'cached' | 'skipped';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
     responseTimeMs: number;
     fromCache?: boolean;
@@ -163,7 +167,7 @@ export const decodeVin = onCall({
         const vin = sanitizeVIN(rawVin);
         const level: number = request.data?.level || 1;
 
-        functions.logger.info(`[VIN Decode] UID:${uid} VIN:${maskVin(vin)} Level:${level}`);
+        logger.info(`[VIN Decode] UID:${uid} VIN:${maskVin(vin)} Level:${level}`);
 
         try {
             const pipelineStart = Date.now();
@@ -177,7 +181,7 @@ export const decodeVin = onCall({
                 const cacheAge = Date.now() - (cacheData.cachedAt?.toDate?.()?.getTime() || 0);
 
                 if (cacheAge < CACHE_TTL_MS) {
-                    functions.logger.info(`[VIN Cache] HIT for ${vin} (age: ${Math.round(cacheAge / 60000)}min)`);
+                    logger.info(`[VIN Cache] HIT for ${vin} (age: ${Math.round(cacheAge / 60000)}min)`);
                     return {
                         ...cacheData.decodedData,
                         source: 'cache',
@@ -209,9 +213,10 @@ export const decodeVin = onCall({
                         'NHTSA Complaints'
                     );
                 }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 nhtsaFailed = true;
-                functions.logger.warn(`[NHTSA] Failed: ${err.message}`);
+                logger.warn(`[NHTSA] Failed: ${err.message}`);
             }
 
             // ── 6. Detect market & get paid provider chain ──
@@ -239,7 +244,7 @@ export const decodeVin = onCall({
                                 fromCache: true,
                             });
                         }
-                        functions.logger.info(
+                        logger.info(
                             `[API Deduplication] Reusing ${validCached.length} cached provider(s) for ${vin}`
                         );
                     }
@@ -274,6 +279,7 @@ export const decodeVin = onCall({
                             data: result,
                             responseTimeMs: Date.now() - providerStart,
                         });
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     } catch (err: any) {
                         const isTimeout = err.message?.includes('timed out');
                         paidProviderResults.push({
@@ -282,7 +288,7 @@ export const decodeVin = onCall({
                             data: { error: err.message },
                             responseTimeMs: Date.now() - providerStart,
                         });
-                        functions.logger.warn(`[${provider}] Failed: ${err.message}`);
+                        logger.warn(`[${provider}] Failed: ${err.message}`);
                     }
                 }
             }
@@ -296,7 +302,7 @@ export const decodeVin = onCall({
                 paidProviderResults.every(p => p.status !== 'success' && p.status !== 'cached');
 
             if (allProvidersFailed) {
-                functions.logger.error(
+                logger.error(
                     `[FAIL-SAFE] All providers failed for VIN ${vin}. Marking for manual review.`
                 );
             }
@@ -325,7 +331,7 @@ export const decodeVin = onCall({
             }
 
             const totalTime = Date.now() - pipelineStart;
-            functions.logger.info(
+            logger.info(
                 `[VIN Decode] Complete for ${vin} in ${totalTime}ms — ` +
                 `NHTSA:${nhtsaFailed ? 'FAIL' : 'OK'} ` +
                 `Providers:${paidProviderResults.map(p => `${p.provider}:${p.status}`).join(',')}`
@@ -333,16 +339,18 @@ export const decodeVin = onCall({
 
             return result;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         if (error instanceof HttpsError) throw error;
         
         // Check for specific error types that might be thrown by libraries
         if (error.code && typeof error.code === 'string') {
              // If it looks like an HttpsError but instance check failed
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
              throw new HttpsError(error.code as any, error.message);
         }
 
-        functions.logger.error('[VIN Decode] Unexpected error:', error);
+        logger.error('[VIN Decode] Unexpected error:', error);
         throw new HttpsError('internal', error.message || 'VIN decode failed');
     }
 });
@@ -373,13 +381,14 @@ async function decodeViaNHTSA(vin: string): Promise<NHTSAData> {
 
 async function fetchNHTSARecalls(vin: string): Promise<NHTSARecall[]> {
     try {
-        const url = `https://api.nhtsa.gov/recalls/recallsByVin?vin=${vin}`;
+        const url = `${PROVIDER_URLS.nhtsaRecalls}?vin=${vin}`;
         const response = await fetch(url);
         if (!response.ok) return [];
 
         const data = await response.json();
         if (!data.results) return [];
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return data.results.slice(0, 10).map((r: any) => ({
             campaignNumber: r.NHTSACampaignNumber || '',
             component: r.Component || '',
@@ -394,7 +403,7 @@ async function fetchNHTSARecalls(vin: string): Promise<NHTSARecall[]> {
 async function fetchNHTSAComplaints(make: string, model: string, year: number): Promise<number> {
     try {
         const url =
-            `https://api.nhtsa.gov/complaints/complaintsByVehicle?` +
+            `${PROVIDER_URLS.nhtsaComplaints}?` +
             `make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${year}`;
         const response = await fetch(url);
         if (!response.ok) return 0;
@@ -410,6 +419,7 @@ async function fetchNHTSAComplaints(make: string, model: string, year: number): 
 // PAID PROVIDERS (requires API keys)
 // ═══════════════════════════════════════════
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchPaidProvider(provider: string, vin: string): Promise<any> {
     switch (provider) {
         case 'carVertical':
@@ -423,13 +433,14 @@ async function fetchPaidProvider(provider: string, vin: string): Promise<any> {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchCarVertical(vin: string): Promise<any> {
     const apiKey = process.env.CARVERTICAL_API_KEY;
     if (!apiKey) {
         return { status: 'no_api_key', note: 'carVertical API key not configured' };
     }
 
-    const response = await fetch('https://api.carvertical.com/v1/reports', {
+    const response = await fetch(PROVIDER_URLS.carVertical, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -442,13 +453,14 @@ async function fetchCarVertical(vin: string): Promise<any> {
     return response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchAutoDNA(vin: string): Promise<any> {
     const apiKey = process.env.AUTODNA_API_KEY;
     if (!apiKey) {
         return { status: 'no_api_key', note: 'AutoDNA API key not configured' };
     }
 
-    const response = await fetch(`https://api.autodna.com/v1/vin/${vin}`, {
+    const response = await fetch(`${PROVIDER_URLS.autoDna}/${vin}`, {
         headers: { 'Authorization': `Bearer ${apiKey}` },
     });
 
@@ -456,6 +468,7 @@ async function fetchAutoDNA(vin: string): Promise<any> {
     return response.json();
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchEpicVIN(vin: string): Promise<any> {
     const apiKey = process.env.EPICVIN_API_KEY;
     if (!apiKey) {
@@ -463,7 +476,7 @@ async function fetchEpicVIN(vin: string): Promise<any> {
     }
 
     const response = await fetch(
-        `https://api.epicvin.com/v1/vehicle-history?vin=${vin}`,
+        `${PROVIDER_URLS.epicVin}?vin=${vin}`,
         { headers: { 'Authorization': `Bearer ${apiKey}` } }
     );
 

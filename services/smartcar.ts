@@ -71,23 +71,31 @@ export function getAuthorizationUrl(): string {
 }
 
 /**
- * Exchanges authorization code for access token
- * This should be called from a Cloud Function for security
+ * Exchanges authorization code for access token via Cloud Function.
+ * The client_secret is stored server-side only — never exposed to the client.
+ * Returns the list of vehicles connected to the user's Smartcar account.
  */
 export async function exchangeAuthCode(code: string): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
+    success: boolean;
+    vehicles: SmartcarVehicle[];
+    vehicleCount: number;
 }> {
-    // TODO: Implement via Cloud Function — client should NOT hold client_secret
-    // The Cloud Function will call:
-    // POST https://auth.smartcar.com/oauth/token
-    // with client_id, client_secret, code, grant_type=authorization_code, redirect_uri
+    const { Platform } = await import('react-native');
+    const { getFirebaseServices } = await import('./firebase');
 
-    throw new Error(
-        'Token exchange must be handled server-side via Cloud Function. ' +
-        'Call the /api/smartcar/exchange endpoint instead.'
-    );
+    if (Platform.OS === 'web') {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const { app } = await getFirebaseServices();
+        const functions = getFunctions(app, 'europe-west1');
+        const callable = httpsCallable(functions, 'smartcarExchange');
+        const result = await callable({ code });
+        return result.data as { success: boolean; vehicles: SmartcarVehicle[]; vehicleCount: number };
+    } else {
+        const rnFunctions = await import('@react-native-firebase/functions');
+        const callable = rnFunctions.default().httpsCallable('smartcarExchange');
+        const result = await callable({ code });
+        return result.data as { success: boolean; vehicles: SmartcarVehicle[]; vehicleCount: number };
+    }
 }
 
 /**
@@ -116,7 +124,7 @@ export async function fetchBatteryDiagnosis(
         const vehicleData = await vehicleRes.json();
         const batteryData = await batteryRes.json();
         const chargeData = await chargeRes.json();
-        const odometerData = await odometerRes.json();
+        await odometerRes.json(); // consume response body (odometer data reserved for future use)
 
         // Process and structure the data
         const result: SmartcarDiagnosisResult = {
@@ -152,6 +160,7 @@ export async function fetchBatteryDiagnosis(
 
         return result;
     } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('[Smartcar] Battery diagnosis failed:', error);
         throw new Error('Failed to fetch battery diagnosis from Smartcar');
     }
@@ -161,6 +170,7 @@ export async function fetchBatteryDiagnosis(
  * Estimates SoH when direct SoH data is unavailable
  * Uses capacity vs nominal capacity comparison
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function estimateSoH(batteryData: any): number {
     if (batteryData.capacity && batteryData.nominalCapacity) {
         return Math.round((batteryData.capacity / batteryData.nominalCapacity) * 100);

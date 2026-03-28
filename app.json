@@ -39,10 +39,14 @@
     },
     "plugins": [
       "expo-router",
-      ["@stripe/stripe-react-native", {
-        "merchantIdentifier": "merchant.com.voltcheck.app",
-        "enableGooglePay": true
-      }]
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.voltcheck.app",
+          "enableGooglePay": true
+        }
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

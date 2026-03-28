@@ -13,7 +13,8 @@ import {
   getRiskColor,
 } from '@/constants/Theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { memo, useState } from 'react';
+import { useRouter } from 'expo-router';
+import React, { memo, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   FlatList,
@@ -71,7 +72,7 @@ function getDaysLeft(expiresAt: Date): number {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-const ReportCard = memo(function ReportCard({ item }: { item: ReportItem }) {
+const ReportCard = memo(function ReportCard({ item, onViewReport }: { item: ReportItem; onViewReport: (id: string) => void }) {
   const { t } = useTranslation();
   const daysLeft = getDaysLeft(item.expiresAt);
   const isExpired = daysLeft <= 0;
@@ -82,6 +83,7 @@ const ReportCard = memo(function ReportCard({ item }: { item: ReportItem }) {
     <TouchableOpacity
       style={[styles.card, isExpired && styles.cardExpired]}
       activeOpacity={0.8}
+      onPress={() => onViewReport(item.reportId)}
     >
       <View style={[styles.levelBadge, item.level === 2 ? styles.levelBadgePremium : null]}>
         <Text style={styles.levelBadgeText}>
@@ -128,7 +130,7 @@ const ReportCard = memo(function ReportCard({ item }: { item: ReportItem }) {
             {isExpired ? t('garage.expired') : t('report.expiresIn', { days: daysLeft })}
           </Text>
         </View>
-        <TouchableOpacity style={styles.viewButton}>
+        <TouchableOpacity style={styles.viewButton} onPress={() => onViewReport(item.reportId)}>
           <Text style={styles.viewButtonText}>{t('garage.viewReport')}</Text>
           <Ionicons name="arrow-forward" size={14} color={VoltColors.neonGreen} />
         </TouchableOpacity>
@@ -139,7 +141,12 @@ const ReportCard = memo(function ReportCard({ item }: { item: ReportItem }) {
 
 export default function GarageScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const [reports] = useState(MOCK_REPORTS);
+
+  const handleViewReport = useCallback((reportId: string) => {
+    router.push(`/report/${reportId}`);
+  }, [router]);
 
   const renderEmpty = () => (
     <View style={styles.emptyState}>
@@ -164,7 +171,7 @@ export default function GarageScreen() {
       <FlatList
         data={reports}
         keyExtractor={(item) => item.reportId}
-        renderItem={({ item }) => <ReportCard item={item} />}
+        renderItem={({ item }) => <ReportCard item={item} onViewReport={handleViewReport} />}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={Platform.OS === 'web'}
         ListEmptyComponent={renderEmpty}

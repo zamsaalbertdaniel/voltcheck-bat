@@ -12,9 +12,12 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { setNotificationPreference, registerForPushNotifications } from '@/services/notifications';
+import { useAuthStore } from '@/store/useAuthStore';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    Alert,
     ScrollView,
     StyleSheet,
     Switch,
@@ -27,11 +30,35 @@ import {
 export default function ProfileScreen() {
     const { t, i18n } = useTranslation();
     const [notifications, setNotifications] = useState(true);
+    const { user } = useAuthStore();
     const isRo = i18n.language === 'ro';
 
     const toggleLanguage = () => {
         i18n.changeLanguage(isRo ? 'en' : 'ro');
     };
+
+    const handleNotificationToggle = useCallback(async (enabled: boolean) => {
+        setNotifications(enabled);
+        const userId = user?.uid;
+        if (!userId) return;
+
+        try {
+            await setNotificationPreference(userId, enabled);
+            if (enabled) {
+                const token = await registerForPushNotifications(userId);
+                if (!token) {
+                    Alert.alert(
+                        t('settings.notifications'),
+                        t('settings.notificationPermissionDenied') || 'Permisiunea pentru notificari a fost refuzata. Activeaz-o din Setarile telefonului.',
+                    );
+                    setNotifications(false);
+                }
+            }
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.warn('[Settings] Notification toggle failed:', err);
+        }
+    }, [user, t]);
 
     const menuItems = [
         {
@@ -56,7 +83,7 @@ export default function ProfileScreen() {
             rightComponent: (
                 <Switch
                     value={notifications}
-                    onValueChange={setNotifications}
+                    onValueChange={handleNotificationToggle}
                     trackColor={{ false: VoltColors.bgTertiary, true: VoltColors.neonGreenMuted }}
                     thumbColor={notifications ? VoltColors.neonGreen : VoltColors.textTertiary}
                 />

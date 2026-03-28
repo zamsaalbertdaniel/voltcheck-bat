@@ -17,6 +17,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
+    Alert,
     Animated,
     Dimensions,
     Platform,
@@ -25,8 +26,9 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { getFirebaseServices } from '@/services/firebase';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function LoginScreen() {
     const { t } = useTranslation();
@@ -77,24 +79,95 @@ export default function LoginScreen() {
                 }),
             ])
         ).start();
-    }, []);
+    }, [logoScale, fadeIn, slideUp, pulseAnim]);
 
     const handleLogin = async (provider: 'google' | 'apple') => {
         setIsLoading(true);
         setLoadingProvider(provider);
 
         try {
-            // TODO: Connect to Firebase Auth
-            // For Google: await GoogleSignin.signIn() → Firebase credential
-            // For Apple:  await AppleAuthentication.signInAsync() → Firebase credential
+            if (Platform.OS === 'web') {
+                // Web: Firebase Auth with popup
+                const { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider } = await import('firebase/auth');
+                const { app } = await getFirebaseServices();
+                const auth = getAuth(app);
 
-            // Simulate auth delay for demo
-            await new Promise(resolve => setTimeout(resolve, 1500));
+                if (provider === 'google') {
+                    await signInWithPopup(auth, new GoogleAuthProvider());
+                } else {
+                    const appleProvider = new OAuthProvider('apple.com');
+                    appleProvider.addScope('email');
+                    appleProvider.addScope('name');
+                    await signInWithPopup(auth, appleProvider);
+                }
+            } else {
+                // Native: @react-native-firebase/auth
+                // Requires additional setup:
+                //   Google: npm install @react-native-google-signin/google-signin
+                //   Apple:  npm install expo-apple-authentication
+                //
+                // For now, use anonymous auth as fallback if social SDKs are not installed.
+                // Replace with social sign-in when SDKs are configured.
+                const rnAuth = (await import('@react-native-firebase/auth')).default;
+
+                if (provider === 'google') {
+                    try {
+                        // Attempt Google Sign-In (requires @react-native-google-signin)
+                        const { GoogleSignin } = await import('@react-native-google-signin/google-signin');
+                        await GoogleSignin.hasPlayServices();
+                        const signInResult = await GoogleSignin.signIn();
+                        const idToken = signInResult?.data?.idToken;
+                        if (!idToken) throw new Error('No Google ID token');
+                        const googleCredential = rnAuth.GoogleAuthProvider.credential(idToken);
+                        await rnAuth().signInWithCredential(googleCredential);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } catch (googleErr: any) {
+                        if (googleErr.message?.includes('Cannot find module')) {
+                            // SDK not installed — fall back to anonymous auth for dev
+                            // eslint-disable-next-line no-console
+                            console.warn('[Auth] Google Sign-In SDK not installed, using anonymous auth');
+                            await rnAuth().signInAnonymously();
+                        } else {
+                            throw googleErr;
+                        }
+                    }
+                } else {
+                    try {
+                        // Attempt Apple Sign-In (requires expo-apple-authentication)
+                        const AppleAuth = await import('expo-apple-authentication');
+                        const appleCredential = await AppleAuth.signInAsync({
+                            requestedScopes: [
+                                AppleAuth.AppleAuthenticationScope.EMAIL,
+                                AppleAuth.AppleAuthenticationScope.FULL_NAME,
+                            ],
+                        });
+                        const { identityToken, authorizationCode } = appleCredential;
+                        if (!identityToken) throw new Error('No Apple identity token');
+                        const credential = rnAuth.AppleAuthProvider.credential(identityToken, authorizationCode || '');
+                        await rnAuth().signInWithCredential(credential);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    } catch (appleErr: any) {
+                        if (appleErr.message?.includes('Cannot find module')) {
+                            // eslint-disable-next-line no-console
+                            console.warn('[Auth] Apple Auth SDK not installed, using anonymous auth');
+                            await rnAuth().signInAnonymously();
+                        } else {
+                            throw appleErr;
+                        }
+                    }
+                }
+            }
 
             // Navigate to main app
             router.replace('/(tabs)');
-        } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            // eslint-disable-next-line no-console
             console.error(`[Auth] ${provider} sign-in failed:`, error);
+            Alert.alert(
+                t('auth.errorTitle') || 'Eroare Autentificare',
+                error.message || t('auth.errorGeneric') || 'Autentificarea a eșuat. Încearcă din nou.',
+            );
         } finally {
             setIsLoading(false);
             setLoadingProvider(null);
@@ -211,7 +284,8 @@ function FeatureRow({ icon, text }: { icon: string; text: string }) {
     return (
         <View style={styles.featureRow}>
             <View style={styles.featureIcon}>
-                <Ionicons name={icon as any} size={18} color={VoltColors.neonGreen} />
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Ionicons name={icon as any} size={18} color={VoltColors.neonGreen} />
             </View>
             <Text style={styles.featureText}>{text}</Text>
         </View>

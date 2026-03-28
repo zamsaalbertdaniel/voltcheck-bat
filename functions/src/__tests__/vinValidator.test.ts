@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { validateVIN, sanitizeVIN } from '../utils/vinValidator';
 
 describe('VIN Validator (ISO 3779)', () => {

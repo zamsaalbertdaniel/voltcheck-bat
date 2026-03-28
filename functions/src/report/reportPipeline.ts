@@ -17,11 +17,12 @@
  */
 
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { calculateRiskScore, RiskInput } from '../utils/riskEngine';
 import { deriveAssessmentType, deriveSourceTraceability } from '../utils/reportDerivations';
 import { PipelineLogger } from '../utils/pipelineLogger';
-import { AssessmentType, SourceTraceability } from '../types/firestore';
+// AssessmentType and SourceTraceability used via reportDerivations
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -51,6 +52,7 @@ async function updateStatus(
     reportId: string,
     statusDetails: string,
     logger: PipelineLogger,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     extra: Record<string, any> = {}
 ): Promise<void> {
     await db.collection('reports').doc(reportId).update({
@@ -65,6 +67,7 @@ async function updateStatus(
 // ── NHTSA helpers (inline to avoid circular deps with decodeVin) ──
 const NHTSA_BASE = 'https://vpic.nhtsa.dot.gov/api/vehicles';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchNHTSADecode(vin: string): Promise<any> {
     const url = `${NHTSA_BASE}/DecodeVinValues/${vin}?format=json`;
     const response = await fetch(url);
@@ -73,6 +76,7 @@ async function fetchNHTSADecode(vin: string): Promise<any> {
     return data.Results?.[0] || null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fetchNHTSARecalls(vin: string): Promise<{ success: boolean; recalls: any[] }> {
     try {
         const url = `https://api.nhtsa.gov/recalls/recallsByVin?vin=${vin}`;
@@ -81,6 +85,7 @@ async function fetchNHTSARecalls(vin: string): Promise<{ success: boolean; recal
         const data = await response.json();
         return {
             success: true,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             recalls: (data.results || []).slice(0, 10).map((r: any) => ({
                 campaignNumber: r.NHTSACampaignNumber || '',
                 component: r.Component || '',
@@ -94,23 +99,29 @@ async function fetchNHTSARecalls(vin: string): Promise<{ success: boolean; recal
 /**
  * Main Pipeline — triggered when a report doc is created with status 'processing'
  */
-export const reportPipeline = functions
-    .runWith({ timeoutSeconds: 120, memory: '512MB' })
-    .firestore.document('reports/{reportId}')
-    .onCreate(async (snap, context) => {
-        const reportId = context.params.reportId;
+export const reportPipeline = onDocumentCreated(
+    {
+        document: 'reports/{reportId}',
+        region: 'europe-west1',
+        timeoutSeconds: 120,
+        memory: '512MiB',
+    },
+    async (event) => {
+        const snap = event.data;
+        if (!snap) return;
+        const reportId = event.params.reportId;
         const reportData = snap.data();
 
         // Only process reports with 'processing' status
         if (reportData.status !== 'processing') {
-            functions.logger.info(`[Pipeline] Skipping ${reportId} — status: ${reportData.status}`);
+            logger.info(`[Pipeline] Skipping ${reportId} — status: ${reportData.status}`);
             return;
         }
 
-        const { vin, userId, level, vehicleId, paymentId } = reportData;
+        const { vin, userId, level, paymentId } = reportData;
         const pipelineStart = Date.now();
 
-        const logger = new PipelineLogger({
+        const pLog = new PipelineLogger({
             reportId,
             userId,
             level: level || 1,
@@ -118,38 +129,43 @@ export const reportPipeline = functions
             paymentId,
         });
 
-        logger.start();
+        pLog.start();
 
         try {
             // ── Step 1: Decoding VIN ──
-            await updateStatus(reportId, STATUS.DECODING_VIN, logger);
+            await updateStatus(reportId, STATUS.DECODING_VIN, pLog);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let nhtsaResult: any = null;
             let nhtsaFailed = false;
 
             try {
                 nhtsaResult = await fetchNHTSADecode(vin);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 nhtsaFailed = true;
-                logger.error('nhtsa_decode', err);
+                pLog.error('nhtsa_decode', err);
             }
 
             // ── Step 2: Search Databases ──
-            await updateStatus(reportId, STATUS.SEARCHING_EU, logger);
+            await updateStatus(reportId, STATUS.SEARCHING_EU, pLog);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let recalls: any[] = [];
             let recallsQuerySucceeded = false;
             try {
                 const recallResult = await fetchNHTSARecalls(vin);
                 recalls = recallResult.recalls;
                 recallsQuerySucceeded = recallResult.success;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
-                logger.error('nhtsa_recalls', err);
+                pLog.error('nhtsa_recalls', err);
             }
 
-            await updateStatus(reportId, STATUS.SEARCHING_GLOBAL, logger);
+            await updateStatus(reportId, STATUS.SEARCHING_GLOBAL, pLog);
 
             // Check VIN cache for paid provider data
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let providerData: any = null;
             const cacheDoc = await db.collection('vin_cache').doc(vin).get();
             if (cacheDoc.exists) {
@@ -159,12 +175,12 @@ export const reportPipeline = functions
 
             // ── FAIL-SAFE: If NHTSA failed AND no cached provider data ──
             if (nhtsaFailed && !providerData) {
-                logger.fail(STATUS.SEARCHING_GLOBAL, new Error('All VIN data providers failed'), {
+                pLog.fail(STATUS.SEARCHING_GLOBAL, new Error('All VIN data providers failed'), {
                     manualReview: true,
                     retryable: true,
                 });
 
-                await updateStatus(reportId, STATUS.MANUAL_REVIEW, logger, {
+                await updateStatus(reportId, STATUS.MANUAL_REVIEW, pLog, {
                     status: 'manual_review_needed',
                     failureReason: 'All VIN data providers failed. Manual review required.',
                     pipelineDurationMs: Date.now() - pipelineStart,
@@ -175,7 +191,7 @@ export const reportPipeline = functions
             }
 
             // ── Step 3: Calculate AI Risk Score ──
-            await updateStatus(reportId, STATUS.CALCULATING_RISK, logger);
+            await updateStatus(reportId, STATUS.CALCULATING_RISK, pLog);
 
             // Determine data success/coverage flags
             let providerSuccessCount = 0;
@@ -240,7 +256,7 @@ export const reportPipeline = functions
             const sourceTraceability = deriveSourceTraceability(derivationInput);
 
             // ── Step 5: Generate PDF ──
-            await updateStatus(reportId, STATUS.GENERATING_PDF, logger);
+            await updateStatus(reportId, STATUS.GENERATING_PDF, pLog);
 
             const pdfBuffer = await generatePDFBuffer({
                 reportId,
@@ -258,7 +274,7 @@ export const reportPipeline = functions
             });
 
             // ── Step 6: Upload to Storage ──
-            await updateStatus(reportId, STATUS.UPLOADING, logger);
+            await updateStatus(reportId, STATUS.UPLOADING, pLog);
 
             const bucket = storage.bucket();
             const filePath = `reports/${userId}/${reportId}.pdf`;
@@ -340,15 +356,19 @@ export const reportPipeline = functions
                 lastActiveAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            logger.complete({
+            // ── Send Push Notification ──
+            await sendReportReadyNotification(userId, reportId, vehicle, riskResult.score, riskResult.category);
+
+            pLog.complete({
                 pipelineDurationMs: pipelineDuration,
                 riskScore: riskResult.score,
                 riskCategory: riskResult.category,
                 pdfUrl: downloadUrl,
             });
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
-            logger.fail('unknown_step', error, {
+            pLog.fail('unknown_step', error, {
                 retryable: false,
                 pipelineDurationMs: Date.now() - pipelineStart,
             });
@@ -384,4 +404,96 @@ function guessBatteryType(make: string | undefined): string {
 }
 
 import { generatePDFBuffer } from './pdfGenerator';
+
+/**
+ * Sends a push notification to the user when their report is ready.
+ * Fetches FCM tokens from the user doc and sends via Firebase Admin Messaging.
+ * Failures are logged but never block the pipeline.
+ */
+async function sendReportReadyNotification(
+    userId: string,
+    reportId: string,
+    vehicle: { make?: string; model?: string },
+    riskScore: number,
+    riskCategory: string,
+): Promise<void> {
+    try {
+        const userSnap = await db.collection('users').doc(userId).get();
+        const userData = userSnap.data();
+
+        if (!userData?.fcmTokens?.length) {
+            logger.info(`[FCM] No tokens for user ${userId}, skipping notification`);
+            return;
+        }
+
+        if (userData.notificationsEnabled === false) {
+            logger.info(`[FCM] Notifications disabled for user ${userId}`);
+            return;
+        }
+
+        const vehicleName = [vehicle.make, vehicle.model].filter(Boolean).join(' ') || 'vehiculul tău';
+
+        const message: admin.messaging.MulticastMessage = {
+            tokens: userData.fcmTokens,
+            notification: {
+                title: '⚡ Raportul tău VoltCheck este gata!',
+                body: `${vehicleName} — Risk Score: ${riskScore}/100 (${riskCategory})`,
+            },
+            data: {
+                reportId,
+                type: 'report_ready',
+                riskScore: String(riskScore),
+                riskCategory,
+            },
+            android: {
+                priority: 'high',
+                notification: {
+                    channelId: 'voltcheck_reports',
+                    icon: 'ic_notification',
+                    color: '#00E676',
+                },
+            },
+            apns: {
+                payload: {
+                    aps: {
+                        badge: 1,
+                        sound: 'default',
+                    },
+                },
+            },
+        };
+
+        const response = await admin.messaging().sendEachForMulticast(message);
+
+        // Clean up invalid tokens
+        if (response.failureCount > 0) {
+            const invalidTokens: string[] = [];
+            response.responses.forEach((resp, idx) => {
+                if (!resp.success) {
+                    const code = resp.error?.code;
+                    if (
+                        code === 'messaging/invalid-registration-token' ||
+                        code === 'messaging/registration-token-not-registered'
+                    ) {
+                        invalidTokens.push(userData.fcmTokens[idx]);
+                    }
+                }
+            });
+
+            if (invalidTokens.length > 0) {
+                await db.collection('users').doc(userId).update({
+                    fcmTokens: admin.firestore.FieldValue.arrayRemove(...invalidTokens),
+                });
+                logger.info(`[FCM] Removed ${invalidTokens.length} invalid tokens for user ${userId}`);
+            }
+        }
+
+        logger.info(
+            `[FCM] Sent to ${response.successCount}/${userData.fcmTokens.length} devices for report ${reportId}`
+        );
+    } catch (err) {
+        // Never let notification failures break the pipeline
+        logger.warn('[FCM] Failed to send notification:', err);
+    }
+}
 

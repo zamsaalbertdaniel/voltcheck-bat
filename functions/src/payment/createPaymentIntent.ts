@@ -7,8 +7,11 @@
 
 import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
+import { defineSecret } from 'firebase-functions/params';
 import Stripe from 'stripe';
+
+const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 import { validateVIN } from '../utils/vinValidator';
 
@@ -18,12 +21,18 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
-if (!STRIPE_KEY) {
-    throw new Error('[FATAL] STRIPE_SECRET_KEY is not configured. Aborting.');
+// Stripe is initialized lazily — secrets aren't available at deploy-time analysis
+let stripe: Stripe | null = null;
+function getStripe(): Stripe {
+    if (!stripe) {
+        const key = process.env.STRIPE_SECRET_KEY;
+        if (!key) {
+            throw new Error('[FATAL] STRIPE_SECRET_KEY is not configured.');
+        }
+        stripe = new Stripe(key, { apiVersion: '2025-02-24.acacia' });
+    }
+    return stripe;
 }
-
-const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2023-10-16' });
 
 // Prices in RON (bani = smallest unit)
 const PRICES: Record<number, number> = {
@@ -38,6 +47,7 @@ export const createPaymentIntent = onCall({
     region: 'europe-west1',
     memory: '256MiB',
     maxInstances: 10,
+    secrets: [stripeSecretKey],
 }, async (request) => {
     // Auth check
     if (!request.auth) {
@@ -92,7 +102,7 @@ export const createPaymentIntent = onCall({
             if (userDoc.exists && userDoc.data()?.stripeCustomerId) {
                 customerId = userDoc.data()!.stripeCustomerId;
             } else {
-                const customer = await stripe.customers.create({
+                const customer = await getStripe().customers.create({
                     metadata: { firebaseUserId: userId },
                 });
                 customerId = customer.id;
@@ -104,7 +114,7 @@ export const createPaymentIntent = onCall({
             }
 
             // Create PaymentIntent with full metadata
-            const paymentIntent = await stripe.paymentIntents.create({
+            const paymentIntent = await getStripe().paymentIntents.create({
                 amount,
                 currency: 'ron',
                 customer: customerId,
@@ -135,7 +145,7 @@ export const createPaymentIntent = onCall({
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            functions.logger.info(
+            logger.info(
                 `[Payment] Intent ${paymentIntent.id} — User:${userId} Level:${level} ${amount} bani`
             );
 
@@ -145,9 +155,10 @@ export const createPaymentIntent = onCall({
                 ephemeralKey: '',
                 customerId,
             };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             if (error instanceof HttpsError) throw error;
-            functions.logger.error('[Payment] Intent creation failed:', error);
+            logger.error('[Payment] Intent creation failed:', error);
             throw new HttpsError('internal', error.message || 'Payment setup failed');
         }
     }

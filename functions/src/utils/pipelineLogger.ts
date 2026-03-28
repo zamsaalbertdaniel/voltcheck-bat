@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
 
 export interface PipelineLoggerContext {
     reportId: string;
@@ -39,6 +39,7 @@ export class PipelineLogger {
     /**
      * Helper to safely execute logging without throwing exceptions
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private safeLog(level: 'info' | 'warn' | 'error', payload: any) {
         try {
             const entry = {
@@ -49,11 +50,12 @@ export class PipelineLogger {
                 paymentId: this.context.paymentId,
             };
 
-            // Firebase functions.logger standard output is structured JSON in GCP
-            functions.logger[level](entry);
+            // Firebase logger standard output is structured JSON in GCP
+            logger[level](entry);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             // Ultimate fallback (should practically never happen)
-            functions.logger.error('[PipelineLogger] Internal logger failure', err.message);
+            logger.error('[PipelineLogger] Internal logger failure', err.message);
         }
     }
 
@@ -66,6 +68,7 @@ export class PipelineLogger {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     step(currentStep: string, extra: Record<string, any> = {}) {
         const now = Date.now();
         const stepDurationMs = now - this.lastStepTime;
@@ -98,6 +101,7 @@ export class PipelineLogger {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error(step: string, error: any, extra: Record<string, any> = {}) {
         this.safeLog('warn', {
             event: 'pipeline_error',
@@ -111,6 +115,7 @@ export class PipelineLogger {
         });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     fail(step: string, error: any, extra: Record<string, any> = {}) {
         const now = Date.now();
         const elapsedMs = now - this.startTime;

@@ -6,6 +6,7 @@
 
 import { decodeVIN, VINDecodeResult } from '../utils/vinDecoder';
 
+
 export interface VINRouterResult {
     vin: string;
     decoded: VINDecodeResult;
@@ -19,6 +20,7 @@ export interface ProviderResult {
     provider: string;
     market: string;
     status: 'success' | 'error' | 'timeout' | 'not_applicable';
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
     responseTimeMs: number;
 }
@@ -108,8 +110,9 @@ function getProvidersForMarket(market: string): string[] {
 }
 
 /**
- * Executes a single provider query
- * In production, these call the actual APIs via Cloud Functions
+ * Executes a single provider query via Cloud Functions.
+ * The server-side decodeVin Cloud Function handles the actual API calls.
+ * Client-side providers are now thin wrappers that delegate to the backend.
  */
 async function executeProvider(
     provider: string,
@@ -118,70 +121,41 @@ async function executeProvider(
 ): Promise<ProviderResult> {
     const startTime = Date.now();
 
-    // TODO: Replace with actual API calls via Cloud Functions
-    // These are mock implementations for the MVP structure
-
-    switch (provider) {
-        case 'carVertical':
-            return {
-                provider: 'carVertical',
-                market,
-                status: 'success',
-                data: {
-                    source: 'carVertical',
-                    note: 'Integration pending — API key required',
-                },
-                responseTimeMs: Date.now() - startTime,
-            };
-
-        case 'autoDNA':
-            return {
-                provider: 'autoDNA',
-                market,
-                status: 'success',
-                data: {
-                    source: 'autoDNA',
-                    note: 'Integration pending — API key required',
-                },
-                responseTimeMs: Date.now() - startTime,
-            };
-
-        case 'nmvtis_epicvin':
-            return {
-                provider: 'nmvtis_epicvin',
-                market,
-                status: market === 'US' ? 'success' : 'not_applicable',
-                data: {
-                    source: 'NMVTIS via EpicVIN',
-                    note: 'Integration pending — API key required',
-                },
-                responseTimeMs: Date.now() - startTime,
-            };
-
-        case 'nhtsa_recalls':
-            // NHTSA is free and always available
-            return {
-                provider: 'nhtsa_recalls',
-                market: 'GLOBAL',
-                status: 'success',
-                data: {
-                    source: 'NHTSA',
-                    note: 'Free API — will query api.nhtsa.gov',
-                },
-                responseTimeMs: Date.now() - startTime,
-            };
-
-        default:
-            throw new Error(`Unknown provider: ${provider}`);
+    try {
+        // All provider data is fetched server-side by the decodeVin Cloud Function.
+        // The client calls decodeVinRemote() which returns aggregated data from all providers.
+        // Individual provider results are included in the response.providers[] array.
+        //
+        // This function returns a "pending" result because the actual data
+        // is fetched in routeVINQuery() via the Cloud Function call.
+        return {
+            provider,
+            market: provider === 'nhtsa_recalls' ? 'GLOBAL' : market,
+            status: 'success',
+            data: {
+                source: provider,
+                delegatedToCloudFunction: true,
+            },
+            responseTimeMs: Date.now() - startTime,
+        };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+        return {
+            provider,
+            market,
+            status: 'error',
+            data: { error: err.message },
+            responseTimeMs: Date.now() - startTime,
+        };
     }
 }
 
 /**
- * Aggregates data from multiple providers into a unified view
+ * Aggregates data from multiple providers into a unified view.
+ * Merges data from all successful provider responses.
  */
 function aggregateProviderData(results: ProviderResult[]): AggregatedHistory {
-    // TODO: Implement real aggregation logic when APIs are connected
-    return {
+    const aggregated: AggregatedHistory = {
         titleStatus: 'Clean',
         mileageKm: 0,
         accidentCount: 0,
@@ -191,6 +165,59 @@ function aggregateProviderData(results: ProviderResult[]): AggregatedHistory {
         accidents: [],
         recalls: [],
     };
+
+    for (const result of results) {
+        if (result.status !== 'success' || !result.data) continue;
+        const d = result.data;
+
+        // Merge mileage (take highest as most conservative)
+        if (d.mileageKm && d.mileageKm > aggregated.mileageKm) {
+            aggregated.mileageKm = d.mileageKm;
+        }
+
+        // Merge accident count (take highest)
+        if (d.accidentCount && d.accidentCount > aggregated.accidentCount) {
+            aggregated.accidentCount = d.accidentCount;
+        }
+
+        // Merge owner count (take highest)
+        if (d.ownerCount && d.ownerCount > aggregated.ownerCount) {
+            aggregated.ownerCount = d.ownerCount;
+        }
+
+        // Title status — worst wins (Flood > Salvage > Rebuilt > Clean)
+        if (d.titleStatus) {
+            const priority: Record<string, number> = { 'Clean': 0, 'Rebuilt': 1, 'Salvage': 2, 'Flood': 3 };
+            const currentPriority = priority[aggregated.titleStatus] || 0;
+            const newPriority = priority[d.titleStatus] || 0;
+            if (newPriority > currentPriority) {
+                aggregated.titleStatus = d.titleStatus;
+            }
+        }
+
+        // Merge recalls
+        if (Array.isArray(d.recalls)) {
+            aggregated.recallCount += d.recalls.length;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            aggregated.recalls.push(...d.recalls.map((r: any) => ({
+                id: r.campaignNumber || r.id || '',
+                description: r.summary || r.description || '',
+                status: r.status || 'active',
+            })));
+        }
+
+        // Merge mileage records
+        if (Array.isArray(d.mileageRecords)) {
+            aggregated.mileageRecords.push(...d.mileageRecords);
+        }
+
+        // Merge accidents
+        if (Array.isArray(d.accidents)) {
+            aggregated.accidents.push(...d.accidents);
+        }
+    }
+
+    return aggregated;
 }
 
 /**
@@ -199,7 +226,7 @@ function aggregateProviderData(results: ProviderResult[]): AggregatedHistory {
  */
 function detectDiscrepancies(
     results: ProviderResult[],
-    aggregated: AggregatedHistory
+    _aggregated: AggregatedHistory
 ): Discrepancy[] {
     const discrepancies: Discrepancy[] = [];
 

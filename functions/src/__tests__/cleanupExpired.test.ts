@@ -1,8 +1,8 @@
 /**
  * Tests for TTL Cleanup Scheduler
  *
- * Strategy: mock firebase-functions pubsub chain so the handler function
- * is returned directly, then test it against a fully mocked Firestore.
+ * Strategy: mock firebase-functions/v2 onSchedule so the handler function
+ * is captured directly, then test it against a fully mocked Firestore.
  */
 
 // ── Firebase mocks ────────────────────────────────────────────────────────────
@@ -12,10 +12,6 @@ const mockBatch = {
     commit: jest.fn().mockResolvedValue(undefined),
 };
 
-const mockCollectionRef = {
-    add: jest.fn().mockResolvedValue(undefined),
-};
-
 const mockSubcollectionGet = jest.fn().mockResolvedValue({ docs: [] });
 
 const mockDocRef = {
@@ -23,8 +19,12 @@ const mockDocRef = {
     update: jest.fn(),
 };
 
-const mockWhere2 = {
+const mockOrderBy = {
     limit: jest.fn(),
+    startAfter: jest.fn(),
+};
+const mockWhere2 = {
+    orderBy: jest.fn().mockReturnValue(mockOrderBy),
 };
 const mockWhere1 = {
     where: jest.fn().mockReturnValue(mockWhere2),
@@ -63,26 +63,25 @@ jest.mock('firebase-admin', () => ({
 
 let capturedHandler: (() => Promise<void>) | null = null;
 
-jest.mock('firebase-functions', () => ({
-    pubsub: {
-        schedule: jest.fn().mockReturnValue({
-            timeZone: jest.fn().mockReturnValue({
-                onRun: jest.fn().mockImplementation((handler: () => Promise<void>) => {
-                    capturedHandler = handler;
-                    return handler;
-                }),
-            }),
-        }),
-    },
-    logger: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-    },
+const mockLogger = {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+};
+
+jest.mock('firebase-functions/v2', () => ({
+    logger: mockLogger,
+}));
+
+jest.mock('firebase-functions/v2/scheduler', () => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onSchedule: jest.fn().mockImplementation((_opts: any, handler: () => Promise<void>) => {
+        capturedHandler = handler;
+        return handler;
+    }),
 }));
 
 // ── Import after mocks (static — handler captured on module load) ─────────────
-import * as functions from 'firebase-functions';
 import '../scheduler/cleanupExpired';
 
 describe('cleanupExpired — TTL Scheduler', () => {
@@ -92,20 +91,20 @@ describe('cleanupExpired — TTL Scheduler', () => {
         jest.clearAllMocks();
     });
 
-    it('should register the pubsub scheduler on module load', () => {
-        // Handler captured during module-level pubsub.schedule().timeZone().onRun()
+    it('should register the onSchedule handler on module load', () => {
+        // Handler captured during module-level onSchedule() call
         expect(handler).toBeTruthy();
         expect(typeof handler).toBe('function');
     });
 
     it('should log and return early when no expired reports found', async () => {
-        mockWhere2.limit.mockReturnValueOnce({
+        mockOrderBy.limit.mockReturnValueOnce({
             get: jest.fn().mockResolvedValue({ empty: true, docs: [], size: 0 }),
         });
 
         await handler();
 
-        expect(functions.logger.info).toHaveBeenCalledWith(
+        expect(mockLogger.info).toHaveBeenCalledWith(
             expect.stringContaining('No expired reports')
         );
         expect(mockBatch.commit).not.toHaveBeenCalled();
@@ -122,7 +121,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
             }),
         };
 
-        mockWhere2.limit.mockReturnValueOnce({
+        mockOrderBy.limit.mockReturnValueOnce({
             get: jest.fn().mockResolvedValue({
                 empty: false,
                 size: 1,
@@ -146,7 +145,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
         expect(mockStorageFile.delete).toHaveBeenCalled();
 
         // Should log summary
-        expect(functions.logger.info).toHaveBeenCalledWith(
+        expect(mockLogger.info).toHaveBeenCalledWith(
             expect.stringContaining('Deleted 1 reports')
         );
     });
@@ -164,7 +163,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
             }),
         };
 
-        mockWhere2.limit.mockReturnValueOnce({
+        mockOrderBy.limit.mockReturnValueOnce({
             get: jest.fn().mockResolvedValue({
                 empty: false,
                 size: 1,
@@ -174,7 +173,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
 
         // Should NOT throw — storage errors are swallowed with a warn
         await expect(handler()).resolves.toBeUndefined();
-        expect(functions.logger.warn).toHaveBeenCalledWith(
+        expect(mockLogger.warn).toHaveBeenCalledWith(
             expect.stringContaining('Storage delete failed'),
             expect.any(Error)
         );
@@ -191,7 +190,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
             }),
         };
 
-        mockWhere2.limit.mockReturnValueOnce({
+        mockOrderBy.limit.mockReturnValueOnce({
             get: jest.fn().mockResolvedValue({
                 empty: false,
                 size: 1,

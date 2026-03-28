@@ -5,7 +5,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
 import { HttpsError } from 'firebase-functions/v2/https';
 
 // Lazy init — db is accessed only inside functions, after initializeApp()
@@ -72,7 +72,7 @@ export async function checkRateLimit(
             const retryAfterMs = windowMs - (now - oldestInWindow);
             const retryAfterSec = Math.ceil(retryAfterMs / 1000);
 
-            functions.logger.warn(
+            logger.warn(
                 `[RateLimit] UID ${uid} exceeded ${cfg.maxRequests}/${cfg.windowSeconds}s on ${endpoint}`
             );
 

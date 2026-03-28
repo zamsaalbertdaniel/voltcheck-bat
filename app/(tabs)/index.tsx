@@ -18,7 +18,6 @@ import VehicleResultCard from '@/components/scan/VehicleResultCard';
 import VinInputCard from '@/components/scan/VinInputCard';
 import ReportRadar from '@/components/ReportRadar';
 import {
-  VoltBorderRadius,
   VoltColors,
   VoltFontSize,
   VoltSpacing,
@@ -32,6 +31,7 @@ import {
 } from '@/services/cloudFunctions';
 import { isValidVIN } from '@/utils/vinDecoder';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -56,6 +56,7 @@ type ScreenState =
 
 export default function ScanScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
 
   // State
   const [vin, setVin] = useState('');
@@ -78,7 +79,7 @@ export default function ScanScreen() {
         Animated.timing(glowAnim, { toValue: 0, duration: 2000, useNativeDriver: false }),
       ])
     ).start();
-  }, []);
+  }, [glowAnim]);
 
   // ── VIN Input Handler ──
   const handleVinChange = (text: string) => {
@@ -106,6 +107,7 @@ export default function ScanScreen() {
       const result = await decodeVinRemote(vin, 1);
       setDecodedData(result);
       setScreenState('level_select');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const parsed = parseCloudError(error);
 
@@ -123,7 +125,7 @@ export default function ScanScreen() {
 
       setScreenState('input');
     }
-  }, [vin, t]);
+  }, [vin, t, decodeSpinner]);
 
   // ── Start Payment + Pipeline ──
   const handleStartScan = useCallback(async (level: 1 | 2) => {
@@ -142,6 +144,7 @@ export default function ScanScreen() {
       const mockReportId = `rpt_${Date.now()}_mock`;
       setReportId(mockReportId);
       setScreenState('pipeline');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const parsed = parseCloudError(error);
       setErrorMessage(
@@ -153,26 +156,6 @@ export default function ScanScreen() {
     }
   }, [vin, decodedData, t]);
 
-  // ── Pipeline Complete ──
-  const handlePipelineComplete = useCallback((status: ReportStatus) => {
-    setScreenState('complete');
-    Alert.alert(
-      '⚡ VoltCheck',
-      `${t('scan.reportCompleted')}\n${t('scan.riskScoreLabel')}: ${status.riskScore}/100 (${status.riskCategory})`,
-      [
-        { text: t('scan.viewReport'), onPress: handleReset },
-        { text: t('scan.newScan'), onPress: handleReset },
-      ]
-    );
-  }, []);
-
-  // ── Pipeline Error ──
-  const handlePipelineError = useCallback((error: string) => {
-    Alert.alert(`⚠️ ${t('scan.errorTitle')}`, error, [
-      { text: 'OK', onPress: () => setScreenState('level_select') },
-    ]);
-  }, []);
-
   // ── Reset ──
   const handleReset = useCallback(() => {
     setScreenState('input');
@@ -182,6 +165,38 @@ export default function ScanScreen() {
     setReportId(null);
     setErrorMessage('');
   }, []);
+
+  // ── Pipeline Complete ──
+  const handlePipelineComplete = useCallback((status: ReportStatus) => {
+    setScreenState('complete');
+    Alert.alert(
+      '⚡ VoltCheck',
+      `${t('scan.reportCompleted')}\n${t('scan.riskScoreLabel')}: ${status.riskScore}/100 (${status.riskCategory})`,
+      [
+        {
+          text: t('scan.viewReport') || 'Vezi Raport',
+          onPress: () => {
+            const currentReportId = reportId;
+            handleReset();
+            // Navigate directly to the report detail screen
+            if (currentReportId) {
+              router.push(`/report/${currentReportId}`);
+            } else {
+              router.push('/(tabs)/garage');
+            }
+          },
+        },
+        { text: t('scan.newScan') || 'Scanare Nouă', onPress: handleReset },
+      ]
+    );
+  }, [router, reportId, handleReset, t]);
+
+  // ── Pipeline Error ──
+  const handlePipelineError = useCallback((error: string) => {
+    Alert.alert(`⚠️ ${t('scan.errorTitle')}`, error, [
+      { text: 'OK', onPress: () => setScreenState('level_select') },
+    ]);
+  }, [t]);
 
   const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.8] });
   const spinRotation = decodeSpinner.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });

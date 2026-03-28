@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Tests for createPaymentIntent Cloud Function
  */
@@ -48,7 +49,7 @@ jest.mock('firebase-functions/v2/https', () => ({
     },
 }));
 
-jest.mock('firebase-functions', () => ({
+jest.mock('firebase-functions/v2', () => ({
     logger: {
         info: jest.fn(),
         warn: jest.fn(),

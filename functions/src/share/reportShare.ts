@@ -11,7 +11,8 @@
  */
 
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
+import { onRequest } from 'firebase-functions/v2/https';
 import cors from 'cors';
 
 if (!admin.apps.length) {
@@ -28,7 +29,8 @@ const corsHandler = cors({
 /**
  * Generates a share page with Open Graph metadata for rich previews
  */
-export const shareReport = functions.https.onRequest(
+export const shareReport = onRequest(
+    { region: 'europe-west1' },
     (req, res) => {
         corsHandler(req, res, async () => {
             const reportId = req.path.split('/').pop();
@@ -179,7 +181,7 @@ export const shareReport = functions.https.onRequest(
             res.status(200).set('Content-Type', 'text/html').send(html);
 
         } catch (error) {
-            functions.logger.error(`[Share] Error for ${reportId}:`, error);
+            logger.error(`[Share] Error for ${reportId}:`, error);
             res.status(500).send(generateErrorPage('Eroare la încărcarea raportului'));
         }
         });

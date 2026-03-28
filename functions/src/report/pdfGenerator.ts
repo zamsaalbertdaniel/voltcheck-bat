@@ -8,7 +8,39 @@
  */
 
 import PDFDocument from 'pdfkit';
+import * as fs from 'fs';
+import * as path from 'path';
 import { AssessmentType, SourceTraceability } from '../types/firestore';
+
+/**
+ * Font registration for PDF generation.
+ * Attempts to load Inter/Roboto from assets/fonts/ directory.
+ * Falls back to PDFKit built-in Helvetica if fonts not found.
+ *
+ * To enable custom fonts:
+ *   1. Download Inter-Regular.ttf and Inter-Bold.ttf from https://rsms.me/inter/
+ *   2. Place them in functions/src/assets/fonts/
+ *   3. Rebuild — PDFKit will embed them automatically
+ */
+const FONTS_DIR = path.resolve(__dirname, '../assets/fonts');
+const HAS_CUSTOM_FONTS = fs.existsSync(path.join(FONTS_DIR, 'Inter-Regular.ttf'));
+
+function registerFonts(doc: InstanceType<typeof PDFDocument>): void {
+    if (!HAS_CUSTOM_FONTS) return;
+
+    try {
+        doc.registerFont('VoltCheck', path.join(FONTS_DIR, 'Inter-Regular.ttf'));
+        doc.registerFont('VoltCheck-Bold', path.join(FONTS_DIR, 'Inter-Bold.ttf'));
+    } catch {
+        // Silently fall back to built-in Helvetica
+    }
+}
+
+/** Returns the appropriate font family name */
+function fontFamily(): string {
+    return HAS_CUSTOM_FONTS ? 'VoltCheck' : 'Helvetica';
+}
+
 
 export interface PDFInput {
     reportId: string;
@@ -32,6 +64,7 @@ export interface PDFInput {
     }>;
     recommendation: string;
     // Pipeline-supplied (optional)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recalls?: any[];
     confidence?: number;
     assessmentType?: AssessmentType;
@@ -85,10 +118,16 @@ export function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
             },
         });
 
+        // Register custom fonts if available
+        registerFonts(doc);
+
         const chunks: Buffer[] = [];
         doc.on('data', (chunk: Buffer) => chunks.push(chunk));
         doc.on('end', () => resolve(Buffer.concat(chunks)));
         doc.on('error', reject);
+
+        // Set default font
+        doc.font(fontFamily());
 
         // ── Header ──
         doc.rect(0, 0, 595, 105).fill('#0A0E17');

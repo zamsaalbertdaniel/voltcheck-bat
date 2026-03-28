@@ -15,8 +15,13 @@
  */
 
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
+import { defineSecret } from 'firebase-functions/params';
+import { onRequest } from 'firebase-functions/v2/https';
 import Stripe from 'stripe';
+
+const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
+const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 import { maskVin } from '../utils/pipelineLogger';
 
 if (!admin.apps.length) {
@@ -25,22 +30,27 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
-if (!STRIPE_KEY) {
-    throw new Error('[FATAL] STRIPE_SECRET_KEY is not configured. Aborting.');
+// Lazy initialization — secrets aren't available at deploy-time analysis
+let stripe: Stripe | null = null;
+function getStripe(): Stripe {
+    if (!stripe) {
+        const key = process.env.STRIPE_SECRET_KEY;
+        if (!key) throw new Error('[FATAL] STRIPE_SECRET_KEY is not configured.');
+        stripe = new Stripe(key, { apiVersion: '2025-02-24.acacia' });
+    }
+    return stripe;
 }
-
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-if (!WEBHOOK_SECRET) {
-    throw new Error('[FATAL] STRIPE_WEBHOOK_SECRET is not configured. Aborting.');
+function getWebhookSecret(): string {
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!secret) throw new Error('[FATAL] STRIPE_WEBHOOK_SECRET is not configured.');
+    return secret;
 }
-
-const stripe = new Stripe(STRIPE_KEY, { apiVersion: '2023-10-16' });
 
 /**
  * Handles Stripe webhook events
  */
-export const handleStripeWebhook = functions.https.onRequest(
+export const handleStripeWebhook = onRequest(
+    { region: 'europe-west1', secrets: [stripeSecretKey, stripeWebhookSecret] },
     async (req, res) => {
         if (req.method !== 'POST') {
             res.status(405).send('Method Not Allowed');
@@ -51,18 +61,19 @@ export const handleStripeWebhook = functions.https.onRequest(
         let event: Stripe.Event;
 
         try {
-            event = stripe.webhooks.constructEvent(
+            event = getStripe().webhooks.constructEvent(
                 req.rawBody,
                 sig,
-                WEBHOOK_SECRET
+                getWebhookSecret()
             );
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-            functions.logger.error('[Webhook] Signature verification failed:', err.message);
+            logger.error('[Webhook] Signature verification failed:', err.message);
             res.status(400).send(`Webhook Error: ${err.message}`);
             return;
         }
 
-        functions.logger.info(`[Webhook] Event: ${event.type} (id: ${event.id})`);
+        logger.info(`[Webhook] Event: ${event.type} (id: ${event.id})`);
 
         try {
             switch (event.type) {
@@ -79,12 +90,12 @@ export const handleStripeWebhook = functions.https.onRequest(
                 }
 
                 default:
-                    functions.logger.info(`[Webhook] Unhandled: ${event.type}`);
+                    logger.info(`[Webhook] Unhandled: ${event.type}`);
             }
 
             res.json({ received: true });
         } catch (error) {
-            functions.logger.error('[Webhook] Processing error:', error);
+            logger.error('[Webhook] Processing error:', error);
             res.status(500).json({ error: 'Webhook processing failed' });
         }
     }
@@ -105,14 +116,14 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeE
     // ── Layer 1: Pre-check (fast path, avoids transaction overhead) ──
     const existingPayment = await paymentRef.get();
     if (existingPayment.exists && existingPayment.data()?.status === 'completed') {
-        functions.logger.warn(
+        logger.warn(
             `[Webhook] Idempotent skip — ${paymentIntent.id} already completed ` +
             `(event: ${stripeEventId})`
         );
         return;
     }
 
-    functions.logger.info(
+    logger.info(
         `[Payment ✅] User:${userId} VIN:${maskVin(vin)} Level:${level} Amount:${paymentIntent.amount}`
     );
 
@@ -128,7 +139,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeE
         // Re-check inside transaction (handles concurrent webhook deliveries)
         const freshPayment = await tx.get(paymentRef);
         if (freshPayment.exists && freshPayment.data()?.status === 'completed') {
-            functions.logger.warn(
+            logger.warn(
                 `[Webhook] Idempotent skip (in-tx) — ${paymentIntent.id} ` +
                 `(event: ${stripeEventId})`
             );
@@ -179,7 +190,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeE
         });
     });
 
-    functions.logger.info(
+    logger.info(
         `[Payment → Pipeline] Report ${reportId} created (atomic) → pipeline will trigger ` +
         `(event: ${stripeEventId})`
     );
@@ -189,7 +200,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent, stripeE
  * Payment failed → Log and notify
  */
 async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
-    functions.logger.warn(
+    logger.warn(
         `[Payment ❌] ${paymentIntent.id}: ${paymentIntent.last_payment_error?.message}`
     );
 

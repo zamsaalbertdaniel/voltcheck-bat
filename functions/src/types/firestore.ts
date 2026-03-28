@@ -34,6 +34,8 @@ export interface UserDoc {
     subscriptionTier: 'free' | 'pro';  // Tier curent (extensibil)
     totalReports: number;              // Counter cache — rapoarte generate
     photoURL?: string;                 // Avatar din Google/Apple Sign-In
+    fcmTokens?: string[];             // Firebase Cloud Messaging tokens (multi-device)
+    notificationsEnabled?: boolean;   // User preference — push notifications on/off
 }
 
 // ─── Common Types ───
@@ -105,6 +107,7 @@ export interface ReportDoc {
 
 // ─── Level 1 Subcollection ───
 export interface Level1Data {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vinHistory: Record<string, any>;
     accidentHistory: AccidentRecord[];
     mileageRecords: MileageRecord[];
@@ -197,6 +200,7 @@ export interface ReportDeliveryDoc {
 // ─── VIN Cache Collection ───
 export interface VINCacheDoc {
     vin: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     providers: Record<string, any>;
     expiresAt: Timestamp;
 }

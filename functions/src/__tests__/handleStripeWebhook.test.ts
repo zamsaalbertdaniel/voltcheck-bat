@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Tests for handleStripeWebhook Cloud Function
  */
@@ -48,18 +49,21 @@ jest.mock('stripe', () => {
 
 let capturedHandler: ((req: any, res: any) => Promise<void>) | null = null;
 
-jest.mock('firebase-functions', () => ({
-    https: {
-        onRequest: jest.fn().mockImplementation((handler: any) => {
-            capturedHandler = handler;
-            return handler;
-        }),
-    },
-    logger: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-    },
+const mockLogger = {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+};
+
+jest.mock('firebase-functions/v2', () => ({
+    logger: mockLogger,
+}));
+
+jest.mock('firebase-functions/v2/https', () => ({
+    onRequest: jest.fn().mockImplementation((_opts: any, handler: any) => {
+        capturedHandler = handler;
+        return handler;
+    }),
 }));
 
 jest.mock('../utils/pipelineLogger', () => ({

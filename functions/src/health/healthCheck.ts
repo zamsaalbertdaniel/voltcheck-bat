@@ -8,7 +8,8 @@
  */
 
 import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
+import { onRequest } from 'firebase-functions/v2/https';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -17,7 +18,8 @@ if (!admin.apps.length) {
 const REGION = process.env.FUNCTIONS_REGION || 'europe-west1';
 const VERSION = '1.0.0';
 
-export const healthCheck = functions.region(REGION).https.onRequest(
+export const healthCheck = onRequest(
+    { region: REGION },
     async (req, res) => {
         // Only allow GET
         if (req.method !== 'GET') {
@@ -56,6 +58,6 @@ export const healthCheck = functions.region(REGION).https.onRequest(
             timestamp: new Date().toISOString(),
         });
 
-        functions.logger.info('[HealthCheck] Pinged', { status: overallStatus });
+        logger.info('[HealthCheck] Pinged', { status: overallStatus });
     }
 );

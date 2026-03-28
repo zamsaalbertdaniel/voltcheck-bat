@@ -3,7 +3,7 @@
  * Structured logging helpers for custom metrics and performance tracking
  */
 
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -49,12 +49,12 @@ export function startTimer(): { elapsedMs: () => number } {
 export function logFunctionMetric(metric: FunctionMetric): void {
     try {
         if (metric.success) {
-            functions.logger.info({
+            logger.info({
                 event: 'function_execution',
                 ...metric,
             });
         } else {
-            functions.logger.warn({
+            logger.warn({
                 event: 'function_execution_failed',
                 ...metric,
             });
@@ -70,7 +70,7 @@ export function logFunctionMetric(metric: FunctionMetric): void {
  */
 export function logPipelineMetric(metric: PipelineMetric): void {
     try {
-        const level = metric.success ? functions.logger.info : functions.logger.warn;
+        const level = metric.success ? logger.info : logger.warn;
         level({
             event: 'pipeline_execution',
             ...metric,
@@ -103,6 +103,7 @@ export async function withMetrics<T>(
             metadata,
         });
         return result;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
         logFunctionMetric({
             functionName,

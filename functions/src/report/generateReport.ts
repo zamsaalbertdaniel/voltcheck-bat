@@ -8,7 +8,7 @@
 
 import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
-import * as functions from 'firebase-functions';
+import { logger } from 'firebase-functions/v2';
 import { generatePDFBuffer } from './pdfGenerator';
 
 if (!admin.apps.length) {
@@ -70,7 +70,7 @@ export const generateReport = onCall({
         const userId = request.auth.uid;
 
         try {
-            functions.logger.info(`[PDF] Generating report ${data.reportId} for ${userId}`);
+            logger.info(`[PDF] Generating report ${data.reportId} for ${userId}`);
             const startTime = Date.now();
 
             // Generate PDF buffer
@@ -122,7 +122,7 @@ export const generateReport = onCall({
             });
 
             const duration = Date.now() - startTime;
-            functions.logger.info(`[PDF] Generated in ${duration}ms`);
+            logger.info(`[PDF] Generated in ${duration}ms`);
 
             return {
                 success: true,
@@ -130,9 +130,10 @@ export const generateReport = onCall({
                 pdfUrl: downloadUrl,
                 generationTimeMs: duration,
             };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             if (error instanceof HttpsError) throw error;
-            functions.logger.error('[PDF] Generation failed:', error);
+            logger.error('[PDF] Generation failed:', error);
             throw new HttpsError('internal', error.message || 'PDF generation failed');
         }
     }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Tests for reportPipeline Cloud Function
  */
@@ -43,24 +44,23 @@ jest.mock('firebase-admin', () => ({
     storage: jest.fn().mockReturnValue(mockStorage),
 }));
 
-let capturedOnCreate: ((snap: any, context: any) => Promise<void>) | null = null;
+let capturedOnCreate: ((event: any) => Promise<void>) | null = null;
 
-jest.mock('firebase-functions', () => ({
-    runWith: jest.fn().mockReturnValue({
-        firestore: {
-            document: jest.fn().mockReturnValue({
-                onCreate: jest.fn().mockImplementation((handler: any) => {
-                    capturedOnCreate = handler;
-                    return handler;
-                }),
-            }),
-        },
+const mockLogger = {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+};
+
+jest.mock('firebase-functions/v2', () => ({
+    logger: mockLogger,
+}));
+
+jest.mock('firebase-functions/v2/firestore', () => ({
+    onDocumentCreated: jest.fn().mockImplementation((_opts: any, handler: any) => {
+        capturedOnCreate = handler;
+        return handler;
     }),
-    logger: {
-        info: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
-    },
 }));
 
 jest.mock('../utils/riskEngine', () => ({
@@ -155,19 +155,22 @@ describe('reportPipeline', () => {
         mockCacheGet.mockResolvedValue({ exists: false });
     });
 
-    function makeSnap(data: Record<string, any>) {
-        return { data: () => data };
+    // v2 onDocumentCreated passes an event object with { data, params }
+    function makeEvent(data: Record<string, any>, reportId: string) {
+        return {
+            data: { data: () => data },
+            params: { reportId },
+        };
     }
 
-    it('should register Firestore onCreate handler', () => {
+    it('should register Firestore onDocumentCreated handler', () => {
         expect(handler).toBeTruthy();
         expect(typeof handler).toBe('function');
     });
 
     it('should skip reports not in processing status', async () => {
         await handler(
-            makeSnap({ status: 'completed', vin: 'X', userId: 'u1' }),
-            { params: { reportId: 'rpt_skip' } }
+            makeEvent({ status: 'completed', vin: 'X', userId: 'u1' }, 'rpt_skip')
         );
 
         // Should not call NHTSA or update report
@@ -176,15 +179,14 @@ describe('reportPipeline', () => {
 
     it('should run full pipeline for a valid report', async () => {
         await handler(
-            makeSnap({
+            makeEvent({
                 status: 'processing',
                 vin: 'WVWZZZE3ZWE654321',
                 userId: 'user1',
                 level: 1,
                 vehicleId: 'v1',
                 paymentId: 'pi_test',
-            }),
-            { params: { reportId: 'rpt_full' } }
+            }, 'rpt_full')
         );
 
         // Should have called NHTSA decode
@@ -193,6 +195,7 @@ describe('reportPipeline', () => {
         );
 
         // Should have generated PDF
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { generatePDFBuffer } = require('../report/pdfGenerator');
         expect(generatePDFBuffer).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -229,14 +232,13 @@ describe('reportPipeline', () => {
         });
 
         await handler(
-            makeSnap({
+            makeEvent({
                 status: 'processing',
                 vin: 'WVWZZZE3ZWE654321',
                 userId: 'user2',
                 level: 1,
                 paymentId: 'pi_fail',
-            }),
-            { params: { reportId: 'rpt_manual' } }
+            }, 'rpt_manual')
         );
 
         expect(mockUpdate).toHaveBeenCalledWith(
@@ -252,14 +254,13 @@ describe('reportPipeline', () => {
         });
 
         await handler(
-            makeSnap({
+            makeEvent({
                 status: 'processing',
                 vin: 'WVWZZZE3ZWE654321',
                 userId: 'user3',
                 level: 1,
                 paymentId: 'pi_err',
-            }),
-            { params: { reportId: 'rpt_error' } }
+            }, 'rpt_error')
         );
 
         expect(mockUpdate).toHaveBeenCalledWith(
