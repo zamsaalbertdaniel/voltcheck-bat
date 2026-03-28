@@ -9,6 +9,7 @@ import SplashSequence from '@/components/SplashSequence';
 import { ToastProvider } from '@/components/ToastProvider';
 import VoltErrorBoundary from '@/components/VoltErrorBoundary';
 import { VoltColors } from '@/constants/Theme';
+import { useNotificationHandler } from '@/hooks/useNotificationHandler';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -70,11 +71,15 @@ const WebScrollbarCSS = `
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
 
   const [splashComplete, setSplashComplete] = useState(false);
+
+  // Handle push notification deep links
+  useNotificationHandler();
 
   useEffect(() => {
     if (fontError) throw fontError;
