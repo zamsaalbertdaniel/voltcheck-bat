@@ -10,7 +10,6 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { Ionicons } from '@expo/vector-icons';
-import crashlytics from '@react-native-firebase/crashlytics';
 import React, { Component, ReactNode } from 'react';
 import {
     Platform,
@@ -44,12 +43,16 @@ export default class VoltErrorBoundary extends Component<Props, State> {
         console.error('[VoltCheck Error]', error, info.componentStack);
 
         if (Platform.OS !== 'web') {
-            try {
-                crashlytics().recordError(error);
-                crashlytics().log(`ComponentStack: ${info.componentStack ?? 'N/A'}`);
-            } catch {
-                // Crashlytics not available — ignore silently
-            }
+            // Dynamic import — crashlytics is native-only, not available on web
+            import('@react-native-firebase/crashlytics')
+                .then((mod) => {
+                    const cr = mod.default;
+                    cr().recordError(error);
+                    cr().log(`ComponentStack: ${info.componentStack ?? 'N/A'}`);
+                })
+                .catch(() => {
+                    // Crashlytics not installed — ignore silently
+                });
         }
     }
 
