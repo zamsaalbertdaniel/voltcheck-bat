@@ -61,11 +61,11 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "npx eslint --fix --max-warnings=0",
-      "npx prettier --write"
+      "npx --no eslint --fix --max-warnings=0",
+      "npx --no prettier --write"
     ],
     "*.{json,md}": [
-      "npx prettier --write"
+      "npx --no prettier --write"
     ]
   },
   "private": true

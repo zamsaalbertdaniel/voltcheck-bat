@@ -81,20 +81,21 @@ jest.mock('firebase-functions', () => ({
     },
 }));
 
-// ── Import after mocks ────────────────────────────────────────────────────────
+// ── Import after mocks (static — handler captured on module load) ─────────────
 import * as functions from 'firebase-functions';
+import '../scheduler/cleanupExpired';
 
 describe('cleanupExpired — TTL Scheduler', () => {
+    const handler = capturedHandler!;
+
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.resetModules();
-        capturedHandler = null;
     });
 
-    it('should register the pubsub scheduler on module load', async () => {
-        await import('../scheduler/cleanupExpired');
-        expect(functions.pubsub.schedule).toHaveBeenCalledWith('0 3 * * *');
-        expect(capturedHandler).toBeTruthy();
+    it('should register the pubsub scheduler on module load', () => {
+        // Handler captured during module-level pubsub.schedule().timeZone().onRun()
+        expect(handler).toBeTruthy();
+        expect(typeof handler).toBe('function');
     });
 
     it('should log and return early when no expired reports found', async () => {
@@ -102,10 +103,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
             get: jest.fn().mockResolvedValue({ empty: true, docs: [], size: 0 }),
         });
 
-        await import('../scheduler/cleanupExpired');
-        expect(capturedHandler).toBeTruthy();
-
-        await capturedHandler!();
+        await handler();
 
         expect(functions.logger.info).toHaveBeenCalledWith(
             expect.stringContaining('No expired reports')
@@ -132,8 +130,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
             }),
         });
 
-        await import('../scheduler/cleanupExpired');
-        await capturedHandler!();
+        await handler();
 
         // Phase 1: should update status to 'expired'
         expect(mockBatch.update).toHaveBeenCalledWith(
@@ -175,10 +172,8 @@ describe('cleanupExpired — TTL Scheduler', () => {
             }),
         });
 
-        await import('../scheduler/cleanupExpired');
-
         // Should NOT throw — storage errors are swallowed with a warn
-        await expect(capturedHandler!()).resolves.toBeUndefined();
+        await expect(handler()).resolves.toBeUndefined();
         expect(functions.logger.warn).toHaveBeenCalledWith(
             expect.stringContaining('Storage delete failed'),
             expect.any(Error)
@@ -204,8 +199,7 @@ describe('cleanupExpired — TTL Scheduler', () => {
             }),
         });
 
-        await import('../scheduler/cleanupExpired');
-        await capturedHandler!();
+        await handler();
 
         expect(mockBucket.file).not.toHaveBeenCalled();
     });

@@ -38,11 +38,11 @@ describe('VIN Validator (ISO 3779)', () => {
         });
 
         it('rejects VIN with special characters → CHARACTERS', () => {
-            expect(validateVIN('WVWZZZE3ZWE6543!')).toMatchObject({ valid: false, code: 'CHARACTERS' });
+            expect(validateVIN('WVWZZZE3ZWE65!321')).toMatchObject({ valid: false, code: 'CHARACTERS' });
         });
 
         it('rejects VIN with space → CHARACTERS', () => {
-            expect(validateVIN('WVWZZZE3ZWE 4321')).toMatchObject({ valid: false, code: 'CHARACTERS' });
+            expect(validateVIN('WVWZZZE3ZWE 43210')).toMatchObject({ valid: false, code: 'CHARACTERS' });
         });
 
         it('rejects VIN containing I → FORBIDDEN_CHARS', () => {
