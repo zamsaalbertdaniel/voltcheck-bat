@@ -16,9 +16,10 @@ i18n.use(initReactI18next).init({
         ro: { translation: ro },
         en: { translation: en },
     },
-    // Target market: Romania — default to Romanian
-    // Only switch to English if device is explicitly set to 'en'
-    lng: deviceLocale === 'en' ? 'en' : 'ro',
+    // VoltCheck targets the Romanian market exclusively.
+    // Default language is always Romanian — users can switch
+    // to English manually via Settings → Language toggle.
+    lng: 'ro',
     fallbackLng: 'ro',
     interpolation: {
         escapeValue: false,
