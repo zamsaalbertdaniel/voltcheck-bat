@@ -16,8 +16,10 @@ i18n.use(initReactI18next).init({
         ro: { translation: ro },
         en: { translation: en },
     },
-    lng: deviceLocale === 'ro' ? 'ro' : 'en',
-    fallbackLng: 'en',
+    // Target market: Romania — default to Romanian
+    // Only switch to English if device is explicitly set to 'en'
+    lng: deviceLocale === 'en' ? 'en' : 'ro',
+    fallbackLng: 'ro',
     interpolation: {
         escapeValue: false,
     },
