@@ -1,7 +1,7 @@
 /**
  * VoltCheck — Root Layout
  * Dark theme, i18n, font loading, Dual Splash Sequence,
- * Toast + Error Boundary wrappers
+ * Auth listener + route guard, Toast + Error Boundary wrappers
  * FAZA 1 — BAT (Battery Analysis Technology)
  */
 
@@ -9,6 +9,7 @@ import SplashSequence from '@/components/SplashSequence';
 import { ToastProvider } from '@/components/ToastProvider';
 import VoltErrorBoundary from '@/components/VoltErrorBoundary';
 import { VoltColors } from '@/constants/Theme';
+import { useAuthListener } from '@/hooks/useAuthListener';
 import { useNotificationHandler } from '@/hooks/useNotificationHandler';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
@@ -16,7 +17,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { Platform, StatusBar } from 'react-native';
+import { ActivityIndicator, Platform, StatusBar, View } from 'react-native';
 import 'react-native-reanimated';
 
 // Initialize i18n
@@ -27,7 +28,7 @@ export {
 } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: '(auth)',
 };
 
 SplashScreen.preventAutoHideAsync();
@@ -56,12 +57,12 @@ const WebScrollbarCSS = `
     background: #0A0E17;
   }
   *::-webkit-scrollbar-thumb {
-    background: #00E676; 
+    background: #00E676;
     border-radius: 5px;
     border: 2px solid #0A0E17;
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: #00C853; 
+    background: #00C853;
   }
   /* Global body scroll (just in case) */
   body::-webkit-scrollbar {
@@ -78,6 +79,9 @@ export default function RootLayout() {
 
   const [splashComplete, setSplashComplete] = useState(false);
 
+  // Auth state listener + route guard (login ↔ tabs)
+  const { isReady: authReady } = useAuthListener();
+
   // Handle push notification deep links
   useNotificationHandler();
 
@@ -93,6 +97,15 @@ export default function RootLayout() {
 
   if (!fontsLoaded) {
     return null;
+  }
+
+  // Show loading while Firebase Auth initializes
+  if (!authReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: VoltColors.bgPrimary, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={VoltColors.neonGreen} />
+      </View>
+    );
   }
 
   // Inject Web scrollbar CSS directly inside standard return

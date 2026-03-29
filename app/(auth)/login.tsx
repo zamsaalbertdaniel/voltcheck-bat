@@ -12,7 +12,6 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,7 +31,6 @@ const { height } = Dimensions.get('window');
 
 export default function LoginScreen() {
     const { t } = useTranslation();
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
@@ -158,8 +156,8 @@ export default function LoginScreen() {
                 }
             }
 
-            // Navigate to main app
-            router.replace('/(tabs)');
+            // Auth listener will auto-redirect to (tabs)
+            // No need to manually navigate — useAuthListener handles it
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             // eslint-disable-next-line no-console

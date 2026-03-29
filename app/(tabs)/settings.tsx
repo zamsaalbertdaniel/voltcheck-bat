@@ -12,7 +12,8 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { setNotificationPreference, registerForPushNotifications } from '@/services/notifications';
+import { setNotificationPreference, registerForPushNotifications, unregisterPushNotifications } from '@/services/notifications';
+import { getFirebaseServices } from '@/services/firebase';
 import { useAuthStore } from '@/store/useAuthStore';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +37,44 @@ export default function ProfileScreen() {
     const toggleLanguage = () => {
         i18n.changeLanguage(isRo ? 'en' : 'ro');
     };
+
+    const handleLogout = useCallback(async () => {
+        Alert.alert(
+            t('settings.logout') || 'Deconectare',
+            t('settings.logoutConfirm') || 'Ești sigur că vrei să te deconectezi?',
+            [
+                { text: t('common.cancel') || 'Anulează', style: 'cancel' },
+                {
+                    text: t('settings.logout') || 'Deconectare',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            // Unregister push notifications
+                            if (user?.uid) {
+                                await unregisterPushNotifications(user.uid).catch(() => {});
+                            }
+
+                            // Sign out from Firebase
+                            const { auth } = await getFirebaseServices();
+                            if (Platform.OS === 'web') {
+                                const { signOut } = await import('firebase/auth');
+                                await signOut(auth);
+                            } else {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                await (auth as any).signOut();
+                            }
+
+                            // Auth listener will auto-redirect to (auth)
+                        } catch (err) {
+                            // eslint-disable-next-line no-console
+                            console.error('[Settings] Logout failed:', err);
+                            Alert.alert('Eroare', 'Deconectarea a eșuat. Încearcă din nou.');
+                        }
+                    },
+                },
+            ],
+        );
+    }, [user, t]);
 
     const handleNotificationToggle = useCallback(async (enabled: boolean) => {
         setNotifications(enabled);
@@ -129,12 +168,12 @@ export default function ProfileScreen() {
                     <View style={styles.avatarGlow} />
                 </View>
                 <View style={styles.userInfo}>
-                    <Text style={styles.userName}>VoltCheck User</Text>
-                    <Text style={styles.userEmail}>user@example.com</Text>
-                </View>
-                <View style={styles.statsBadge}>
-                    <Text style={styles.statsNumber}>3</Text>
-                    <Text style={styles.statsLabel}>Rapoarte</Text>
+                    <Text style={styles.userName}>
+                        {user?.displayName || 'VoltCheck User'}
+                    </Text>
+                    <Text style={styles.userEmail}>
+                        {user?.email || 'Cont anonim'}
+                    </Text>
                 </View>
             </View>
 
@@ -170,7 +209,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Logout button */}
-            <TouchableOpacity style={styles.logoutButton}>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
                 <Ionicons name="log-out-outline" size={20} color={VoltColors.error} />
                 <Text style={styles.logoutText}>{t('settings.logout')}</Text>
             </TouchableOpacity>
@@ -256,23 +295,6 @@ const styles = StyleSheet.create({
         color: VoltColors.textSecondary,
         marginTop: 2,
     },
-    statsBadge: {
-        alignItems: 'center',
-        backgroundColor: VoltColors.bgInput,
-        paddingHorizontal: VoltSpacing.md,
-        paddingVertical: VoltSpacing.sm,
-        borderRadius: VoltBorderRadius.md,
-    },
-    statsNumber: {
-        fontSize: VoltFontSize.xl,
-        fontWeight: '800',
-        color: VoltColors.neonGreen,
-    },
-    statsLabel: {
-        fontSize: VoltFontSize.xs,
-        color: VoltColors.textTertiary,
-    },
-
     // Menu
     menuSection: {
         backgroundColor: VoltColors.bgSecondary,
