@@ -5,7 +5,9 @@
  * Pas 2: Real Firestore fetch + loading/error states
  */
 
-import { 
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
+
+import {
     VoltBorderRadius,
     VoltColors,
     VoltFontSize,
@@ -21,14 +23,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
+    Alert,
     Animated,
     ScrollView,
+    Share,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
     Platform,
  } from 'react-native';
+import * as Linking from 'expo-linking';
 
 // ═══════════════════════════════════════════
 // MOCK DATA (used only when USE_MOCK_DATA is true)
@@ -527,11 +532,53 @@ export default function ReportScreen() {
 
             {/* Action Buttons */}
             <View style={styles.actionsRow}>
-                <TouchableOpacity style={styles.actionButton}>
-                    <Ionicons name="download" size={20} color={VoltColors.neonGreen} />
-                    <Text style={styles.actionText}>{t('report.downloadPdf')}</Text>
+                <TouchableOpacity
+                    style={[styles.actionButton, !report.pdfUrl && styles.actionButtonDisabled]}
+                    onPress={() => {
+                        if (report.pdfUrl) {
+                            if (Platform.OS === 'web') {
+                                window.open(report.pdfUrl, '_blank');
+                            } else {
+                                Linking.openURL(report.pdfUrl);
+                            }
+                        } else {
+                            Alert.alert(
+                                'PDF',
+                                'PDF-ul nu este încă disponibil. Raportul este în curs de procesare.',
+                            );
+                        }
+                    }}
+                >
+                    <Ionicons name="download" size={20} color={report.pdfUrl ? VoltColors.neonGreen : VoltColors.textTertiary} />
+                    <Text style={[styles.actionText, !report.pdfUrl && styles.actionTextDisabled]}>
+                        {t('report.downloadPdf')}
+                    </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
+                <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={async () => {
+                        const vehicleName = `${report.vehicleMeta?.make || ''} ${report.vehicleMeta?.model || ''}`.trim();
+                        const shareMessage = `⚡ VoltCheck Report: ${vehicleName} (${report.year})\nRisk Score: ${report.riskScore}/100 (${report.riskCategory})\n${report.pdfUrl ? `\nPDF: ${report.pdfUrl}` : ''}`;
+
+                        if (Platform.OS === 'web') {
+                            if (navigator.share) {
+                                await navigator.share({
+                                    title: `VoltCheck - ${vehicleName}`,
+                                    text: shareMessage,
+                                    url: report.pdfUrl || undefined,
+                                });
+                            } else {
+                                await navigator.clipboard.writeText(shareMessage);
+                                Alert.alert('Copiat!', 'Link-ul raportului a fost copiat în clipboard.');
+                            }
+                        } else {
+                            await Share.share({
+                                message: shareMessage,
+                                title: `VoltCheck - ${vehicleName}`,
+                            });
+                        }
+                    }}
+                >
                     <Ionicons name="share-social" size={20} color={VoltColors.neonGreen} />
                     <Text style={styles.actionText}>{t('report.shareReport')}</Text>
                 </TouchableOpacity>
@@ -998,6 +1045,13 @@ const styles = StyleSheet.create({
         fontSize: VoltFontSize.sm,
         fontWeight: '600',
         color: VoltColors.neonGreen,
+    },
+    actionButtonDisabled: {
+        borderColor: VoltColors.border,
+        opacity: 0.5,
+    },
+    actionTextDisabled: {
+        color: VoltColors.textTertiary,
     },
 
     // Metadata

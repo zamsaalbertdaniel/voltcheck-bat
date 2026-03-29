@@ -130,6 +130,17 @@ export default function RootLayout() {
                 headerTintColor: VoltColors.textPrimary,
               }}
             />
+            <Stack.Screen
+              name="smartcar-connect"
+              options={{
+                presentation: 'modal',
+                headerShown: true,
+                headerTitle: 'Smartcar Connect',
+                headerStyle: { backgroundColor: VoltColors.bgSecondary },
+                headerTintColor: VoltColors.textPrimary,
+                animation: 'slide_from_bottom',
+              }}
+            />
           </Stack>
         </ThemeProvider>
       </ToastProvider>
