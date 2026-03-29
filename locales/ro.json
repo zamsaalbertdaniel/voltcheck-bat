@@ -135,6 +135,8 @@
     "privacy": "Confidențialitate",
     "terms": "Termeni și Condiții",
     "logout": "Deconectare",
+    "logoutConfirm": "Ești sigur că vrei să te deconectezi?",
+    "notificationPermissionDenied": "Permisiunea pentru notificări a fost refuzată. Activează-o din Setările telefonului.",
     "version": "Versiunea"
   },
   "insight": {
@@ -207,7 +209,9 @@
     "subtitle": "Verifică sănătatea bateriei EV-ului tău",
     "loginGoogle": "Continuă cu Google",
     "loginApple": "Continuă cu Apple",
-    "termsAgree": "Prin continuare, accepți Termenii și Condițiile"
+    "termsAgree": "Prin continuare, accepți Termenii și Condițiile",
+    "errorTitle": "Eroare Autentificare",
+    "errorGeneric": "Autentificarea a eșuat. Încearcă din nou."
   },
   "payment": {
     "title": "Finalizare Plată",

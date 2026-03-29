@@ -135,6 +135,8 @@
         "privacy": "Privacy",
         "terms": "Terms & Conditions",
         "logout": "Log Out",
+        "logoutConfirm": "Are you sure you want to log out?",
+        "notificationPermissionDenied": "Notification permission was denied. Enable it in your phone Settings.",
         "version": "Version"
     },
     "insight": {
@@ -207,7 +209,9 @@
         "subtitle": "Verify your EV's battery health",
         "loginGoogle": "Continue with Google",
         "loginApple": "Continue with Apple",
-        "termsAgree": "By continuing, you agree to the Terms & Conditions"
+        "termsAgree": "By continuing, you agree to the Terms & Conditions",
+        "errorTitle": "Authentication Error",
+        "errorGeneric": "Authentication failed. Please try again."
     },
     "payment": {
         "title": "Complete Payment",
