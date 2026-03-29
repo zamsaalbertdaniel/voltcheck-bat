@@ -77,11 +77,11 @@ export function useAuthListener() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (isAuthenticated && inAuthGroup) {
-      // Logged in but on auth screen → go to tabs
-      router.replace('/(tabs)');
+      // Logged in but on auth screen → go to tabs (home)
+      router.replace('/');
     } else if (!isAuthenticated && !inAuthGroup) {
       // Not logged in but on protected screen → go to login
-      router.replace('/(auth)');
+      router.replace('/login');
     }
   }, [isAuthenticated, segments, isReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
