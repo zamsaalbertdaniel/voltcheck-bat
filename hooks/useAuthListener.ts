@@ -10,6 +10,56 @@ import { useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 
+/** Create or update user document in Firestore on first/each login */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ensureUserDoc(db: any, user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }) {
+  if (Platform.OS === 'web') {
+    const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+    const userRef = doc(db, 'users', user.uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+      await setDoc(userRef, {
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        createdAt: serverTimestamp(),
+        notificationsEnabled: true,
+      });
+    } else {
+      // Update last login + latest profile info
+      await setDoc(userRef, {
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        lastLoginAt: serverTimestamp(),
+      }, { merge: true });
+    }
+  } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userRef = (db as any).collection('users').doc(user.uid);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const snap = await userRef.get() as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const firestore = (await import('@react-native-firebase/firestore')).default as any;
+    if (!snap.exists) {
+      await userRef.set({
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        createdAt: firestore.FieldValue.serverTimestamp(),
+        notificationsEnabled: true,
+      });
+    } else {
+      await userRef.set({
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        lastLoginAt: firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+    }
+  }
+}
+
 export function useAuthListener() {
   const [isReady, setIsReady] = useState(false);
   const { setUser, setLoading } = useAuthStore();
@@ -23,39 +73,38 @@ export function useAuthListener() {
 
     (async () => {
       try {
-        const { auth } = await getFirebaseServices();
+        const { auth, db } = await getFirebaseServices();
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const handleUser = async (firebaseUser: any) => {
+          if (firebaseUser) {
+            const userData = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+            };
+            setUser(userData);
+
+            // Ensure Firestore user doc exists (first login creates it)
+            try {
+              await ensureUserDoc(db, userData);
+            } catch (e) {
+              // eslint-disable-next-line no-console
+              console.warn('[AuthListener] Failed to ensure user doc:', e);
+            }
+          } else {
+            setUser(null);
+          }
+          setIsReady(true);
+        };
 
         if (Platform.OS === 'web') {
           const { onAuthStateChanged } = await import('firebase/auth');
-          unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            if (firebaseUser) {
-              setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                displayName: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-              });
-            } else {
-              setUser(null);
-            }
-            setIsReady(true);
-          });
+          unsubscribe = onAuthStateChanged(auth, handleUser);
         } else {
-          // Native: @react-native-firebase/auth returns an unsubscribe directly
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          unsubscribe = (auth as any).onAuthStateChanged((firebaseUser: any) => {
-            if (firebaseUser) {
-              setUser({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                displayName: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-              });
-            } else {
-              setUser(null);
-            }
-            setIsReady(true);
-          });
+          unsubscribe = (auth as any).onAuthStateChanged(handleUser);
         }
       } catch (err) {
         // eslint-disable-next-line no-console
