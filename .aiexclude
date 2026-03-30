@@ -1,0 +1,21 @@
+# ═══════════════════════════════════════════
+# VoltCheck — .aiexclude
+# Prevents Antigravity from indexing heavy
+# dependency folders that cause workspace lockup
+# ═══════════════════════════════════════════
+
+# Node dependencies (root — Expo/React Native)
+node_modules/
+
+# Node dependencies (Cloud Functions)
+functions/node_modules/
+
+# Compiled Cloud Functions output
+functions/lib/
+
+# Expo build artifacts
+dist/
+.expo/
+
+# Firebase cache
+.firebase/

@@ -6,17 +6,10 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import {
-  VoltBorderRadius,
-  VoltColors,
-  VoltFontSize,
-  VoltShadow,
-  VoltSpacing,
-  getRiskCategory,
-  getRiskColor,
-} from '@/constants/Theme';
+import { getRiskCategory, getRiskColor, VoltBorderRadius, VoltColors, VoltFontSize, VoltShadow, VoltSpacing } from '@/constants/Theme';
 import { getFirebaseServices } from '@/services/firebase';
 import { useAuthStore } from '@/store/useAuthStore';
+import Skeleton from '@/components/ui/Skeleton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { memo, useCallback, useEffect, useState } from 'react';
@@ -25,6 +18,7 @@ import {
   ActivityIndicator,
   FlatList,
   Platform,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -89,6 +83,16 @@ const ReportCard = memo(function ReportCard({
             : t('garage.level2Badge')}
         </Text>
       </View>
+
+      {/* Status badge */}
+      {item.status !== 'completed' && item.status !== 'complete' && (
+        <View style={styles.statusBadge}>
+          <View style={styles.statusDot} />
+          <Text style={styles.statusBadgeText}>
+            {t('garage.statusProcessing')}
+          </Text>
+        </View>
+      )}
 
       <View style={styles.cardContent}>
         <View style={styles.cardLeft}>
@@ -155,6 +159,7 @@ export default function GarageScreen() {
   const { user } = useAuthStore();
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // ── Fetch reports from Firestore ──────────────────────────────────────
@@ -261,6 +266,12 @@ export default function GarageScreen() {
     [router],
   );
 
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    // Firestore listener already auto-updates, just show refresh indicator briefly
+    setTimeout(() => setIsRefreshing(false), 1000);
+  }, []);
+
   const renderEmpty = () => (
     <View style={styles.emptyState}>
       <MaterialCommunityIcons
@@ -269,6 +280,14 @@ export default function GarageScreen() {
         color={VoltColors.textTertiary}
       />
       <Text style={styles.emptyTitle}>{t('garage.empty')}</Text>
+      <TouchableOpacity
+        style={styles.firstScanButton}
+        onPress={() => router.push('/(tabs)')}
+        activeOpacity={0.8}
+      >
+        <MaterialCommunityIcons name="magnify-scan" size={20} color={VoltColors.textOnGreen} />
+        <Text style={styles.firstScanText}>{t('garage.firstScanCta')}</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -282,11 +301,26 @@ export default function GarageScreen() {
 
       {/* Loading */}
       {isLoading ? (
-        <View style={styles.emptyState}>
-          <ActivityIndicator size="large" color={VoltColors.neonGreen} />
-          <Text style={styles.loadingText}>
-            {t('common.loading') || 'Se încarcă...'}
-          </Text>
+        <View style={styles.listContent}>
+          {[1, 2, 3].map((key) => (
+            <View key={key} style={[styles.card, { padding: 0 }]}>
+              <View style={{ padding: VoltSpacing.lg }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Skeleton width={36} height={36} borderRadius={8} style={{ marginRight: VoltSpacing.md }} />
+                  <View style={{ flex: 1 }}>
+                    <Skeleton width="60%" height={24} style={{ marginBottom: 4 }} />
+                    <Skeleton width="40%" height={16} style={{ marginBottom: 6 }} />
+                    <Skeleton width="80%" height={12} />
+                  </View>
+                  <Skeleton width={48} height={48} borderRadius={24} />
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: VoltSpacing.md, paddingTop: VoltSpacing.md, borderTopWidth: 1, borderTopColor: VoltColors.divider }}>
+                  <Skeleton width={100} height={16} />
+                  <Skeleton width={80} height={28} borderRadius={6} />
+                </View>
+              </View>
+            </View>
+          ))}
         </View>
       ) : error ? (
         <View style={styles.emptyState}>
@@ -303,6 +337,15 @@ export default function GarageScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={Platform.OS === 'web'}
           ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              colors={[VoltColors.neonGreen]}
+              tintColor={VoltColors.neonGreen}
+              progressBackgroundColor={VoltColors.bgSecondary}
+            />
+          }
         />
       )}
     </View>
@@ -468,6 +511,31 @@ const styles = StyleSheet.create({
   },
 
   // Empty state
+  // Status badge
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 179, 0, 0.1)',
+    paddingHorizontal: VoltSpacing.sm,
+    paddingVertical: 3,
+    borderRadius: VoltBorderRadius.sm,
+    marginTop: VoltSpacing.sm,
+    gap: 4,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: VoltColors.warning,
+  },
+  statusBadgeText: {
+    fontSize: VoltFontSize.xs,
+    color: VoltColors.warning,
+    fontWeight: '600',
+  },
+
+  // Empty state
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -478,6 +546,23 @@ const styles = StyleSheet.create({
     color: VoltColors.textTertiary,
     marginTop: VoltSpacing.md,
     textAlign: 'center',
+  },
+  firstScanButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: VoltColors.neonGreen,
+    paddingHorizontal: VoltSpacing.lg,
+    paddingVertical: VoltSpacing.md,
+    borderRadius: VoltBorderRadius.md,
+    marginTop: VoltSpacing.lg,
+    gap: VoltSpacing.sm,
+    ...VoltShadow.glow,
+  },
+  firstScanText: {
+    fontSize: VoltFontSize.md,
+    fontWeight: '700',
+    color: VoltColors.textOnGreen,
+    letterSpacing: 0.5,
   },
   loadingText: {
     fontSize: VoltFontSize.sm,

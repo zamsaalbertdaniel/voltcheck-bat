@@ -11,6 +11,7 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -42,6 +43,7 @@ export default function VinInputCard({
     onDecode,
 }: VinInputCardProps) {
     const { t } = useTranslation();
+    const router = useRouter();
 
     return (
         <>
@@ -71,10 +73,17 @@ export default function VinInputCard({
                 </View>
                 {vinError ? <Text style={styles.errorText}>{vinError}</Text> : null}
 
-                <TouchableOpacity style={styles.cameraButton} disabled={isDecoding}>
+                <TouchableOpacity 
+                    style={styles.cameraButton} 
+                    disabled={isDecoding}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    onPress={() => router.push('/camera-scan' as any)}
+                >
                     <Ionicons name="camera" size={20} color={VoltColors.neonGreen} />
                     <Text style={styles.cameraText}>{t('scan.scanCamera')}</Text>
                 </TouchableOpacity>
+
+                <Text style={styles.vinHint}>{t('scan.vinHint')}</Text>
             </View>
 
             {errorMessage ? (
@@ -95,14 +104,6 @@ export default function VinInputCard({
                 </TouchableOpacity>
             )}
 
-            {isDecoding && (
-                <View style={styles.decodingContainer}>
-                    <Animated.View style={{ transform: [{ rotate: spinRotation }] }}>
-                        <MaterialCommunityIcons name="radar" size={40} color={VoltColors.neonGreen} />
-                    </Animated.View>
-                    <Text style={styles.decodingText}>{t('scan.scanning')}</Text>
-                </View>
-            )}
         </>
     );
 }
@@ -168,6 +169,14 @@ const styles = StyleSheet.create({
         marginLeft: VoltSpacing.xs,
         fontWeight: '500',
     },
+    vinHint: {
+        fontSize: VoltFontSize.xs,
+        color: VoltColors.textTertiary,
+        textAlign: 'center',
+        marginTop: VoltSpacing.sm,
+        lineHeight: 16,
+        fontStyle: 'italic',
+    },
     errorBanner: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -213,15 +222,5 @@ const styles = StyleSheet.create({
         borderColor: VoltColors.border,
         shadowOpacity: 0,
         elevation: 0,
-    },
-    decodingContainer: {
-        alignItems: 'center',
-        paddingVertical: VoltSpacing.xl,
-        gap: VoltSpacing.md,
-    },
-    decodingText: {
-        fontSize: VoltFontSize.md,
-        color: VoltColors.neonGreen,
-        fontWeight: '600',
     },
 });

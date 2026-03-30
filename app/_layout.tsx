@@ -12,6 +12,12 @@ import { VoltColors } from '@/constants/Theme';
 import { useAuthListener } from '@/hooks/useAuthListener';
 import { useNotificationHandler } from '@/hooks/useNotificationHandler';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -75,6 +81,10 @@ export default function RootLayout() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   const [splashComplete, setSplashComplete] = useState(false);
@@ -151,6 +161,22 @@ export default function RootLayout() {
                 headerTitle: 'Smartcar Connect',
                 headerStyle: { backgroundColor: VoltColors.bgSecondary },
                 headerTintColor: VoltColors.textPrimary,
+                animation: 'slide_from_bottom',
+              }}
+            />
+            <Stack.Screen
+              name="legal"
+              options={{
+                presentation: 'modal',
+                headerShown: false,
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
+              name="camera-scan"
+              options={{
+                presentation: 'modal',
+                headerShown: false,
                 animation: 'slide_from_bottom',
               }}
             />

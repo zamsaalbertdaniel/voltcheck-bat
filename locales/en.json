@@ -14,6 +14,7 @@
         "title": "Check Your EV",
         "subtitle": "Enter the VIN to get a full report",
         "vinPlaceholder": "Ex: WVWZZZE3ZWE123456",
+        "vinHint": "Find the VIN on the dashboard (left corner), in the registration certificate, or on the door pillar.",
         "vinLabel": "VIN Number (17 characters)",
         "scanCamera": "Scan with camera",
         "orType": "or enter manually",
@@ -122,10 +123,14 @@
         "title": "Your Garage",
         "subtitle": "Your diagnostic reports",
         "empty": "No reports yet. Scan your first VIN!",
+        "firstScanCta": "Start First Scan",
         "level1Badge": "Detective",
         "level2Badge": "Surgeon",
         "expired": "Expired",
-        "viewReport": "View Report"
+        "viewReport": "View Report",
+        "statusProcessing": "Processing...",
+        "statusComplete": "Complete",
+        "pullToRefresh": "Pull to refresh"
     },
     "settings": {
         "title": "Settings",
@@ -137,7 +142,12 @@
         "logout": "Log Out",
         "logoutConfirm": "Are you sure you want to log out?",
         "notificationPermissionDenied": "Notification permission was denied. Enable it in your phone Settings.",
-        "version": "Version"
+        "version": "Version",
+        "deleteAccount": "Delete Account",
+        "deleteAccountConfirm": "Are you sure you want to delete your account? All your data will be permanently deleted, including reports in Garage. This action cannot be undone.",
+        "deleteAccountSuccess": "Your account has been successfully deleted.",
+        "deleteAccountError": "Account deletion failed. Please try again.",
+        "rateApp": "Rate VoltCheck"
     },
     "insight": {
         "title": "BAT Insight",
@@ -211,7 +221,12 @@
         "loginApple": "Continue with Apple",
         "termsAgree": "By continuing, you agree to the Terms & Conditions",
         "errorTitle": "Authentication Error",
-        "errorGeneric": "Authentication failed. Please try again."
+        "errorGeneric": "Authentication failed. Please try again.",
+        "features": {
+            "security": "Zero-password authentication",
+            "speed": "Report in 30 seconds",
+            "ai": "Proprietary AI Risk Score"
+        }
     },
     "payment": {
         "title": "Complete Payment",

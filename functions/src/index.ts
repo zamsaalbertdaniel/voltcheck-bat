@@ -48,6 +48,7 @@ if (process.env.K_SERVICE || process.env.FUNCTIONS_EMULATOR) {
 
 // ── VIN Router ──
 export { decodeVin } from './vin/decodeVin';
+export { ocrVin } from './vin/ocrVin';
 
 // ── Report Pipeline + PDF Generator ──
 export { generateReport } from './report/generateReport';

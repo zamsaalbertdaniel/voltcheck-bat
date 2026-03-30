@@ -14,6 +14,7 @@
     "title": "Verifică-ți EV-ul",
     "subtitle": "Introdu VIN-ul pentru a obține un raport complet",
     "vinPlaceholder": "Ex: WVWZZZE3ZWE123456",
+    "vinHint": "Găsești VIN-ul pe bord (colțul stâng), în certificatul de înmatriculare, sau pe stâlpul portierei.",
     "vinLabel": "Număr VIN (17 caractere)",
     "scanCamera": "Scanare cu camera",
     "orType": "sau introdu manual",
@@ -122,10 +123,14 @@
     "title": "Garajul Tău",
     "subtitle": "Rapoartele tale de diagnosticare",
     "empty": "Niciun raport încă. Scanează primul tău VIN!",
+    "firstScanCta": "Fă Prima Scanare",
     "level1Badge": "Detective",
     "level2Badge": "Surgeon",
     "expired": "Expirat",
-    "viewReport": "Vezi Raport"
+    "viewReport": "Vezi Raport",
+    "statusProcessing": "Se procesează...",
+    "statusComplete": "Complet",
+    "pullToRefresh": "Trage pentru a reîmprospăta"
   },
   "settings": {
     "title": "Setări",
@@ -137,7 +142,12 @@
     "logout": "Deconectare",
     "logoutConfirm": "Ești sigur că vrei să te deconectezi?",
     "notificationPermissionDenied": "Permisiunea pentru notificări a fost refuzată. Activează-o din Setările telefonului.",
-    "version": "Versiunea"
+    "version": "Versiunea",
+    "deleteAccount": "Șterge contul",
+    "deleteAccountConfirm": "Ești sigur că vrei să îți ștergi contul? Toate datele tale vor fi șterse permanent, inclusiv rapoartele din Garaj. Această acțiune este ireversibilă.",
+    "deleteAccountSuccess": "Contul tău a fost șters cu succes.",
+    "deleteAccountError": "Ștergerea contului a eșuat. Te rugăm să încerci din nou.",
+    "rateApp": "Evaluează VoltCheck"
   },
   "insight": {
     "title": "BAT Insight",
@@ -211,7 +221,12 @@
     "loginApple": "Continuă cu Apple",
     "termsAgree": "Prin continuare, accepți Termenii și Condițiile",
     "errorTitle": "Eroare Autentificare",
-    "errorGeneric": "Autentificarea a eșuat. Încearcă din nou."
+    "errorGeneric": "Autentificarea a eșuat. Încearcă din nou.",
+    "features": {
+      "security": "Autentificare fără parolă",
+      "speed": "Raport în 30 de secunde",
+      "ai": "Scor de Risc AI Proprietar"
+    }
   },
   "payment": {
     "title": "Finalizare Plată",

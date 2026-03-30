@@ -150,9 +150,41 @@ export async function decodeVinRemote(vin: string, level: number = 1): Promise<V
         // On network error, try cache (even expired would be better than nothing)
         const parsed = parseCloudError(err);
         if (parsed.isNetworkError && cached) {
-            return { ...cached, source: 'cache' };
+            return { ...(cached as VINDecodeResponse), source: 'cache' };
         }
         throw err;
+    }
+}
+
+export interface OcrVinResponse {
+    success: boolean;
+    vin: string | null;
+    message?: string;
+}
+
+/**
+ * Send an image snapshot to Cloud Functions to extract VIN using Vision API
+ */
+export async function ocrVinRemote(base64Image: string): Promise<OcrVinResponse> {
+    if (USE_MOCK_DATA) {
+        await simulateDelay(2000);
+        return { success: true, vin: 'WVWZZZE3ZWE123456' };
+    }
+
+    const { app } = await getFirebaseServices();
+
+    if (Platform.OS === 'web') {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const functions = getFunctions(app, FUNCTIONS_REGION);
+        const ocrObj = httpsCallable<{ imagePayload: string }, OcrVinResponse>(functions, 'ocrVin');
+        const result = await ocrObj({ imagePayload: base64Image });
+        return result.data;
+    } else {
+        const rnFunctions = (await import('@react-native-firebase/app')) as any;
+        const functionsModule = rnFunctions.default.functions();
+        const ocrObj = (functionsModule as any).httpsCallable('ocrVin');
+        const result = await ocrObj({ imagePayload: base64Image });
+        return result.data as OcrVinResponse;
     }
 }
 

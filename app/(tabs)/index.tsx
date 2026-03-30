@@ -15,6 +15,7 @@
 
 import LevelSelector from '@/components/scan/LevelSelector';
 import VehicleResultCard from '@/components/scan/VehicleResultCard';
+import VehicleResultSkeleton from '@/components/scan/VehicleResultSkeleton';
 import VinInputCard from '@/components/scan/VinInputCard';
 import ReportRadar from '@/components/ReportRadar';
 import {
@@ -31,8 +32,9 @@ import {
 } from '@/services/cloudFunctions';
 import { isValidVIN } from '@/utils/vinDecoder';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useRef, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -57,6 +59,7 @@ type ScreenState =
 export default function ScanScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { scannedVin } = useLocalSearchParams<{ scannedVin?: string }>();
 
   // State
   const [vin, setVin] = useState('');
@@ -72,7 +75,7 @@ export default function ScanScreen() {
   const decodeSpinner = useRef(new Animated.Value(0)).current;
 
   // Glow animation
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, { toValue: 1, duration: 2000, useNativeDriver: false }),
@@ -80,6 +83,15 @@ export default function ScanScreen() {
       ])
     ).start();
   }, [glowAnim]);
+
+  // Handle returning from camera scan
+  useEffect(() => {
+    if (scannedVin) {
+      setVin(scannedVin.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, ''));
+      setVinError('');
+      setErrorMessage('');
+    }
+  }, [scannedVin]);
 
   // ── VIN Input Handler ──
   const handleVinChange = (text: string) => {
@@ -104,11 +116,15 @@ export default function ScanScreen() {
     ).start();
 
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       const result = await decodeVinRemote(vin, 1);
+      
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setDecodedData(result);
       setScreenState('level_select');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       const parsed = parseCloudError(error);
 
       if (parsed.isRateLimit) {
@@ -247,6 +263,8 @@ export default function ScanScreen() {
         )}
 
         {/* ══════ VEHICLE CARD + LEVEL SELECT ══════ */}
+        {screenState === 'decoding' && <VehicleResultSkeleton />}
+        
         {(screenState === 'level_select' || screenState === 'paying') && decodedData && (
           <>
             <VehicleResultCard decodedData={decodedData} />

@@ -3,5 +3,26 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "functions/node_modules": true,
+    "functions/lib": true,
+    "**/dist": true,
+    "**/.expo": true,
+    "**/.firebase": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "functions/node_modules": true,
+    "functions/lib": true,
+    "**/dist": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "functions/node_modules/**": true,
+    "functions/lib/**": true,
+    "**/dist/**": true,
+    "**/.expo/**": true
   }
 }

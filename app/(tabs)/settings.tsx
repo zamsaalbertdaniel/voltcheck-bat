@@ -15,23 +15,27 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { setNotificationPreference, registerForPushNotifications, unregisterPushNotifications } from '@/services/notifications';
 import { getFirebaseServices } from '@/services/firebase';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Alert,
+    Image,
+    Linking,
+    Platform,
     ScrollView,
     StyleSheet,
     Switch,
     Text,
     TouchableOpacity,
     View,
-    Platform,
  } from 'react-native';
 
 export default function ProfileScreen() {
     const { t, i18n } = useTranslation();
     const [notifications, setNotifications] = useState(true);
     const { user } = useAuthStore();
+    const router = useRouter();
     const isRo = i18n.language === 'ro';
 
     const toggleLanguage = () => {
@@ -69,6 +73,81 @@ export default function ProfileScreen() {
                             // eslint-disable-next-line no-console
                             console.error('[Settings] Logout failed:', err);
                             Alert.alert('Eroare', 'Deconectarea a eșuat. Încearcă din nou.');
+                        }
+                    },
+                },
+            ],
+        );
+    }, [user, t]);
+
+    const handleDeleteAccount = useCallback(async () => {
+        Alert.alert(
+            t('settings.deleteAccount'),
+            t('settings.deleteAccountConfirm'),
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: t('settings.deleteAccount'),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const { auth, db } = await getFirebaseServices();
+
+                            if (Platform.OS === 'web') {
+                                const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
+                                const { deleteUser } = await import('firebase/auth');
+                                const uid = user?.uid;
+                                if (!uid) return;
+
+                                // Delete all reports
+                                const reportsQ = query(collection(db, 'reports'), where('userId', '==', uid));
+                                const reportsSnap = await getDocs(reportsQ);
+                                for (const docSnap of reportsSnap.docs) {
+                                    await deleteDoc(doc(db, 'reports', docSnap.id));
+                                }
+
+                                // Delete all payments
+                                const paymentsQ = query(collection(db, 'payments'), where('userId', '==', uid));
+                                const paymentsSnap = await getDocs(paymentsQ);
+                                for (const docSnap of paymentsSnap.docs) {
+                                    await deleteDoc(doc(db, 'payments', docSnap.id));
+                                }
+
+                                // Delete user profile doc
+                                await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+
+                                // Delete Firebase Auth user
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                await deleteUser(auth.currentUser as any);
+                            } else {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                const nativeDb = db as any;
+                                const uid = user?.uid;
+                                if (!uid) return;
+
+                                // Delete reports
+                                const reportsSnap = await nativeDb.collection('reports').where('userId', '==', uid).get();
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                for (const docSnap of reportsSnap.docs) { await (docSnap as any).ref.delete(); }
+
+                                // Delete payments
+                                const paymentsSnap = await nativeDb.collection('payments').where('userId', '==', uid).get();
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                for (const docSnap of paymentsSnap.docs) { await (docSnap as any).ref.delete(); }
+
+                                // Delete user profile
+                                await nativeDb.collection('users').doc(uid).delete().catch(() => {});
+
+                                // Delete Firebase Auth user
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                await (auth as any).currentUser?.delete();
+                            }
+
+                            Alert.alert('✅', t('settings.deleteAccountSuccess'));
+                        } catch (err) {
+                            // eslint-disable-next-line no-console
+                            console.error('[Settings] Delete account failed:', err);
+                            Alert.alert('❌', t('settings.deleteAccountError'));
                         }
                     },
                 },
@@ -133,12 +212,16 @@ export default function ProfileScreen() {
             iconComponent: Ionicons,
             label: t('settings.privacy'),
             showArrow: true,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onPress: () => router.push({ pathname: '/legal' as any, params: { type: 'privacy' } }),
         },
         {
             icon: 'document-text-outline' as const,
             iconComponent: Ionicons,
             label: t('settings.terms'),
             showArrow: true,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onPress: () => router.push({ pathname: '/legal' as any, params: { type: 'terms' } }),
         },
         {
             icon: 'information-circle-outline' as const,
@@ -162,9 +245,13 @@ export default function ProfileScreen() {
             {/* User card */}
             <View style={styles.userCard}>
                 <View style={styles.avatarContainer}>
-                    <View style={styles.avatar}>
-                        <Ionicons name="person" size={32} color={VoltColors.neonGreen} />
-                    </View>
+                    {user?.photoURL ? (
+                        <Image source={{ uri: user.photoURL }} style={styles.avatar} />
+                    ) : (
+                        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                            <Ionicons name="person" size={32} color={VoltColors.neonGreen} />
+                        </View>
+                    )}
                     <View style={styles.avatarGlow} />
                 </View>
                 <View style={styles.userInfo}>
@@ -172,7 +259,7 @@ export default function ProfileScreen() {
                         {user?.displayName || 'VoltCheck User'}
                     </Text>
                     <Text style={styles.userEmail}>
-                        {user?.email || 'Cont anonim'}
+                        {user?.email || t('common.anonymousAccount') || 'Cont anonim'}
                     </Text>
                 </View>
             </View>
@@ -187,6 +274,7 @@ export default function ProfileScreen() {
                             index === menuItems.length - 1 && styles.menuItemLast,
                         ]}
                         activeOpacity={0.7}
+                        onPress={item.onPress}
                     >
                         <item.iconComponent
                             name={item.icon}
@@ -212,6 +300,12 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
                 <Ionicons name="log-out-outline" size={20} color={VoltColors.error} />
                 <Text style={styles.logoutText}>{t('settings.logout')}</Text>
+            </TouchableOpacity>
+
+            {/* Delete account */}
+            <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount} activeOpacity={0.8}>
+                <Ionicons name="trash-outline" size={20} color={VoltColors.error} />
+                <Text style={styles.deleteText}>{t('settings.deleteAccount')}</Text>
             </TouchableOpacity>
 
             {/* Version */}
@@ -267,11 +361,13 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
+        borderWidth: 2,
+        borderColor: VoltColors.neonGreen,
+    },
+    avatarPlaceholder: {
         backgroundColor: VoltColors.neonGreenMuted,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: VoltColors.neonGreen,
     },
     avatarGlow: {
         position: 'absolute',
@@ -366,6 +462,25 @@ const styles = StyleSheet.create({
         fontSize: VoltFontSize.md,
         fontWeight: '600',
         color: VoltColors.error,
+    },
+
+    // Delete
+    deleteButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: VoltSpacing.md,
+        backgroundColor: 'transparent',
+        borderRadius: VoltBorderRadius.lg,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 23, 68, 0.15)',
+        gap: VoltSpacing.sm,
+        marginBottom: VoltSpacing.lg,
+    },
+    deleteText: {
+        fontSize: VoltFontSize.sm,
+        fontWeight: '500',
+        color: VoltColors.textTertiary,
     },
 
     // Version

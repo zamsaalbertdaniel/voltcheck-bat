@@ -202,9 +202,9 @@ export default function LoginScreen() {
 
             {/* Features showcase */}
             <Animated.View style={[styles.featuresSection, { opacity: fadeIn }]}>
-                <FeatureRow icon="shield-checkmark" text="Securitate Zero-Password" />
-                <FeatureRow icon="flash" text="Raport în 30 secunde" />
-                <FeatureRow icon="analytics" text="AI Risk Score Proprietar" />
+                <FeatureRow icon="shield-checkmark" text={t('auth.features.security')} />
+                <FeatureRow icon="flash" text={t('auth.features.speed')} />
+                <FeatureRow icon="analytics" text={t('auth.features.ai')} />
             </Animated.View>
 
             {/* Auth buttons */}
