@@ -558,7 +558,8 @@ export default function ReportScreen() {
                     style={styles.actionButton}
                     onPress={async () => {
                         const vehicleName = `${report.vehicleMeta?.make || ''} ${report.vehicleMeta?.model || ''}`.trim();
-                        const shareMessage = `⚡ VoltCheck Report: ${vehicleName} (${report.year})\nRisk Score: ${report.riskScore}/100 (${report.riskCategory})\n${report.pdfUrl ? `\nPDF: ${report.pdfUrl}` : ''}`;
+                        const deepLink = `voltcheck://report/${report.reportId}`;
+                        const shareMessage = `⚡ VoltCheck Report: ${vehicleName} (${report.year})\nRisk Score: ${report.riskScore}/100 (${report.riskCategory})\n${report.pdfUrl ? `\nPDF: ${report.pdfUrl}` : ''}\n\n🔍 Deschide în aplicație:\n${deepLink}`;
 
                         if (Platform.OS === 'web') {
                             if (navigator.share) {
