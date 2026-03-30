@@ -1,9 +1,12 @@
 /**
  * VoltCheck — Garage Screen (Reports Vault)
  * Shows stored reports with TTL badges and risk indicators
+ * Fetches real data from Firestore, filtered by authenticated user
  */
 
-import { 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import {
   VoltBorderRadius,
   VoltColors,
   VoltFontSize,
@@ -12,67 +15,56 @@ import {
   getRiskCategory,
   getRiskColor,
 } from '@/constants/Theme';
+import { getFirebaseServices } from '@/services/firebase';
+import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  ActivityIndicator,
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Platform,
- } from 'react-native';
+} from 'react-native';
 
-// Mock data for development
-const MOCK_REPORTS = [
-  {
-    reportId: 'rpt_001',
-    vin: '5YJ3E1EA1NF123456',
-    make: 'Tesla',
-    model: 'Model 3',
-    year: 2022,
-    level: 2 as const,
-    riskScore: 18,
-    status: 'completed' as const,
-    createdAt: new Date('2026-02-01'),
-    expiresAt: new Date('2027-02-01'),
-  },
-  {
-    reportId: 'rpt_002',
-    vin: 'WVWZZZE3ZWE654321',
-    make: 'Volkswagen',
-    model: 'ID.4',
-    year: 2023,
-    level: 1 as const,
-    riskScore: 42,
-    status: 'completed' as const,
-    createdAt: new Date('2026-01-28'),
-    expiresAt: new Date('2026-02-27'),
-  },
-  {
-    reportId: 'rpt_003',
-    vin: 'KNAB351ABNA789012',
-    make: 'Hyundai',
-    model: 'Ioniq 5',
-    year: 2021,
-    level: 1 as const,
-    riskScore: 67,
-    status: 'completed' as const,
-    createdAt: new Date('2026-01-15'),
-    expiresAt: new Date('2026-02-14'),
-  },
-];
-
-type ReportItem = typeof MOCK_REPORTS[0];
+interface ReportItem {
+  reportId: string;
+  vin: string;
+  make: string;
+  model: string;
+  year: number;
+  level: 1 | 2;
+  riskScore: number;
+  status: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
 
 function getDaysLeft(expiresAt: Date): number {
   const diff = expiresAt.getTime() - Date.now();
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-const ReportCard = memo(function ReportCard({ item, onViewReport }: { item: ReportItem; onViewReport: (id: string) => void }) {
+/** Convert Firestore timestamp (or Date, or {seconds}) to JS Date */
+function toDate(val: any): Date {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val.toDate === 'function') return val.toDate();
+  if (val.seconds) return new Date(val.seconds * 1000);
+  return new Date(val);
+}
+
+const ReportCard = memo(function ReportCard({
+  item,
+  onViewReport,
+}: {
+  item: ReportItem;
+  onViewReport: (id: string) => void;
+}) {
   const { t } = useTranslation();
   const daysLeft = getDaysLeft(item.expiresAt);
   const isExpired = daysLeft <= 0;
@@ -85,9 +77,16 @@ const ReportCard = memo(function ReportCard({ item, onViewReport }: { item: Repo
       activeOpacity={0.8}
       onPress={() => onViewReport(item.reportId)}
     >
-      <View style={[styles.levelBadge, item.level === 2 ? styles.levelBadgePremium : null]}>
+      <View
+        style={[
+          styles.levelBadge,
+          item.level === 2 ? styles.levelBadgePremium : null,
+        ]}
+      >
         <Text style={styles.levelBadgeText}>
-          {item.level === 1 ? t('garage.level1Badge') : t('garage.level2Badge')}
+          {item.level === 1
+            ? t('garage.level1Badge')
+            : t('garage.level2Badge')}
         </Text>
       </View>
 
@@ -106,12 +105,16 @@ const ReportCard = memo(function ReportCard({ item, onViewReport }: { item: Repo
           </Text>
           <Text style={styles.carYear}>{item.year}</Text>
           <Text style={styles.vinText}>{item.vin}</Text>
-          <Text style={styles.dateText}>{item.createdAt.toLocaleDateString('ro-RO')}</Text>
+          <Text style={styles.dateText}>
+            {item.createdAt.toLocaleDateString('ro-RO')}
+          </Text>
         </View>
 
         <View style={styles.cardRight}>
           <View style={[styles.riskCircle, { borderColor: riskColor }]}>
-            <Text style={[styles.riskScore, { color: riskColor }]}>{item.riskScore}</Text>
+            <Text style={[styles.riskScore, { color: riskColor }]}>
+              {item.riskScore}
+            </Text>
           </View>
           <Text style={[styles.riskLabel, { color: riskColor }]}>
             {t(`report.riskCategories.${riskCat}`)}
@@ -126,11 +129,18 @@ const ReportCard = memo(function ReportCard({ item, onViewReport }: { item: Repo
             size={14}
             color={isExpired ? VoltColors.error : VoltColors.textTertiary}
           />
-          <Text style={[styles.expiryText, isExpired && styles.expiryExpired]}>
-            {isExpired ? t('garage.expired') : t('report.expiresIn', { days: daysLeft })}
+          <Text
+            style={[styles.expiryText, isExpired && styles.expiryExpired]}
+          >
+            {isExpired
+              ? t('garage.expired')
+              : t('report.expiresIn', { days: daysLeft })}
           </Text>
         </View>
-        <TouchableOpacity style={styles.viewButton} onPress={() => onViewReport(item.reportId)}>
+        <TouchableOpacity
+          style={styles.viewButton}
+          onPress={() => onViewReport(item.reportId)}
+        >
           <Text style={styles.viewButtonText}>{t('garage.viewReport')}</Text>
           <Ionicons name="arrow-forward" size={14} color={VoltColors.neonGreen} />
         </TouchableOpacity>
@@ -142,11 +152,114 @@ const ReportCard = memo(function ReportCard({ item, onViewReport }: { item: Repo
 export default function GarageScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [reports] = useState(MOCK_REPORTS);
+  const { user } = useAuthStore();
+  const [reports, setReports] = useState<ReportItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleViewReport = useCallback((reportId: string) => {
-    router.push(`/report/${reportId}`);
-  }, [router]);
+  // ── Fetch reports from Firestore ──────────────────────────────────────
+  useEffect(() => {
+    if (!user?.uid) {
+      setReports([]);
+      setIsLoading(false);
+      return;
+    }
+
+    let unsubscribe: (() => void) | null = null;
+
+    (async () => {
+      try {
+        const { db } = await getFirebaseServices();
+
+        if (Platform.OS === 'web') {
+          const { collection, query, where, orderBy, onSnapshot } =
+            await import('firebase/firestore');
+
+          const q = query(
+            collection(db, 'reports'),
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc'),
+          );
+
+          unsubscribe = onSnapshot(q, (snapshot) => {
+            const items: ReportItem[] = snapshot.docs.map((doc) => {
+              const d = doc.data();
+              return {
+                reportId: doc.id,
+                vin: d.vin || '',
+                make: d.vehicleMeta?.make || d.make || '',
+                model: d.vehicleMeta?.model || d.model || '',
+                year: d.vehicleMeta?.year || d.year || 0,
+                level: d.level || 1,
+                riskScore: d.riskScore ?? 0,
+                status: d.status || 'processing',
+                createdAt: toDate(d.createdAt),
+                expiresAt: toDate(d.expiresAt),
+              };
+            });
+            setReports(items);
+            setIsLoading(false);
+            setError(null);
+          }, (err) => {
+            // eslint-disable-next-line no-console
+            console.error('[Garage] Firestore listen error:', err);
+            setError(t('errors.generic') || 'Eroare la încărcarea rapoartelor.');
+            setIsLoading(false);
+          });
+        } else {
+          // Native: @react-native-firebase/firestore
+          unsubscribe = (db as any)
+            .collection('reports')
+            .where('userId', '==', user.uid)
+            .orderBy('createdAt', 'desc')
+            .onSnapshot(
+              (snapshot: any) => {
+                const items: ReportItem[] = snapshot.docs.map((doc: any) => {
+                  const d = doc.data();
+                  return {
+                    reportId: doc.id,
+                    vin: d.vin || '',
+                    make: d.vehicleMeta?.make || d.make || '',
+                    model: d.vehicleMeta?.model || d.model || '',
+                    year: d.vehicleMeta?.year || d.year || 0,
+                    level: d.level || 1,
+                    riskScore: d.riskScore ?? 0,
+                    status: d.status || 'processing',
+                    createdAt: toDate(d.createdAt),
+                    expiresAt: toDate(d.expiresAt),
+                  };
+                });
+                setReports(items);
+                setIsLoading(false);
+                setError(null);
+              },
+              (err: any) => {
+                // eslint-disable-next-line no-console
+                console.error('[Garage] Firestore listen error:', err);
+                setError(t('errors.generic') || 'Eroare la încărcarea rapoartelor.');
+                setIsLoading(false);
+              },
+            );
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[Garage] Init error:', err);
+        setError(t('errors.generic') || 'Eroare la încărcarea rapoartelor.');
+        setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleViewReport = useCallback(
+    (reportId: string) => {
+      router.push(`/report/${reportId}`);
+    },
+    [router],
+  );
 
   const renderEmpty = () => (
     <View style={styles.emptyState}>
@@ -167,15 +280,31 @@ export default function GarageScreen() {
         <Text style={styles.subtitle}>{t('garage.subtitle')}</Text>
       </View>
 
-      {/* Reports list */}
-      <FlatList
-        data={reports}
-        keyExtractor={(item) => item.reportId}
-        renderItem={({ item }) => <ReportCard item={item} onViewReport={handleViewReport} />}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={Platform.OS === 'web'}
-        ListEmptyComponent={renderEmpty}
-      />
+      {/* Loading */}
+      {isLoading ? (
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color={VoltColors.neonGreen} />
+          <Text style={styles.loadingText}>
+            {t('common.loading') || 'Se încarcă...'}
+          </Text>
+        </View>
+      ) : error ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="alert-circle-outline" size={64} color={VoltColors.error} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={reports}
+          keyExtractor={(item) => item.reportId}
+          renderItem={({ item }) => (
+            <ReportCard item={item} onViewReport={handleViewReport} />
+          )}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={Platform.OS === 'web'}
+          ListEmptyComponent={renderEmpty}
+        />
+      )}
     </View>
   );
 }
@@ -202,7 +331,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: VoltSpacing.lg,
-    paddingBottom: 120, // Account for glass tab bar
+    paddingBottom: 120,
   },
 
   // Card
@@ -286,6 +415,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: VoltSpacing.sm,
     paddingVertical: 2,
     borderRadius: VoltBorderRadius.sm,
+    zIndex: 1,
   },
   levelBadgePremium: {
     backgroundColor: VoltColors.neonGreenGlow,
@@ -346,6 +476,17 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: VoltFontSize.md,
     color: VoltColors.textTertiary,
+    marginTop: VoltSpacing.md,
+    textAlign: 'center',
+  },
+  loadingText: {
+    fontSize: VoltFontSize.sm,
+    color: VoltColors.textTertiary,
+    marginTop: VoltSpacing.md,
+  },
+  errorText: {
+    fontSize: VoltFontSize.md,
+    color: VoltColors.error,
     marginTop: VoltSpacing.md,
     textAlign: 'center',
   },
