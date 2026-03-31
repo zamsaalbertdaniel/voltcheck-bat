@@ -228,6 +228,20 @@
             "ai": "Proprietary AI Risk Score"
         }
     },
+    "eligibility": {
+        "checking": "Checking compatibility...",
+        "protected": "ACTIVE PROTECTION",
+        "notSupported": "This model does not support Cloud diagnosis. Level 2 has been disabled to protect your money.",
+        "reasons": {
+            "smartcar_supported": "Vehicle compatible with cloud diagnosis.",
+            "smartcar_not_supported": "This model is not compatible with cloud diagnosis at this time. Level 2 has been disabled to protect your money.",
+            "not_electric_vehicle": "This vehicle is not electric. Level 2 battery diagnosis is only available for electric vehicles.",
+            "make_not_supported": "This vehicle manufacturer does not yet support cloud diagnosis. Level 2 disabled for your protection.",
+            "year_too_old": "Vehicles manufactured before 2018 lack cloud telemetry. Level 2 disabled for your protection.",
+            "eligibility_check_failed": "Compatibility check could not be performed. Level 2 disabled as a precaution.",
+            "fallback_compatible": "Vehicle compatible (estimated check)."
+        }
+    },
     "payment": {
         "title": "Complete Payment",
         "processing": "Processing payment...",

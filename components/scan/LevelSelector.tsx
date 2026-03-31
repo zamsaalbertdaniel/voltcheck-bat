@@ -29,6 +29,10 @@ interface LevelSelectorProps {
     spinRotation: Animated.AnimatedInterpolation<string>;
     errorMessage: string;
     onSelect: (level: 1 | 2) => void;
+    /** null = still checking, true = supported, false = not supported */
+    level2Eligible?: boolean | null;
+    level2EligibilityReason?: string;
+    level2EligibilityLoading?: boolean;
 }
 
 export default function LevelSelector({
@@ -37,6 +41,9 @@ export default function LevelSelector({
     spinRotation,
     errorMessage,
     onSelect,
+    level2Eligible,
+    level2EligibilityReason,
+    level2EligibilityLoading,
 }: LevelSelectorProps) {
     const { t } = useTranslation();
 
@@ -86,41 +93,90 @@ export default function LevelSelector({
                 </TouchableOpacity>
 
                 {/* Level 2 — The Surgeon */}
-                <TouchableOpacity
-                    style={[
-                        styles.levelCard,
-                        styles.levelCardPremium,
-                        selectedLevel === 2 ? styles.levelCardSelected : null,
-                    ]}
-                    onPress={() => onSelect(2)}
-                    disabled={isPaying}
-                >
-                    <View style={styles.premiumBadge}>
-                        <Text style={styles.premiumText}>⚡ {t('scan.recommendation')}</Text>
-                    </View>
-                    <View style={styles.levelHeader}>
-                        <View style={[styles.levelIconContainer, styles.levelIconPremium]}>
-                            <MaterialCommunityIcons name="stethoscope" size={24} color={VoltColors.neonGreen} />
-                        </View>
-                        <View style={styles.levelInfo}>
-                            <Text style={styles.levelName}>{t('levels.level2.name')}</Text>
-                            <Text style={styles.levelDesc}>{t('levels.level2.description')}</Text>
-                        </View>
-                        <View style={[styles.priceTag, styles.priceTagPremium]}>
-                            <Text style={styles.priceText}>{t('levels.level2.price')}</Text>
-                        </View>
-                    </View>
-                    <View style={styles.featuresList}>
-                        {(t('levels.level2.features', { returnObjects: true }) as string[]).map(
-                            (feature: string, i: number) => (
-                                <View key={i} style={styles.featureItem}>
-                                    <Ionicons name="checkmark-circle" size={16} color={VoltColors.neonGreen} />
-                                    <Text style={styles.featureText}>{feature}</Text>
+                {(() => {
+                    const isLevel2Disabled = level2Eligible === false;
+                    const isLevel2Checking = level2EligibilityLoading || level2Eligible === null;
+
+                    return (
+                        <TouchableOpacity
+                            style={[
+                                styles.levelCard,
+                                styles.levelCardPremium,
+                                selectedLevel === 2 ? styles.levelCardSelected : null,
+                                isLevel2Disabled ? styles.levelCardDisabled : null,
+                            ]}
+                            onPress={() => onSelect(2)}
+                            disabled={isPaying || isLevel2Disabled}
+                            activeOpacity={isLevel2Disabled ? 1 : 0.7}
+                        >
+                            {/* Badge: Recomandare or Eligibility Status */}
+                            {isLevel2Disabled ? (
+                                <View style={styles.eligibilityBadge}>
+                                    <Text style={styles.eligibilityBadgeText}>
+                                        🛡️ {t('eligibility.protected')}
+                                    </Text>
                                 </View>
-                            )
-                        )}
-                    </View>
-                </TouchableOpacity>
+                            ) : isLevel2Checking ? (
+                                <View style={styles.premiumBadge}>
+                                    <Text style={styles.premiumText}>
+                                        ⏳ {t('eligibility.checking')}
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View style={styles.premiumBadge}>
+                                    <Text style={styles.premiumText}>⚡ {t('scan.recommendation')}</Text>
+                                </View>
+                            )}
+
+                            <View style={[styles.levelHeader, isLevel2Disabled ? { opacity: 0.5 } : null]}>
+                                <View style={[styles.levelIconContainer, styles.levelIconPremium]}>
+                                    <MaterialCommunityIcons
+                                        name={isLevel2Disabled ? 'shield-off-outline' : 'stethoscope'}
+                                        size={24}
+                                        color={isLevel2Disabled ? VoltColors.textTertiary : VoltColors.neonGreen}
+                                    />
+                                </View>
+                                <View style={styles.levelInfo}>
+                                    <Text style={[styles.levelName, isLevel2Disabled ? { color: VoltColors.textTertiary } : null]}>
+                                        {t('levels.level2.name')}
+                                    </Text>
+                                    <Text style={styles.levelDesc}>{t('levels.level2.description')}</Text>
+                                </View>
+                                <View style={[styles.priceTag, styles.priceTagPremium, isLevel2Disabled ? { opacity: 0.4 } : null]}>
+                                    <Text style={[styles.priceText, isLevel2Disabled ? { color: VoltColors.textTertiary } : null]}>
+                                        {t('levels.level2.price')}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Eligibility Gate Message */}
+                            {isLevel2Disabled && (
+                                <View style={styles.eligibilityGate}>
+                                    <Ionicons name="shield-checkmark" size={20} color={VoltColors.neonGreen} />
+                                    <Text style={styles.eligibilityGateText}>
+                                        {t(`eligibility.reasons.${level2EligibilityReason}`, {
+                                            defaultValue: t('eligibility.notSupported'),
+                                        })}
+                                    </Text>
+                                </View>
+                            )}
+
+                            {/* Features (shown when eligible or checking) */}
+                            {!isLevel2Disabled && (
+                                <View style={styles.featuresList}>
+                                    {(t('levels.level2.features', { returnObjects: true }) as string[]).map(
+                                        (feature: string, i: number) => (
+                                            <View key={i} style={styles.featureItem}>
+                                                <Ionicons name="checkmark-circle" size={16} color={VoltColors.neonGreen} />
+                                                <Text style={styles.featureText}>{feature}</Text>
+                                            </View>
+                                        )
+                                    )}
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    );
+                })()}
             </View>
 
             {isPaying && (
@@ -256,5 +312,43 @@ const styles = StyleSheet.create({
         fontSize: VoltFontSize.md,
         color: VoltColors.neonGreen,
         fontWeight: '600',
+    },
+    levelCardDisabled: {
+        borderColor: VoltColors.border,
+        opacity: 0.85,
+        backgroundColor: VoltColors.bgSecondary,
+    },
+    eligibilityBadge: {
+        position: 'absolute',
+        top: -10,
+        right: VoltSpacing.md,
+        backgroundColor: VoltColors.bgInput,
+        paddingHorizontal: VoltSpacing.sm,
+        paddingVertical: 3,
+        borderRadius: VoltBorderRadius.sm,
+        borderWidth: 1,
+        borderColor: VoltColors.neonGreenMuted,
+    },
+    eligibilityBadgeText: {
+        fontSize: VoltFontSize.xs,
+        fontWeight: '700',
+        color: VoltColors.neonGreen,
+    },
+    eligibilityGate: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: 'rgba(0, 230, 118, 0.08)',
+        borderRadius: VoltBorderRadius.md,
+        padding: VoltSpacing.md,
+        marginTop: VoltSpacing.sm,
+        gap: VoltSpacing.sm,
+        borderWidth: 1,
+        borderColor: 'rgba(0, 230, 118, 0.2)',
+    },
+    eligibilityGateText: {
+        flex: 1,
+        fontSize: VoltFontSize.sm,
+        color: VoltColors.neonGreen,
+        lineHeight: 20,
     },
 });

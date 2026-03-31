@@ -24,8 +24,10 @@ import {
   VoltSpacing,
 } from '@/constants/Theme';
 import {
+  checkEligibilityRemote,
   createPaymentIntentRemote,
   decodeVinRemote,
+  EligibilityResponse,
   parseCloudError,
   ReportStatus,
   VINDecodeResponse,
@@ -69,6 +71,8 @@ export default function ScanScreen() {
   const [decodedData, setDecodedData] = useState<VINDecodeResponse | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [eligibility, setEligibility] = useState<EligibilityResponse | null>(null);
+  const [eligibilityLoading, setEligibilityLoading] = useState(false);
 
   // Animations
   const glowAnim = useRef(new Animated.Value(0)).current;
@@ -122,6 +126,18 @@ export default function ScanScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setDecodedData(result);
       setScreenState('level_select');
+
+      // Check Level 2 eligibility in background (non-blocking)
+      setEligibilityLoading(true);
+      checkEligibilityRemote(vin)
+        .then((eligResult) => {
+          setEligibility(eligResult);
+        })
+        .catch(() => {
+          // Fail gracefully — don't block user
+          setEligibility({ vin, compatible: false, reason: 'eligibility_check_failed' });
+        })
+        .finally(() => setEligibilityLoading(false));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -180,6 +196,8 @@ export default function ScanScreen() {
     setSelectedLevel(null);
     setReportId(null);
     setErrorMessage('');
+    setEligibility(null);
+    setEligibilityLoading(false);
   }, []);
 
   // ── Pipeline Complete ──
@@ -274,6 +292,9 @@ export default function ScanScreen() {
               spinRotation={spinRotation}
               errorMessage={errorMessage}
               onSelect={handleStartScan}
+              level2Eligible={eligibility?.compatible ?? null}
+              level2EligibilityReason={eligibility?.reason}
+              level2EligibilityLoading={eligibilityLoading}
             />
           </>
         )}

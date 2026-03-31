@@ -68,6 +68,15 @@ export interface PaymentStatusUpdate {
     failureReason?: string;
 }
 
+export interface EligibilityResponse {
+    vin: string;
+    compatible: boolean;
+    reason: string;
+    make?: string;
+    model?: string;
+    year?: number;
+}
+
 // ═══════════════════════════════════════════
 // MOCK DATA (for testing without Cloud Functions)
 // ═══════════════════════════════════════════
@@ -185,6 +194,60 @@ export async function ocrVinRemote(base64Image: string): Promise<OcrVinResponse>
         const ocrObj = (functionsModule as any).httpsCallable('ocrVin');
         const result = await ocrObj({ imagePayload: base64Image });
         return result.data as OcrVinResponse;
+    }
+}
+
+/**
+ * Check if a vehicle supports cloud-based Level 2 diagnosis.
+ * "Zero Țepe" — protects user from paying 99 RON for unsupported vehicles.
+ *
+ * Called automatically after Level 1 decode.
+ * If not compatible, Level 2 button is disabled in UI.
+ */
+export async function checkEligibilityRemote(vin: string): Promise<EligibilityResponse> {
+    if (USE_MOCK_DATA) {
+        await simulateDelay(800);
+        // Mock: Tesla/BMW/VW are compatible, others not
+        const mockMake = 'Tesla';
+        return {
+            vin,
+            compatible: true,
+            reason: 'smartcar_supported',
+            make: mockMake,
+            model: 'Model 3',
+            year: 2022,
+        };
+    }
+
+    try {
+        const { app } = await getFirebaseServices();
+
+        if (Platform.OS === 'web') {
+            const { getFunctions, httpsCallable } = await import('firebase/functions');
+            const functions = getFunctions(app, FUNCTIONS_REGION);
+            const checkEligibility = httpsCallable<{ vin: string }, EligibilityResponse>(
+                functions, 'checkCloudEligibility'
+            );
+            return (await checkEligibility({ vin })).data;
+        } else {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rnFunctions = (await import('@react-native-firebase/app')) as any;
+            const functionsModule = rnFunctions.default.functions();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const checkEligibility = (functionsModule as any).httpsCallable('checkCloudEligibility');
+            const result = await checkEligibility({ vin });
+            return result.data as EligibilityResponse;
+        }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+        // On error, fail gracefully — don't block the user
+        // eslint-disable-next-line no-console
+        console.warn('[Eligibility] Check failed, defaulting to unknown:', err?.message);
+        return {
+            vin,
+            compatible: false,
+            reason: 'eligibility_check_failed',
+        };
     }
 }
 

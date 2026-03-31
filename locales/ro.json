@@ -228,6 +228,20 @@
       "ai": "Scor de Risc AI Proprietar"
     }
   },
+  "eligibility": {
+    "checking": "Se verifică compatibilitatea...",
+    "protected": "PROTECȚIE ACTIVĂ",
+    "notSupported": "Acest model nu suportă diagnoza Cloud. Opțiunea Nivel 2 a fost dezactivată pentru a-ți proteja banii.",
+    "reasons": {
+      "smartcar_supported": "Vehicul compatibil cu diagnoza cloud.",
+      "smartcar_not_supported": "Acest model nu este compatibil cu diagnoza cloud în acest moment. Opțiunea Nivel 2 a fost dezactivată pentru a-ți proteja banii.",
+      "not_electric_vehicle": "Vehiculul nu este electric. Diagnoza bateriei Level 2 este disponibilă doar pentru vehicule electrice.",
+      "make_not_supported": "Producătorul acestui vehicul nu suportă încă diagnoza cloud. Nivel 2 dezactivat pentru protecția ta.",
+      "year_too_old": "Vehiculele fabricate înainte de 2018 nu au telemetrie cloud. Nivel 2 dezactivat pentru protecția ta.",
+      "eligibility_check_failed": "Verificarea compatibilității nu a putut fi efectuată. Nivel 2 dezactivat preventiv.",
+      "fallback_compatible": "Vehicul compatibil (verificare estimativă)."
+    }
+  },
   "payment": {
     "title": "Finalizare Plată",
     "processing": "Se procesează plata...",

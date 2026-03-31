@@ -69,3 +69,6 @@ export { healthCheck } from './health/healthCheck';
 
 // ── Smartcar (Level 2 — OAuth + Battery Data) ──
 export { smartcarExchange, smartcarBatteryData, smartcarDisconnect } from './smartcar/smartcarExchange';
+
+// ── Eligibility Gate (Zero Țepe — checks cloud support before payment) ──
+export { checkCloudEligibility } from './smartcar/checkEligibility';
