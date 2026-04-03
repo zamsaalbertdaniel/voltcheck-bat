@@ -29,10 +29,31 @@ import { getFirebaseServices } from '@/services/firebase';
 
 const { height } = Dimensions.get('window');
 
+/** Configure Google Sign-In once at module level (native only) */
+let googleSignInConfigured = false;
+async function ensureGoogleSignInConfigured() {
+    if (googleSignInConfigured || Platform.OS === 'web') return;
+    try {
+        const { GoogleSignin } = await import('@react-native-google-signin/google-signin');
+        GoogleSignin.configure({
+            webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
+            offlineAccess: true,
+        });
+        googleSignInConfigured = true;
+    } catch {
+        // SDK not available — will fallback to anonymous in handleLogin
+    }
+}
+
 export default function LoginScreen() {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
+
+    // Configure Google Sign-In on mount (native only)
+    useEffect(() => {
+        ensureGoogleSignInConfigured();
+    }, []);
 
     // Animations
     const fadeIn = useRef(new Animated.Value(0)).current;
@@ -99,60 +120,53 @@ export default function LoginScreen() {
                     await signInWithPopup(auth, appleProvider);
                 }
             } else {
-                // Native: @react-native-firebase/auth
-                // Requires additional setup:
-                //   Google: npm install @react-native-google-signin/google-signin
-                //   Apple:  npm install expo-apple-authentication
-                //
-                // For now, use anonymous auth as fallback if social SDKs are not installed.
-                // Replace with social sign-in when SDKs are configured.
+                // Native: @react-native-firebase/auth with social providers
                 const rnAuth = (await import('@react-native-firebase/auth')).default;
 
                 if (provider === 'google') {
+                    await ensureGoogleSignInConfigured();
+                    const { GoogleSignin, statusCodes } = await import('@react-native-google-signin/google-signin');
+
                     try {
-                        // Attempt Google Sign-In (requires @react-native-google-signin)
-                        const { GoogleSignin } = await import('@react-native-google-signin/google-signin');
-                        await GoogleSignin.hasPlayServices();
-                        const signInResult = await GoogleSignin.signIn();
-                        const idToken = signInResult?.data?.idToken;
-                        if (!idToken) throw new Error('No Google ID token');
-                        const googleCredential = rnAuth.GoogleAuthProvider.credential(idToken);
-                        await rnAuth().signInWithCredential(googleCredential);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    } catch (googleErr: any) {
-                        if (googleErr.message?.includes('Cannot find module')) {
-                            // SDK not installed — fall back to anonymous auth for dev
-                            // eslint-disable-next-line no-console
-                            console.warn('[Auth] Google Sign-In SDK not installed, using anonymous auth');
-                            await rnAuth().signInAnonymously();
-                        } else {
-                            throw googleErr;
-                        }
+                        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+                    } catch {
+                        throw new Error('Google Play Services nu este disponibil pe acest dispozitiv.');
                     }
+
+                    const signInResult = await GoogleSignin.signIn();
+                    const idToken = signInResult?.data?.idToken;
+                    if (!idToken) {
+                        throw new Error('Nu s-a putut obține token-ul Google. Încearcă din nou.');
+                    }
+                    const googleCredential = rnAuth.GoogleAuthProvider.credential(idToken);
+                    await rnAuth().signInWithCredential(googleCredential);
+
                 } else {
-                    try {
-                        // Attempt Apple Sign-In (requires expo-apple-authentication)
-                        const AppleAuth = await import('expo-apple-authentication');
-                        const appleCredential = await AppleAuth.signInAsync({
-                            requestedScopes: [
-                                AppleAuth.AppleAuthenticationScope.EMAIL,
-                                AppleAuth.AppleAuthenticationScope.FULL_NAME,
-                            ],
-                        });
-                        const { identityToken, authorizationCode } = appleCredential;
-                        if (!identityToken) throw new Error('No Apple identity token');
-                        const credential = rnAuth.AppleAuthProvider.credential(identityToken, authorizationCode || '');
-                        await rnAuth().signInWithCredential(credential);
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    } catch (appleErr: any) {
-                        if (appleErr.message?.includes('Cannot find module')) {
-                            // eslint-disable-next-line no-console
-                            console.warn('[Auth] Apple Auth SDK not installed, using anonymous auth');
-                            await rnAuth().signInAnonymously();
-                        } else {
-                            throw appleErr;
-                        }
+                    // Apple Sign-In (iOS only — button hidden on Android)
+                    const AppleAuth = await import('expo-apple-authentication');
+
+                    // Check if Apple Sign-In is available on this device
+                    const isAvailable = await AppleAuth.isAvailableAsync();
+                    if (!isAvailable) {
+                        throw new Error('Apple Sign-In nu este disponibil pe acest dispozitiv.');
                     }
+
+                    const appleCredential = await AppleAuth.signInAsync({
+                        requestedScopes: [
+                            AppleAuth.AppleAuthenticationScope.EMAIL,
+                            AppleAuth.AppleAuthenticationScope.FULL_NAME,
+                        ],
+                    });
+
+                    const { identityToken, authorizationCode } = appleCredential;
+                    if (!identityToken) {
+                        throw new Error('Nu s-a putut obține token-ul Apple. Încearcă din nou.');
+                    }
+                    const credential = rnAuth.AppleAuthProvider.credential(
+                        identityToken,
+                        authorizationCode || '',
+                    );
+                    await rnAuth().signInWithCredential(credential);
                 }
             }
 
@@ -231,24 +245,8 @@ export default function LoginScreen() {
                     )}
                 </TouchableOpacity>
 
-                {/* Apple Sign-In (iOS only shows native style) */}
-                {Platform.OS === 'ios' ? (
-                    <TouchableOpacity
-                        style={styles.appleButton}
-                        onPress={() => handleLogin('apple')}
-                        disabled={isLoading}
-                        activeOpacity={0.8}
-                    >
-                        {loadingProvider === 'apple' ? (
-                            <ActivityIndicator size="small" color={VoltColors.white} />
-                        ) : (
-                            <>
-                                <Ionicons name="logo-apple" size={22} color={VoltColors.white} />
-                                <Text style={styles.appleText}>{t('auth.loginApple')}</Text>
-                            </>
-                        )}
-                    </TouchableOpacity>
-                ) : (
+                {/* Apple Sign-In — iOS + web only (not available on Android native) */}
+                {Platform.OS !== 'android' && (
                     <TouchableOpacity
                         style={styles.appleButton}
                         onPress={() => handleLogin('apple')}

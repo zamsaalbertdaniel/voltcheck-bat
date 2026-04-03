@@ -6,7 +6,7 @@
 
 // Smartcar OAuth configuration
 const SMARTCAR_CONFIG = {
-    clientId: 'YOUR_SMARTCAR_CLIENT_ID',
+    clientId: process.env.EXPO_PUBLIC_SMARTCAR_CLIENT_ID || '',
     redirectUri: 'voltcheck://callback',
     scope: [
         'read_vehicle_info',

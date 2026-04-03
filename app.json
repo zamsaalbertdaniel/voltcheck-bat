@@ -16,12 +16,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.voltcheck.app",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "VoltCheck needs camera access to scan VIN codes"
       }
     },
     "android": {
       "package": "com.voltcheck.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#0A0E17"
@@ -46,7 +49,9 @@
           "enableGooglePay": true
         }
       ],
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      "expo-apple-authentication",
+      "@react-native-firebase/app"
     ],
     "experiments": {
       "typedRoutes": true
