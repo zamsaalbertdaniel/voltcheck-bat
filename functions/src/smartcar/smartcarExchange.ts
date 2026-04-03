@@ -165,7 +165,7 @@ export const smartcarBatteryData = onCall(
             throw new HttpsError('unauthenticated', 'Authentication required');
         }
 
-        const { vehicleId } = request.data;
+        const { vehicleId, vehicleMake, nominalCapacityKwh } = request.data;
         if (!vehicleId || typeof vehicleId !== 'string') {
             throw new HttpsError('invalid-argument', 'Vehicle ID is required');
         }
@@ -176,13 +176,14 @@ export const smartcarBatteryData = onCall(
             // Get stored tokens
             const accessToken = await getValidAccessToken(userId);
 
-            // Fetch battery data in parallel
+            // Fetch battery + vehicle data in parallel
             const headers = { 'Authorization': `Bearer ${accessToken}` };
 
-            const [batteryRes, chargeRes, odometerRes] = await Promise.allSettled([
+            const [batteryRes, chargeRes, odometerRes, vehicleInfoRes] = await Promise.allSettled([
                 fetch(`${SMARTCAR_API_BASE}/vehicles/${vehicleId}/battery`, { headers }),
                 fetch(`${SMARTCAR_API_BASE}/vehicles/${vehicleId}/charge`, { headers }),
                 fetch(`${SMARTCAR_API_BASE}/vehicles/${vehicleId}/odometer`, { headers }),
+                fetch(`${SMARTCAR_API_BASE}/vehicles/${vehicleId}`, { headers }),
             ]);
 
             const batteryData = batteryRes.status === 'fulfilled' && batteryRes.value.ok
@@ -197,14 +198,68 @@ export const smartcarBatteryData = onCall(
                 ? await odometerRes.value.json()
                 : null;
 
+            const vehicleInfo = vehicleInfoRes.status === 'fulfilled' && vehicleInfoRes.value.ok
+                ? await vehicleInfoRes.value.json()
+                : null;
+
+            // ═══════════════════════════════════════════
+            // PLAN A: Instant SoH Extraction
+            // Try to get SoH directly from API or estimate from range/capacity
+            // ═══════════════════════════════════════════
+
+            let stateOfHealth: number | null = null;
+            let sohSource: 'direct_bms' | 'range_estimate' | 'capacity_estimate' | 'unavailable' = 'unavailable';
+            let usableCapacityKwh: number | null = null;
+
+            // Method 1: Direct BMS SoH (Tesla, Rivian, Lucid expose this)
+            if (batteryData?.stateOfHealth != null && batteryData.stateOfHealth > 0) {
+                stateOfHealth = batteryData.stateOfHealth;
+                sohSource = 'direct_bms';
+                logger.info(`[Smartcar] Plan A — Direct BMS SoH: ${stateOfHealth}%`);
+            }
+
+            // Method 2: Capacity-based estimation
+            // If API returns current usable capacity and we know nominal
+            if (stateOfHealth === null && batteryData?.capacity != null && batteryData.capacity > 0) {
+                usableCapacityKwh = batteryData.capacity;
+                const nominal = nominalCapacityKwh || getNominalCapacity(vehicleMake || vehicleInfo?.make, vehicleInfo?.model);
+                if (nominal > 0) {
+                    stateOfHealth = Math.round((usableCapacityKwh / nominal) * 100 * 10) / 10;
+                    sohSource = 'capacity_estimate';
+                    logger.info(`[Smartcar] Plan A — Capacity estimate: ${usableCapacityKwh}/${nominal} kWh = ${stateOfHealth}%`);
+                }
+            }
+
+            // Method 3: Range-based estimation
+            // Compare current 100% range vs factory range
+            if (stateOfHealth === null && batteryData?.range != null && batteryData.range > 0) {
+                const factoryRange = getFactoryRange(vehicleMake || vehicleInfo?.make, vehicleInfo?.model);
+                if (factoryRange > 0 && batteryData.percentRemaining != null && batteryData.percentRemaining > 10) {
+                    // Extrapolate to 100% range
+                    const estimatedFullRange = (batteryData.range / batteryData.percentRemaining) * 100;
+                    stateOfHealth = Math.round((estimatedFullRange / factoryRange) * 100 * 10) / 10;
+                    // Clamp to reasonable range (50-100%)
+                    stateOfHealth = Math.max(50, Math.min(100, stateOfHealth));
+                    sohSource = 'range_estimate';
+                    logger.info(`[Smartcar] Plan A — Range estimate: ${estimatedFullRange.toFixed(0)}/${factoryRange} km = ${stateOfHealth}%`);
+                }
+            }
+
+            // Determine Plan A success
+            const planA = stateOfHealth !== null;
+
             const result = {
                 vehicleId,
-                battery: batteryData ? {
-                    percentRemaining: batteryData.percentRemaining ?? 0,
-                    range: batteryData.range ?? 0,
-                    capacity: batteryData.capacity ?? 0,
-                    stateOfHealth: batteryData.stateOfHealth ?? null,
-                } : null,
+                planA,
+                sohSource,
+                needsChargeScan: !planA, // If Plan A failed, UI should offer Plan B
+                battery: {
+                    percentRemaining: batteryData?.percentRemaining ?? 0,
+                    range: batteryData?.range ?? 0,
+                    capacity: batteryData?.capacity ?? 0,
+                    stateOfHealth,
+                    usableCapacityKwh: usableCapacityKwh ?? batteryData?.capacity ?? null,
+                },
                 charge: chargeData ? {
                     isPluggedIn: chargeData.isPluggedIn ?? false,
                     state: chargeData.state ?? 'NOT_CHARGING',
@@ -212,10 +267,20 @@ export const smartcarBatteryData = onCall(
                 odometer: odometerData ? {
                     distance: odometerData.distance ?? 0,
                 } : null,
+                vehicle: vehicleInfo ? {
+                    make: vehicleInfo.make ?? vehicleMake ?? 'Unknown',
+                    model: vehicleInfo.model ?? 'Unknown',
+                    year: vehicleInfo.year ?? 0,
+                } : null,
                 capturedAt: new Date().toISOString(),
             };
 
-            logger.info(`[Smartcar] Battery data fetched for vehicle ${vehicleId}`);
+            logger.info(
+                `[Smartcar] Battery data fetched for vehicle ${vehicleId}. ` +
+                `Plan A: ${planA ? 'SUCCESS' : 'FAILED'}, SoH source: ${sohSource}, ` +
+                `SoH: ${stateOfHealth ?? 'N/A'}%`
+            );
+
             return { success: true, data: result };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -225,6 +290,120 @@ export const smartcarBatteryData = onCall(
         }
     }
 );
+
+// ═══════════════════════════════════════════
+// Vehicle Reference Data (factory specs)
+// ═══════════════════════════════════════════
+
+/** Nominal battery capacity in kWh by make/model (common EVs) */
+function getNominalCapacity(make?: string, model?: string): number {
+    if (!make) return 0;
+    const key = `${make.toUpperCase()} ${(model || '').toUpperCase()}`;
+
+    const CAPACITIES: Record<string, number> = {
+        'TESLA MODEL 3': 60,     // Standard Range+
+        'TESLA MODEL 3 LONG RANGE': 82,
+        'TESLA MODEL Y': 60,
+        'TESLA MODEL Y LONG RANGE': 82,
+        'TESLA MODEL S': 100,
+        'TESLA MODEL X': 100,
+        'BMW IX3': 80,
+        'BMW I4': 83.9,
+        'BMW IX': 111.5,
+        'VOLKSWAGEN ID.3': 62,
+        'VOLKSWAGEN ID.4': 82,
+        'VOLKSWAGEN ID.5': 82,
+        'HYUNDAI IONIQ 5': 77.4,
+        'HYUNDAI IONIQ 6': 77.4,
+        'HYUNDAI KONA ELECTRIC': 64,
+        'KIA EV6': 77.4,
+        'KIA NIRO EV': 64.8,
+        'NISSAN LEAF': 40,
+        'NISSAN ARIYA': 87,
+        'FORD MUSTANG MACH-E': 75.7,
+        'MERCEDES-BENZ EQA': 66.5,
+        'MERCEDES-BENZ EQB': 66.5,
+        'MERCEDES-BENZ EQC': 80,
+        'MERCEDES-BENZ EQS': 107.8,
+        'AUDI Q4 E-TRON': 82,
+        'AUDI E-TRON': 95,
+        'PORSCHE TAYCAN': 93.4,
+        'VOLVO XC40 RECHARGE': 78,
+        'POLESTAR 2': 78,
+        'RIVIAN R1T': 135,
+        'RIVIAN R1S': 135,
+        'LUCID AIR': 118,
+        'DACIA SPRING': 26.8,
+        'RENAULT ZOE': 52,
+        'RENAULT MEGANE E-TECH': 60,
+        'SKODA ENYAQ': 82,
+        'CUPRA BORN': 62,
+        'OPEL CORSA-E': 50,
+        'PEUGEOT E-208': 50,
+        'FIAT 500E': 42,
+    };
+
+    // Try exact match first, then partial (make only)
+    if (CAPACITIES[key]) return CAPACITIES[key];
+
+    // Try just make + first word of model
+    for (const [k, v] of Object.entries(CAPACITIES)) {
+        if (k.startsWith(make.toUpperCase()) && model && k.includes(model.split(' ')[0].toUpperCase())) {
+            return v;
+        }
+    }
+
+    return 0;
+}
+
+/** Factory range in km (WLTP) by make/model */
+function getFactoryRange(make?: string, model?: string): number {
+    if (!make) return 0;
+    const key = `${make.toUpperCase()} ${(model || '').toUpperCase()}`;
+
+    const RANGES: Record<string, number> = {
+        'TESLA MODEL 3': 491,
+        'TESLA MODEL 3 LONG RANGE': 602,
+        'TESLA MODEL Y': 455,
+        'TESLA MODEL Y LONG RANGE': 533,
+        'TESLA MODEL S': 634,
+        'TESLA MODEL X': 543,
+        'BMW IX3': 460,
+        'BMW I4': 590,
+        'BMW IX': 630,
+        'VOLKSWAGEN ID.3': 426,
+        'VOLKSWAGEN ID.4': 520,
+        'VOLKSWAGEN ID.5': 520,
+        'HYUNDAI IONIQ 5': 481,
+        'HYUNDAI IONIQ 6': 614,
+        'HYUNDAI KONA ELECTRIC': 484,
+        'KIA EV6': 528,
+        'KIA NIRO EV': 460,
+        'NISSAN LEAF': 270,
+        'NISSAN ARIYA': 533,
+        'FORD MUSTANG MACH-E': 440,
+        'MERCEDES-BENZ EQA': 426,
+        'MERCEDES-BENZ EQS': 770,
+        'AUDI Q4 E-TRON': 520,
+        'AUDI E-TRON': 436,
+        'PORSCHE TAYCAN': 484,
+        'VOLVO XC40 RECHARGE': 418,
+        'POLESTAR 2': 478,
+        'DACIA SPRING': 230,
+        'RENAULT ZOE': 395,
+        'SKODA ENYAQ': 534,
+    };
+
+    if (RANGES[key]) return RANGES[key];
+
+    for (const [k, v] of Object.entries(RANGES)) {
+        if (k.startsWith(make.toUpperCase()) && model && k.includes(model.split(' ')[0].toUpperCase())) {
+            return v;
+        }
+    }
+
+    return 0;
+}
 
 // ═══════════════════════════════════════════
 // 3. Disconnect Smartcar (revoke tokens)
