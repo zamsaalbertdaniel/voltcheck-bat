@@ -102,4 +102,6 @@ export const RATE_LIMITS = {
     payment: { maxRequests: 5, windowSeconds: 60 },
     /** Report generation: 3 per 5 minutes */
     report: { maxRequests: 3, windowSeconds: 300 },
+    /** OCR VIN scan: 8 per minute (Cloud Vision API is billed per call) */
+    ocrVin: { maxRequests: 8, windowSeconds: 60 },
 } as const;

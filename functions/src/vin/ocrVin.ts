@@ -3,6 +3,7 @@
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions/v2';
 import * as vision from '@google-cloud/vision';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 
 // Initialize the Vision client
 const client = new vision.ImageAnnotatorClient();
@@ -21,6 +22,16 @@ export const ocrVin = onCall({ maxInstances: 10 }, async (request) => {
 
     if (!imagePayload) {
         throw new HttpsError('invalid-argument', 'Image payload (base64 string) is required.');
+    }
+
+    // Rate limit: prevent Cloud Vision API cost exhaustion
+    await checkRateLimit(request.auth.uid, 'ocrVin', RATE_LIMITS.ocrVin);
+
+    // Guard against oversized payloads (max ~5MB base64 string)
+    const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024;
+    if (imagePayload.length > MAX_PAYLOAD_BYTES) {
+        logger.warn(`[ocrVin] Payload rejected: ${(imagePayload.length / 1024 / 1024).toFixed(1)}MB from uid=${request.auth.uid}`);
+        throw new HttpsError('resource-exhausted', 'Image payload too large. Maximum size is 5MB.');
     }
 
     // Strip prefix if the string contains "data:image/jpeg;base64,"

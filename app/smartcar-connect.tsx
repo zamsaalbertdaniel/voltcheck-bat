@@ -25,7 +25,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  // Alert, // reserved for future use
   Platform,
   ScrollView,
   StyleSheet,
@@ -33,6 +32,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { BlurView } from "expo-blur";
 
 interface SmartcarVehicle {
   id: string;
@@ -161,35 +161,39 @@ export default function SmartcarConnectScreen() {
           </Text>
         </View>
 
-        {/* What we access */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Ce date accesăm:</Text>
-          <View style={styles.featuresList}>
-            {[
-              { icon: "battery-heart" as const, text: "Starea de sănătate a bateriei (SoH)" },
-              { icon: "lightning-bolt" as const, text: "Capacitatea utilizabilă (kWh)" },
-              { icon: "speedometer" as const, text: "Kilometrajul actual" },
-              { icon: "ev-plug-type2" as const, text: "Statusul încărcării" },
-            ].map((item, i) => (
-              <View key={i} style={styles.featureItem}>
-                <MaterialCommunityIcons name={item.icon} size={20} color={VoltColors.neonGreen} />
-                <Text style={styles.featureText}>{item.text}</Text>
-              </View>
-            ))}
+        {/* What we access — glassmorphism card */}
+        <BlurView intensity={Platform.OS === 'web' ? 15 : 30} tint="dark" style={styles.blurCard}>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Ce date accesăm:</Text>
+            <View style={styles.featuresList}>
+              {[
+                { icon: "battery-heart" as const, text: "Starea de sănătate a bateriei (SoH)" },
+                { icon: "lightning-bolt" as const, text: "Capacitatea utilizabilă (kWh)" },
+                { icon: "speedometer" as const, text: "Kilometrajul actual" },
+                { icon: "ev-plug-type2" as const, text: "Statusul încărcării" },
+              ].map((item, i) => (
+                <View key={i} style={styles.featureItem}>
+                  <MaterialCommunityIcons name={item.icon} size={20} color={VoltColors.neonGreen} />
+                  <Text style={styles.featureText}>{item.text}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </View>
+        </BlurView>
 
-        {/* Security info */}
-        <View style={[styles.card, styles.securityCard]}>
-          <View style={styles.securityHeader}>
-            <Ionicons name="shield-checkmark" size={22} color={VoltColors.success} />
-            <Text style={styles.securityTitle}>Securitate</Text>
+        {/* Security info — glassmorphism card */}
+        <BlurView intensity={Platform.OS === 'web' ? 15 : 30} tint="dark" style={styles.blurCard}>
+          <View style={[styles.card, styles.securityCard]}>
+            <View style={styles.securityHeader}>
+              <Ionicons name="shield-checkmark" size={22} color={VoltColors.success} />
+              <Text style={styles.securityTitle}>Securitate</Text>
+            </View>
+            <Text style={styles.securityText}>
+              Smartcar folosește OAuth 2.0 — la fel ca Google sau Apple Sign-In. VoltCheck nu vede
+              niciodată parola contului tău auto. Poți revoca accesul oricând din Setări.
+            </Text>
           </View>
-          <Text style={styles.securityText}>
-            Smartcar folosește OAuth 2.0 — la fel ca Google sau Apple Sign-In. VoltCheck nu vede
-            niciodată parola contului tău auto. Poți revoca accesul oricând din Setări.
-          </Text>
-        </View>
+        </BlurView>
 
         {/* Connect button */}
         <TouchableOpacity style={styles.connectButton} onPress={handleConnect} activeOpacity={0.8}>
@@ -336,15 +340,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
+  // Blur wrapper for glassmorphism cards
+  blurCard: {
+    borderRadius: VoltBorderRadius.lg,
+    overflow: "hidden",
+    marginBottom: VoltSpacing.md,
+  },
   // Card
   card: {
-    backgroundColor: VoltColors.bgSecondary,
+    backgroundColor: "rgba(30, 30, 30, 0.6)",
     borderRadius: VoltBorderRadius.lg,
     padding: VoltSpacing.lg,
-    marginBottom: VoltSpacing.md,
     borderWidth: 1,
     borderColor: VoltColors.border,
-    ...VoltShadow.md,
   },
   cardTitle: {
     fontSize: VoltFontSize.lg,

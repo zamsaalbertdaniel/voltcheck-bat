@@ -29,11 +29,13 @@ import { useTranslation } from 'react-i18next';
 import {
     Animated,
     Easing,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 // ── Step Definitions ──
 interface PipelineStep {
@@ -126,6 +128,10 @@ export default function ReportRadar({
                     s => s.key === status.statusDetails
                 );
                 if (stepIdx >= 0) {
+                    // Haptic tap on each step transition (native only)
+                    if (stepIdx > currentStepIndex && Platform.OS !== 'web') {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }
                     setCurrentStepIndex(stepIdx);
                     Animated.timing(progressAnim, {
                         toValue: (stepIdx + 1) / PIPELINE_STEPS.length,
@@ -136,6 +142,9 @@ export default function ReportRadar({
 
                 // Handle completion
                 if (status.status === 'completed') {
+                    if (Platform.OS !== 'web') {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    }
                     Animated.spring(completePulse, {
                         toValue: 1,
                         tension: 30,
@@ -147,6 +156,9 @@ export default function ReportRadar({
 
                 // Handle failures
                 if (FAILURE_STEPS.includes(status.status)) {
+                    if (Platform.OS !== 'web') {
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                    }
                     setIsFailed(true);
                     onError(
                         status.status === 'manual_review_needed'

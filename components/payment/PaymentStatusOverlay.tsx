@@ -17,11 +17,13 @@ import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
     Animated,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 type PaymentStatus = 'idle' | 'processing' | 'confirming' | 'generating' | 'success' | 'failed';
 
@@ -58,57 +60,67 @@ export default function PaymentStatusOverlay({
             )}
 
             {(status === 'processing' || status === 'confirming' || status === 'generating') && (
-                <View style={styles.processingSection}>
-                    <ActivityIndicator size="large" color={VoltColors.neonGreen} />
-                    <Text style={styles.processingText}>
-                        {statusMessage || t('payment.processing')}
-                    </Text>
-                    <View style={styles.progressBarContainer}>
-                        <Animated.View
-                            style={[
-                                styles.progressBar,
-                                {
-                                    width: progressAnim.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: ['0%', '100%'],
-                                    }),
-                                },
-                            ]}
-                        />
+                <BlurView intensity={Platform.OS === 'web' ? 20 : 40} tint="dark" style={styles.blurOverlay}>
+                    <View style={styles.processingSection}>
+                        <ActivityIndicator size="large" color={VoltColors.neonGreen} />
+                        <Text style={styles.processingText}>
+                            {statusMessage || t('payment.processing')}
+                        </Text>
+                        <View style={styles.progressBarContainer}>
+                            <Animated.View
+                                style={[
+                                    styles.progressBar,
+                                    {
+                                        width: progressAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ['0%', '100%'],
+                                        }),
+                                    },
+                                ]}
+                            />
+                        </View>
+                        {status === 'generating' && (
+                            <Text style={styles.statusHint}>Acest proces durează ~30 secunde</Text>
+                        )}
                     </View>
-                    {status === 'generating' && (
-                        <Text style={styles.statusHint}>Acest proces durează ~30 secunde</Text>
-                    )}
-                </View>
+                </BlurView>
             )}
 
             {status === 'success' && (
-                <View style={styles.successSection}>
-                    <Animated.View style={[styles.checkmarkCircle, { transform: [{ scale: checkmarkScale }] }]}>
-                        <Ionicons name="checkmark" size={48} color={VoltColors.textOnGreen} />
-                    </Animated.View>
-                    <Text style={styles.successText}>{t('payment.success')}</Text>
-                    <Text style={styles.redirectText}>Se deschide raportul...</Text>
-                </View>
+                <BlurView intensity={Platform.OS === 'web' ? 20 : 40} tint="dark" style={styles.blurOverlay}>
+                    <View style={styles.successSection}>
+                        <Animated.View style={[styles.checkmarkCircle, { transform: [{ scale: checkmarkScale }] }]}>
+                            <Ionicons name="checkmark" size={48} color={VoltColors.textOnGreen} />
+                        </Animated.View>
+                        <Text style={styles.successText}>{t('payment.success')}</Text>
+                        <Text style={styles.redirectText}>Se deschide raportul...</Text>
+                    </View>
+                </BlurView>
             )}
 
             {status === 'failed' && (
-                <View style={styles.failedSection}>
-                    <View style={styles.failedCircle}>
-                        <Ionicons name="close" size={48} color={VoltColors.white} />
+                <BlurView intensity={Platform.OS === 'web' ? 20 : 40} tint="dark" style={styles.blurOverlay}>
+                    <View style={styles.failedSection}>
+                        <View style={styles.failedCircle}>
+                            <Ionicons name="close" size={48} color={VoltColors.white} />
+                        </View>
+                        <Text style={styles.failedText}>{t('payment.failed')}</Text>
+                        {error && <Text style={styles.errorDetail}>{error.message}</Text>}
+                        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+                            <Text style={styles.retryText}>{t('common.retry')}</Text>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.failedText}>{t('payment.failed')}</Text>
-                    {error && <Text style={styles.errorDetail}>{error.message}</Text>}
-                    <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-                        <Text style={styles.retryText}>{t('common.retry')}</Text>
-                    </TouchableOpacity>
-                </View>
+                </BlurView>
             )}
         </>
     );
 }
 
 const styles = StyleSheet.create({
+    blurOverlay: {
+        borderRadius: VoltBorderRadius.lg,
+        overflow: 'hidden',
+    },
     payButton: {
         flexDirection: 'row',
         alignItems: 'center',

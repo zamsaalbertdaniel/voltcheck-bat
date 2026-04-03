@@ -22,6 +22,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 // ─── Privacy Policy Content ───────────────────────────────────────────
 const privacyRO = `Ultima actualizare: 30 martie 2026
@@ -267,17 +268,19 @@ export default function LegalScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                >
-                    <Ionicons name="arrow-back" size={24} color={VoltColors.textPrimary} />
-                </TouchableOpacity>
-                <Text style={styles.title}>{title}</Text>
-                <View style={styles.headerSpacer} />
-            </View>
+            {/* Header with glassmorphism */}
+            <BlurView intensity={Platform.OS === 'web' ? 20 : 60} tint="dark" style={styles.headerBlur}>
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => router.back()}
+                    >
+                        <Ionicons name="arrow-back" size={24} color={VoltColors.textPrimary} />
+                    </TouchableOpacity>
+                    <Text style={styles.title}>{title}</Text>
+                    <View style={styles.headerSpacer} />
+                </View>
+            </BlurView>
 
             {/* Content */}
             <ScrollView
@@ -302,6 +305,10 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: VoltColors.bgPrimary,
     },
+    headerBlur: {
+        borderBottomWidth: 1,
+        borderBottomColor: VoltColors.border,
+    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -309,8 +316,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: VoltSpacing.lg,
         paddingTop: VoltSpacing.xxl,
         paddingBottom: VoltSpacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: VoltColors.border,
     },
     backButton: {
         width: 40,
