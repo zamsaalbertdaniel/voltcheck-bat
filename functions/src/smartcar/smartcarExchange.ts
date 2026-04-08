@@ -35,7 +35,7 @@ const db = admin.firestore();
 // Smartcar API configuration from environment/secrets
 const SMARTCAR_CLIENT_ID = process.env.SMARTCAR_CLIENT_ID || '';
 const SMARTCAR_CLIENT_SECRET = process.env.SMARTCAR_CLIENT_SECRET || '';
-const SMARTCAR_REDIRECT_URI = process.env.SMARTCAR_REDIRECT_URI || 'voltcheck://callback';
+const SMARTCAR_REDIRECT_URI = process.env.SMARTCAR_REDIRECT_URI || 'inspectev://callback';
 const SMARTCAR_API_BASE = 'https://api.smartcar.com/v2.0';
 const SMARTCAR_AUTH_BASE = 'https://auth.smartcar.com/oauth/token';
 

@@ -558,13 +558,13 @@ export default function ReportScreen() {
                     style={styles.actionButton}
                     onPress={async () => {
                         const vehicleName = `${report.vehicleMeta?.make || ''} ${report.vehicleMeta?.model || ''}`.trim();
-                        const deepLink = `voltcheck://report/${report.reportId}`;
-                        const shareMessage = `⚡ VoltCheck Report: ${vehicleName} (${report.year})\nRisk Score: ${report.riskScore}/100 (${report.riskCategory})\n${report.pdfUrl ? `\nPDF: ${report.pdfUrl}` : ''}\n\n🔍 Deschide în aplicație:\n${deepLink}`;
+                        const deepLink = `inspectev://report/${report.reportId}`;
+                        const shareMessage = `⚡ InspectEV Report: ${vehicleName} (${report.year})\nRisk Score: ${report.riskScore}/100 (${report.riskCategory})\n${report.pdfUrl ? `\nPDF: ${report.pdfUrl}` : ''}\n\n🔍 Deschide în aplicație:\n${deepLink}`;
 
                         if (Platform.OS === 'web') {
                             if (navigator.share) {
                                 await navigator.share({
-                                    title: `VoltCheck - ${vehicleName}`,
+                                    title: `InspectEV - ${vehicleName}`,
                                     text: shareMessage,
                                     url: report.pdfUrl || undefined,
                                 });
@@ -575,7 +575,7 @@ export default function ReportScreen() {
                         } else {
                             await Share.share({
                                 message: shareMessage,
-                                title: `VoltCheck - ${vehicleName}`,
+                                title: `InspectEV - ${vehicleName}`,
                             });
                         }
                     }}

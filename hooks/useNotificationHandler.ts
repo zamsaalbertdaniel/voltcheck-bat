@@ -82,7 +82,7 @@ async function setupNativeHandler(router: Router) {
     // 3. Foreground notification (app is open — show an in-app alert)
     messaging().onMessage(async (remoteMessage) => {
       const title =
-        remoteMessage.notification?.title || "VoltCheck Notification";
+        remoteMessage.notification?.title || "InspectEV Notification";
       const body = remoteMessage.notification?.body || "";
       const data = remoteMessage.data as NotificationData | undefined;
 
@@ -114,7 +114,7 @@ async function setupWebHandler(router: Router) {
 
     // Web only gets foreground messages (background handled by service worker)
     onMessage(messaging, (payload) => {
-      const title = payload.notification?.title || "VoltCheck Notification";
+      const title = payload.notification?.title || "InspectEV Notification";
       const body = payload.notification?.body || "";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = payload.data as any as NotificationData | undefined;

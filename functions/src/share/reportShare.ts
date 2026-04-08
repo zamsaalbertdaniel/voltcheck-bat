@@ -71,7 +71,7 @@ export const shareReport = onRequest(
                     : riskCategory === 'HIGH' ? '🟠'
                         : '🔴';
 
-            const ogTitle = `⚡ VoltCheck: ${vehicleName}`;
+            const ogTitle = `⚡ InspectEV: ${vehicleName}`;
             const ogDescription =
                 `${riskEmoji} Scor de Risc: ${riskScore}/100 (${riskCategory})\n` +
                 `🔋 Raport ${levelText} • VIN: ${report.vin?.slice(0, 8)}...****\n` +
@@ -89,17 +89,17 @@ export const shareReport = onRequest(
     <meta property="og:type" content="article">
     <meta property="og:title" content="${escapeHtml(ogTitle)}">
     <meta property="og:description" content="${escapeHtml(ogDescription)}">
-    <meta property="og:image" content="https://voltcheck.app/og-preview.png">
+    <meta property="og:image" content="https://inspectev.app/og-preview.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://voltcheck.app/share/${reportId}">
-    <meta property="og:site_name" content="VoltCheck by Probabilistic AI">
+    <meta property="og:url" content="https://inspectev.app/share/${reportId}">
+    <meta property="og:site_name" content="InspectEV by Probabilistic AI">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(ogTitle)}">
     <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
-    <meta name="twitter:image" content="https://voltcheck.app/og-preview.png">
+    <meta name="twitter:image" content="https://inspectev.app/og-preview.png">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -156,12 +156,12 @@ export const shareReport = onRequest(
 <body>
     <div class="card">
         <div class="logo">⚡</div>
-        <div class="title">VoltCheck</div>
+        <div class="title">InspectEV</div>
         <div class="vehicle">${escapeHtml(vehicleName)}</div>
         <div class="score">${riskScore}</div>
         <div class="category">${riskEmoji} ${riskCategory}</div>
-        <a class="cta" href="https://voltcheck.app/download">
-            Descarcă VoltCheck
+        <a class="cta" href="https://inspectev.app/download">
+            Descarcă InspectEV
         </a>
         <div class="footer">
             Powered by Probabilistic AI<br>
@@ -210,7 +210,7 @@ function generateErrorPage(message: string): string {
 <html lang="ro">
 <head>
     <meta charset="utf-8">
-    <title>VoltCheck</title>
+    <title>InspectEV</title>
     <style>
         body {
             font-family: -apple-system, sans-serif;

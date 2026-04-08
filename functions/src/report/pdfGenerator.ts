@@ -29,8 +29,8 @@ function registerFonts(doc: InstanceType<typeof PDFDocument>): void {
     if (!HAS_CUSTOM_FONTS) return;
 
     try {
-        doc.registerFont('VoltCheck', path.join(FONTS_DIR, 'Inter-Regular.ttf'));
-        doc.registerFont('VoltCheck-Bold', path.join(FONTS_DIR, 'Inter-Bold.ttf'));
+        doc.registerFont('InspectEV', path.join(FONTS_DIR, 'Inter-Regular.ttf'));
+        doc.registerFont('InspectEV-Bold', path.join(FONTS_DIR, 'Inter-Bold.ttf'));
     } catch {
         // Silently fall back to built-in Helvetica
     }
@@ -38,7 +38,7 @@ function registerFonts(doc: InstanceType<typeof PDFDocument>): void {
 
 /** Returns the appropriate font family name */
 function fontFamily(): string {
-    return HAS_CUSTOM_FONTS ? 'VoltCheck' : 'Helvetica';
+    return HAS_CUSTOM_FONTS ? 'InspectEV' : 'Helvetica';
 }
 
 
@@ -112,8 +112,8 @@ export function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
             size: 'A4',
             margins: { top: 50, bottom: 50, left: 50, right: 50 },
             info: {
-                Title: `VoltCheck Report - ${data.vin}`,
-                Author: 'VoltCheck by Probabilistic AI',
+                Title: `InspectEV Report - ${data.vin}`,
+                Author: 'InspectEV by Probabilistic AI',
                 Subject: `Battery Health Diagnostic - VIN ${data.vin}`,
             },
         });
@@ -131,7 +131,7 @@ export function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
 
         // ── Header ──
         doc.rect(0, 0, 595, 105).fill('#0A0E17');
-        doc.fontSize(28).fillColor('#00E676').text('⚡ VoltCheck', 50, 25);
+        doc.fontSize(28).fillColor('#00E676').text('⚡ InspectEV', 50, 25);
         doc.fontSize(9).fillColor('#64748B').text(
             'Powered by Probabilistic AI — Battery Analysis Technology',
             50, 58
@@ -275,7 +275,7 @@ export function generatePDFBuffer(data: PDFInput): Promise<Buffer> {
         const footerY = 770;
         doc.moveTo(50, footerY).lineTo(545, footerY).strokeColor('#1E293B').stroke();
         doc.fontSize(8).fillColor('#64748B').text(
-            `VoltCheck — Probabilistic AI © ${new Date().getFullYear()} | ${data.reportId}`,
+            `InspectEV — Probabilistic AI © ${new Date().getFullYear()} | ${data.reportId}`,
             50, footerY + 5, { align: 'center' }
         );
         doc.fontSize(7).fillColor('#475569').text(

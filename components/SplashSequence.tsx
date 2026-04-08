@@ -163,8 +163,8 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
 
                 <View style={styles.logoContainer}>
                     <Text style={styles.batIcon}>⚡</Text>
-                    <Text style={styles.batTitle}>VOLT</Text>
-                    <Text style={styles.batTitleAccent}>CHECK</Text>
+                    <Text style={styles.batTitle}>INSPECT</Text>
+                    <Text style={styles.batTitleAccent}>EV</Text>
                 </View>
                 <View style={styles.batBadge}>
                     <Text style={styles.batBadgeText}>BAT — Battery Analysis Technology</Text>

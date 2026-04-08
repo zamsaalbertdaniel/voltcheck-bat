@@ -256,7 +256,7 @@ export default function ProfileScreen() {
                 </View>
                 <View style={styles.userInfo}>
                     <Text style={styles.userName}>
-                        {user?.displayName || 'VoltCheck User'}
+                        {user?.displayName || 'InspectEV User'}
                     </Text>
                     <Text style={styles.userEmail}>
                         {user?.email || t('common.anonymousAccount') || 'Cont anonim'}
@@ -316,7 +316,7 @@ export default function ProfileScreen() {
                     color={VoltColors.textTertiary}
                 />
                 <Text style={styles.versionText}>
-                    VoltCheck {t('settings.version')} 1.0.0
+                    InspectEV {t('settings.version')} 1.0.0
                 </Text>
             </View>
         </ScrollView>

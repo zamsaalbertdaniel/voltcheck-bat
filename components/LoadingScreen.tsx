@@ -76,7 +76,7 @@ export default function LoadingScreen({ message, subtitle }: LoadingScreenProps)
                 />
             </Animated.View>
 
-            <Text style={styles.brand}>VoltCheck</Text>
+            <Text style={styles.brand}>InspectEV</Text>
 
             {message && <Text style={styles.message}>{message}</Text>}
             {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}

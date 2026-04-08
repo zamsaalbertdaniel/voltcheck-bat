@@ -156,7 +156,7 @@ export default function SmartcarConnectScreen() {
           </View>
           <Text style={styles.heroTitle}>Conectare Smartcar</Text>
           <Text style={styles.heroSubtitle}>
-            Pentru analiza Level 2, VoltCheck are nevoie de acces la datele vehiculului tău electric
+            Pentru analiza Level 2, InspectEV are nevoie de acces la datele vehiculului tău electric
             prin Smartcar — o platformă securizată folosită de peste 200 de producători auto.
           </Text>
         </View>
@@ -189,7 +189,7 @@ export default function SmartcarConnectScreen() {
               <Text style={styles.securityTitle}>Securitate</Text>
             </View>
             <Text style={styles.securityText}>
-              Smartcar folosește OAuth 2.0 — la fel ca Google sau Apple Sign-In. VoltCheck nu vede
+              Smartcar folosește OAuth 2.0 — la fel ca Google sau Apple Sign-In. InspectEV nu vede
               niciodată parola contului tău auto. Poți revoca accesul oricând din Setări.
             </Text>
           </View>

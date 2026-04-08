@@ -25,7 +25,7 @@ interface CacheOptions {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const CACHE_PREFIX = '@voltcheck_cache:';
+const CACHE_PREFIX = '@inspectev_cache:';
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export async function cacheRemove(key: string): Promise<void> {
 }
 
 /**
- * Clear all VoltCheck cache entries
+ * Clear all InspectEV cache entries
  */
 export async function cacheClearAll(): Promise<void> {
     try {

@@ -1,6 +1,6 @@
 {
     "app": {
-        "name": "VoltCheck",
+        "name": "InspectEV",
         "tagline": "Check the battery. Buy with confidence.",
         "version": "v1.0"
     },
@@ -68,7 +68,7 @@
         }
     },
     "report": {
-        "title": "VoltCheck Report",
+        "title": "InspectEV Report",
         "riskScore": "AI Risk Score",
         "riskCategories": {
             "LOW": "Low Risk",
@@ -136,7 +136,7 @@
         "title": "Settings",
         "language": "Language",
         "notifications": "Notifications",
-        "about": "About VoltCheck",
+        "about": "About InspectEV",
         "privacy": "Privacy",
         "terms": "Terms & Conditions",
         "logout": "Log Out",
@@ -147,7 +147,7 @@
         "deleteAccountConfirm": "Are you sure you want to delete your account? All your data will be permanently deleted, including reports in Garage. This action cannot be undone.",
         "deleteAccountSuccess": "Your account has been successfully deleted.",
         "deleteAccountError": "Account deletion failed. Please try again.",
-        "rateApp": "Rate VoltCheck"
+        "rateApp": "Rate InspectEV"
     },
     "insight": {
         "title": "BAT Insight",
@@ -208,14 +208,14 @@
                 },
                 {
                     "question": "Can I send the report to the seller?",
-                    "answer": "Yes! Every VoltCheck report can be shared directly via WhatsApp or Email with a single tap. The report includes a secure link valid for the report's lifetime (30 days Level 1 / 365 days Level 2). The seller can view the full report without a VoltCheck account."
+                    "answer": "Yes! Every InspectEV report can be shared directly via WhatsApp or Email with a single tap. The report includes a secure link valid for the report's lifetime (30 days Level 1 / 365 days Level 2). The seller can view the full report without an InspectEV account."
                 }
             ]
         },
         "poweredBy": "Powered by Probabilistic AI"
     },
     "auth": {
-        "welcome": "Welcome to VoltCheck",
+        "welcome": "Welcome to InspectEV",
         "subtitle": "Verify your EV's battery health",
         "loginGoogle": "Continue with Google",
         "loginApple": "Continue with Apple",

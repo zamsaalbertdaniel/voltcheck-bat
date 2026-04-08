@@ -28,7 +28,7 @@ import { BlurView } from 'expo-blur';
 const privacyRO = `Ultima actualizare: 30 martie 2026
 
 1. INTRODUCERE
-VoltCheck ("noi", "aplicația") este un serviciu operat de VoltCheck SRL, cu sediul în România. Respectăm confidențialitatea utilizatorilor noștri și ne angajăm să protejăm datele personale în conformitate cu Regulamentul General privind Protecția Datelor (GDPR - UE 2016/679).
+InspectEV ("noi", "aplicația") este un serviciu operat de InspectEV SRL, cu sediul în România. Respectăm confidențialitatea utilizatorilor noștri și ne angajăm să protejăm datele personale în conformitate cu Regulamentul General privind Protecția Datelor (GDPR - UE 2016/679).
 
 2. DATE COLECTATE
 • Informații de autentificare: nume, email, avatar (furnizate de Google/Apple Sign-In)
@@ -76,17 +76,17 @@ Aveți dreptul la:
 • Loguri de securitate: 90 zile
 
 9. COPII
-VoltCheck nu este destinat persoanelor sub 16 ani. Nu colectăm cu bună știință date de la minori.
+InspectEV nu este destinat persoanelor sub 16 ani. Nu colectăm cu bună știință date de la minori.
 
 10. CONTACT
 Pentru orice solicitare legată de datele personale:
-Email: privacy@voltcheck.app
-VoltCheck SRL, România`;
+Email: privacy@inspectev.app
+InspectEV SRL, România`;
 
 const privacyEN = `Last updated: March 30, 2026
 
 1. INTRODUCTION
-VoltCheck ("we", "the app") is a service operated by VoltCheck SRL, based in Romania. We respect our users' privacy and are committed to protecting personal data in accordance with the General Data Protection Regulation (GDPR - EU 2016/679).
+InspectEV ("we", "the app") is a service operated by InspectEV SRL, based in Romania. We respect our users' privacy and are committed to protecting personal data in accordance with the General Data Protection Regulation (GDPR - EU 2016/679).
 
 2. DATA COLLECTED
 • Authentication info: name, email, avatar (provided by Google/Apple Sign-In)
@@ -134,21 +134,21 @@ You have the right to:
 • Security logs: 90 days
 
 9. CHILDREN
-VoltCheck is not intended for persons under 16. We do not knowingly collect data from minors.
+InspectEV is not intended for persons under 16. We do not knowingly collect data from minors.
 
 10. CONTACT
 For any personal data requests:
-Email: privacy@voltcheck.app
-VoltCheck SRL, Romania`;
+Email: privacy@inspectev.app
+InspectEV SRL, Romania`;
 
 // ─── Terms of Service Content ─────────────────────────────────────────
 const termsRO = `Ultima actualizare: 30 martie 2026
 
 1. ACCEPTAREA TERMENILOR
-Prin utilizarea aplicației VoltCheck, acceptați acești Termeni și Condiții. Dacă nu sunteți de acord, vă rugăm să nu utilizați serviciul.
+Prin utilizarea aplicației InspectEV, acceptați acești Termeni și Condiții. Dacă nu sunteți de acord, vă rugăm să nu utilizați serviciul.
 
 2. DESCRIEREA SERVICIULUI
-VoltCheck oferă rapoarte de evaluare a riscului pentru vehicule electrice (EV), bazate pe:
+InspectEV oferă rapoarte de evaluare a riscului pentru vehicule electrice (EV), bazate pe:
 • Decodare VIN din surse publice oficiale (NHTSA)
 • Algoritm proprietar de evaluare a riscului bazat pe AI
 • Diagnoză live baterie (Level 2, prin Smartcar)
@@ -158,10 +158,10 @@ VoltCheck oferă rapoarte de evaluare a riscului pentru vehicule electrice (EV),
 • Level 2 ("The Surgeon") — 99 RON: tot ce include Level 1 + diagnoză live baterie + certificat SoH, valabil 365 zile
 
 4. DISCLAIMER IMPORTANT
-⚠️ VoltCheck NU este un substitut pentru o inspecție mecanică profesională.
+⚠️ InspectEV NU este un substitut pentru o inspecție mecanică profesională.
 • Scorul de risc AI este o estimare probabilistică, NU o garanție
 • Datele live ale bateriei depind de compatibilitatea vehiculului cu Smartcar
-• VoltCheck nu își asumă responsabilitatea pentru decizii de achiziție bazate exclusiv pe rapoartele noastre
+• InspectEV nu își asumă responsabilitatea pentru decizii de achiziție bazate exclusiv pe rapoartele noastre
 • Recomandăm întotdeauna o inspecție fizică suplimentară pentru tranzacții de valoare mare
 
 5. PLĂȚI ȘI RAMBURSĂRI
@@ -171,7 +171,7 @@ VoltCheck oferă rapoarte de evaluare a riscului pentru vehicule electrice (EV),
 • Nu oferim rambursări pentru rapoarte generate cu succes
 
 6. PROPRIETATE INTELECTUALĂ
-• Algoritmul de evaluare a riscului și metodologia BAT sunt proprietatea VoltCheck SRL
+• Algoritmul de evaluare a riscului și metodologia BAT sunt proprietatea InspectEV SRL
 • Rapoartele generate sunt licențiate utilizatorului pentru uz personal
 • Redistribuirea comercială a rapoartelor este interzisă
 
@@ -183,7 +183,7 @@ Nu este permis:
 • Crearea de conturi multiple cu scopul de a eluda restricțiile
 
 8. LIMITAREA RESPONSABILITĂȚII
-VoltCheck SRL nu este responsabilă pentru:
+InspectEV SRL nu este responsabilă pentru:
 • Pierderi financiare rezultate din decizii de achiziție
 • Inexactități în datele furnizate de terți (NHTSA, furnizori auto)
 • Întreruperi temporare ale serviciului
@@ -195,16 +195,16 @@ Ne rezervăm dreptul de a modifica acești termeni. Utilizatorii activi vor fi n
 Acești termeni sunt guvernați de legislația din România. Orice dispută va fi soluționată de instanțele competente din România.
 
 11. CONTACT
-Email: legal@voltcheck.app
-VoltCheck SRL, România`;
+Email: legal@inspectev.app
+InspectEV SRL, România`;
 
 const termsEN = `Last updated: March 30, 2026
 
 1. ACCEPTANCE OF TERMS
-By using the VoltCheck application, you accept these Terms and Conditions. If you do not agree, please do not use the service.
+By using the InspectEV application, you accept these Terms and Conditions. If you do not agree, please do not use the service.
 
 2. SERVICE DESCRIPTION
-VoltCheck provides risk assessment reports for electric vehicles (EV), based on:
+InspectEV provides risk assessment reports for electric vehicles (EV), based on:
 • VIN decoding from official public sources (NHTSA)
 • Proprietary AI-based risk evaluation algorithm
 • Live battery diagnosis (Level 2, via Smartcar)
@@ -214,10 +214,10 @@ VoltCheck provides risk assessment reports for electric vehicles (EV), based on:
 • Level 2 ("The Surgeon") — 99 RON: everything in Level 1 + live battery diagnosis + SoH certificate, valid for 365 days
 
 4. IMPORTANT DISCLAIMER
-⚠️ VoltCheck is NOT a substitute for a professional mechanical inspection.
+⚠️ InspectEV is NOT a substitute for a professional mechanical inspection.
 • The AI risk score is a probabilistic estimate, NOT a guarantee
 • Live battery data depends on the vehicle's compatibility with Smartcar
-• VoltCheck does not assume responsibility for purchase decisions based solely on our reports
+• InspectEV does not assume responsibility for purchase decisions based solely on our reports
 • We always recommend an additional physical inspection for high-value transactions
 
 5. PAYMENTS & REFUNDS
@@ -227,7 +227,7 @@ VoltCheck provides risk assessment reports for electric vehicles (EV), based on:
 • We do not offer refunds for successfully generated reports
 
 6. INTELLECTUAL PROPERTY
-• The risk evaluation algorithm and BAT methodology are the property of VoltCheck SRL
+• The risk evaluation algorithm and BAT methodology are the property of InspectEV SRL
 • Generated reports are licensed to the user for personal use
 • Commercial redistribution of reports is prohibited
 
@@ -239,7 +239,7 @@ The following are not permitted:
 • Creating multiple accounts to circumvent restrictions
 
 8. LIMITATION OF LIABILITY
-VoltCheck SRL is not liable for:
+InspectEV SRL is not liable for:
 • Financial losses resulting from purchase decisions
 • Inaccuracies in data provided by third parties (NHTSA, auto providers)
 • Temporary service interruptions
@@ -251,8 +251,8 @@ We reserve the right to modify these terms. Active users will be notified via em
 These terms are governed by Romanian law. Any disputes will be resolved by competent courts in Romania.
 
 11. CONTACT
-Email: legal@voltcheck.app
-VoltCheck SRL, Romania`;
+Email: legal@inspectev.app
+InspectEV SRL, Romania`;
 
 export default function LegalScreen() {
     const { t, i18n } = useTranslation();
@@ -292,7 +292,7 @@ export default function LegalScreen() {
 
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>
-                        © 2026 VoltCheck SRL. All rights reserved.
+                        © 2026 InspectEV SRL. All rights reserved.
                     </Text>
                 </View>
             </ScrollView>

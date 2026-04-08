@@ -39,7 +39,7 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
-const VoltCheckTheme = {
+const InspectEVTheme = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
@@ -123,7 +123,7 @@ export default function RootLayout() {
     <VoltErrorBoundary>
       {Platform.OS === 'web' && <style>{WebScrollbarCSS}</style>}
       <ToastProvider>
-        <ThemeProvider value={VoltCheckTheme}>
+        <ThemeProvider value={InspectEVTheme}>
           <StatusBar barStyle="light-content" backgroundColor={VoltColors.bgPrimary} />
 
           {!splashComplete && (
@@ -137,7 +137,7 @@ export default function RootLayout() {
               name="report/[id]"
               options={{
                 headerShown: true,
-                headerTitle: 'Raport VoltCheck',
+                headerTitle: 'Raport InspectEV',
                 headerStyle: { backgroundColor: VoltColors.bgSecondary },
                 headerTintColor: VoltColors.textPrimary,
                 animation: 'slide_from_right',

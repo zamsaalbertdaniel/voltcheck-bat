@@ -19,7 +19,7 @@ export default function NotFoundScreen() {
         <Text style={styles.subtitle}>Această pagină nu există.</Text>
         <Link href="/" asChild>
           <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Înapoi la VoltCheck</Text>
+            <Text style={styles.buttonText}>Înapoi la InspectEV</Text>
           </TouchableOpacity>
         </Link>
       </View>

@@ -3,9 +3,9 @@ import { initPaymentSheet, presentPaymentSheet } from '@stripe/stripe-react-nati
 export const initializeStripePayment = async (clientSecret: string) => {
     return await initPaymentSheet({
         paymentIntentClientSecret: clientSecret,
-        merchantDisplayName: 'VoltCheck',
+        merchantDisplayName: 'InspectEV',
         style: 'alwaysDark',
-        returnURL: 'voltcheck://payment-return',
+        returnURL: 'inspectev://payment-return',
     });
 };
 

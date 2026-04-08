@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "VoltCheck",
-    "slug": "voltcheck",
+    "name": "InspectEV",
+    "slug": "inspectev",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "voltcheck",
+    "scheme": "inspectev",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -15,15 +15,15 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.voltcheck.app",
+      "bundleIdentifier": "com.inspectev.app",
       "googleServicesFile": "./GoogleService-Info.plist",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "VoltCheck needs camera access to scan VIN codes"
+        "NSCameraUsageDescription": "InspectEV needs camera access to scan VIN codes"
       }
     },
     "android": {
-      "package": "com.voltcheck.app",
+      "package": "com.inspectev.app",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -45,7 +45,7 @@
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.voltcheck.app",
+          "merchantIdentifier": "merchant.com.inspectev.app",
           "enableGooglePay": true
         }
       ],

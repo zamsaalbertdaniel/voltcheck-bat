@@ -204,7 +204,7 @@ export default function ScanScreen() {
   const handlePipelineComplete = useCallback((status: ReportStatus) => {
     setScreenState('complete');
     Alert.alert(
-      '⚡ VoltCheck',
+      '⚡ InspectEV',
       `${t('scan.reportCompleted')}\n${t('scan.riskScoreLabel')}: ${status.riskScore}/100 (${status.riskCategory})`,
       [
         {

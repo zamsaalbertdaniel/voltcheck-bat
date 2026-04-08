@@ -210,7 +210,7 @@ export default function LoginScreen() {
                         color={VoltColors.neonGreen}
                     />
                 </View>
-                <Text style={styles.appName}>VoltCheck</Text>
+                <Text style={styles.appName}>InspectEV</Text>
                 <Text style={styles.tagline}>{t('auth.subtitle')}</Text>
             </Animated.View>
 

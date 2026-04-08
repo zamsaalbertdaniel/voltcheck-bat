@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "VoltCheck",
+    "name": "InspectEV",
     "tagline": "Verifică bateria. Cumpără în siguranță.",
     "version": "v1.0"
   },
@@ -68,7 +68,7 @@
     }
   },
   "report": {
-    "title": "Raport VoltCheck",
+    "title": "Raport InspectEV",
     "riskScore": "Scor de Risc AI",
     "riskCategories": {
       "LOW": "Risc Scăzut",
@@ -136,7 +136,7 @@
     "title": "Setări",
     "language": "Limbă",
     "notifications": "Notificări",
-    "about": "Despre VoltCheck",
+    "about": "Despre InspectEV",
     "privacy": "Confidențialitate",
     "terms": "Termeni și Condiții",
     "logout": "Deconectare",
@@ -147,7 +147,7 @@
     "deleteAccountConfirm": "Ești sigur că vrei să îți ștergi contul? Toate datele tale vor fi șterse permanent, inclusiv rapoartele din Garaj. Această acțiune este ireversibilă.",
     "deleteAccountSuccess": "Contul tău a fost șters cu succes.",
     "deleteAccountError": "Ștergerea contului a eșuat. Te rugăm să încerci din nou.",
-    "rateApp": "Evaluează VoltCheck"
+    "rateApp": "Evaluează InspectEV"
   },
   "insight": {
     "title": "BAT Insight",
@@ -208,14 +208,14 @@
         },
         {
           "question": "Pot trimite raportul vânzătorului?",
-          "answer": "Da! Fiecare raport VoltCheck poate fi distribuit direct prin WhatsApp sau Email cu un singur tap. Raportul include un link securizat valid pe durata de viață a raportului (30 zile Level 1 / 365 zile Level 2). Vânzătorul poate vedea raportul complet fără cont VoltCheck."
+          "answer": "Da! Fiecare raport InspectEV poate fi distribuit direct prin WhatsApp sau Email cu un singur tap. Raportul include un link securizat valid pe durata de viață a raportului (30 zile Level 1 / 365 zile Level 2). Vânzătorul poate vedea raportul complet fără cont InspectEV."
         }
       ]
     },
     "poweredBy": "Powered by Probabilistic AI"
   },
   "auth": {
-    "welcome": "Bine ai venit la VoltCheck",
+    "welcome": "Bine ai venit la InspectEV",
     "subtitle": "Verifică sănătatea bateriei EV-ului tău",
     "loginGoogle": "Continuă cu Google",
     "loginApple": "Continuă cu Apple",

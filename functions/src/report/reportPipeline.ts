@@ -436,7 +436,7 @@ async function sendReportReadyNotification(
         const message: admin.messaging.MulticastMessage = {
             tokens: userData.fcmTokens,
             notification: {
-                title: '⚡ Raportul tău VoltCheck este gata!',
+                title: '⚡ Raportul tău InspectEV este gata!',
                 body: `${vehicleName} — Risk Score: ${riskScore}/100 (${riskCategory})`,
             },
             data: {
@@ -448,7 +448,7 @@ async function sendReportReadyNotification(
             android: {
                 priority: 'high',
                 notification: {
-                    channelId: 'voltcheck_reports',
+                    channelId: 'inspectev_reports',
                     icon: 'ic_notification',
                     color: '#00E676',
                 },

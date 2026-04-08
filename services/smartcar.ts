@@ -7,7 +7,7 @@
 // Smartcar OAuth configuration
 const SMARTCAR_CONFIG = {
     clientId: process.env.EXPO_PUBLIC_SMARTCAR_CLIENT_ID || '',
-    redirectUri: 'voltcheck://callback',
+    redirectUri: 'inspectev://callback',
     scope: [
         'read_vehicle_info',
         'read_battery',
@@ -56,7 +56,7 @@ export interface SmartcarDiagnosisResult {
 
 /**
  * Generates the Smartcar OAuth Connect URL
- * User must authorize VoltCheck to access their vehicle data
+ * User must authorize InspectEV to access their vehicle data
  */
 export function getAuthorizationUrl(): string {
     const params = new URLSearchParams({

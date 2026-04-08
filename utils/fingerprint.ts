@@ -7,7 +7,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-const FINGERPRINT_KEY = '@voltcheck_device_fingerprint';
+const FINGERPRINT_KEY = '@inspectev_device_fingerprint';
 
 /**
  * Generates a deterministic device fingerprint from available device properties.
