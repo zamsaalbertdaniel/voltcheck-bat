@@ -117,7 +117,29 @@
     },
     "expiresIn": "Expiră în {{days}} zile",
     "downloadPdf": "Descarcă PDF",
-    "shareReport": "Distribuie Raportul"
+    "shareReport": "Distribuie Raportul",
+    "recallMap": {
+      "title": "Harta Rechemărilor",
+      "subtitle": "{{count}} zone afectate din schema vehiculului",
+      "noRecalls": "Fără rechemări active pentru acest VIN",
+      "expand": "Vezi toate rechemările",
+      "collapse": "Ascunde lista",
+      "unknownComponent": "Componentă nespecificată",
+      "zones": {
+        "battery": "Baterie HV",
+        "motor": "Motor electric",
+        "brakes": "Frâne",
+        "airbags": "Airbag / SRS",
+        "steering": "Direcție",
+        "suspension": "Suspensie / Roți",
+        "electrical": "Electric 12V",
+        "lights": "Iluminare",
+        "software": "Software / ECU",
+        "structure": "Caroserie",
+        "hvac": "Climatizare",
+        "other": "Altele"
+      }
+    }
   },
   "garage": {
     "title": "Garajul Tău",

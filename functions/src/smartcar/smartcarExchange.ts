@@ -224,7 +224,7 @@ export const smartcarBatteryData = onCall(
                 usableCapacityKwh = batteryData.capacity;
                 const nominal = nominalCapacityKwh || getNominalCapacity(vehicleMake || vehicleInfo?.make, vehicleInfo?.model);
                 if (nominal > 0) {
-                    stateOfHealth = Math.round((usableCapacityKwh / nominal) * 100 * 10) / 10;
+                    stateOfHealth = Math.round((usableCapacityKwh! / nominal) * 100 * 10) / 10;
                     sohSource = 'capacity_estimate';
                     logger.info(`[Smartcar] Plan A — Capacity estimate: ${usableCapacityKwh}/${nominal} kWh = ${stateOfHealth}%`);
                 }

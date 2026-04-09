@@ -72,3 +72,6 @@ export { smartcarExchange, smartcarBatteryData, smartcarDisconnect } from './sma
 
 // ── Eligibility Gate (Zero Țepe — checks cloud support before payment) ──
 export { checkCloudEligibility } from './smartcar/checkEligibility';
+
+// ── Smartcar Webhook (push from Smartcar → live battery updates) ──
+export { smartcarWebhook } from './smartcar/smartcarWebhook';

@@ -321,6 +321,10 @@ export const reportPipeline = onDocumentCreated(
                 confidenceBreakdown: riskResult.confidenceBreakdown,
                 assessmentType,
                 sourceTraceability,
+                // Persist recalls directly on the report doc so the UI
+                // (RecallMap) can render without fetching level1_data.
+                recalls,
+                recallCount: recalls.length,
                 pdfUrl: downloadUrl,
                 storagePath: filePath,
                 expiresAt,

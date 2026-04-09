@@ -117,7 +117,29 @@
         },
         "expiresIn": "Expires in {{days}} days",
         "downloadPdf": "Download PDF",
-        "shareReport": "Share Report"
+        "shareReport": "Share Report",
+        "recallMap": {
+            "title": "Recall Map",
+            "subtitle": "{{count}} zone(s) affected on this vehicle",
+            "noRecalls": "No active recalls for this VIN",
+            "expand": "View all recalls",
+            "collapse": "Hide list",
+            "unknownComponent": "Component unspecified",
+            "zones": {
+                "battery": "HV Battery",
+                "motor": "Electric motor",
+                "brakes": "Brakes",
+                "airbags": "Airbag / SRS",
+                "steering": "Steering",
+                "suspension": "Suspension / Wheels",
+                "electrical": "12V Electrical",
+                "lights": "Lighting",
+                "software": "Software / ECU",
+                "structure": "Body",
+                "hvac": "Climate",
+                "other": "Other"
+            }
+        }
     },
     "garage": {
         "title": "Your Garage",
