@@ -5,17 +5,22 @@
 # ═══════════════════════════════════════════
 
 # Node dependencies (root — Expo/React Native)
-node_modules/
+**/node_modules/**
 
 # Node dependencies (Cloud Functions)
-functions/node_modules/
+functions/node_modules/**
 
 # Compiled Cloud Functions output
-functions/lib/
+functions/lib/**
 
 # Expo build artifacts
-dist/
-.expo/
+**/dist/**
+**/.expo/**
 
 # Firebase cache
-.firebase/
+**/.firebase/**
+
+# Git and Agents folders
+**/.git/**
+**/.agents/**
+**/.claude/**

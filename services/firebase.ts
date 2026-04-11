@@ -1,8 +1,12 @@
 /**
- * VoltCheck — Firebase Configuration (Web + Native compatible)
+ * InspectEV — Firebase Configuration (Web + Native compatible)
  *
  * Uses EXPO_PUBLIC_* environment variables for config
  * Supports both @react-native-firebase (native) and firebase/app (web)
+ *
+ * IMPORTANT: Always consume Firebase via `getFirebaseServices()` — it's
+ * the only safe accessor. There is intentionally NO default export
+ * because the underlying app/db/auth handles are created asynchronously.
  */
 
 import { Platform } from 'react-native';
@@ -73,4 +77,3 @@ export function getFirebaseServices() {
 }
 
 export { firebaseConfig };
-export default app;

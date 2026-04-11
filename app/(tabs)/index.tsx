@@ -30,6 +30,7 @@ import {
   EligibilityResponse,
   parseCloudError,
   ReportStatus,
+  subscribeToPaymentStatus,
   VINDecodeResponse,
 } from '@/services/cloudFunctions';
 import { isValidVIN } from '@/utils/vinDecoder';
@@ -77,6 +78,10 @@ export default function ScanScreen() {
   // Animations
   const glowAnim = useRef(new Animated.Value(0)).current;
   const decodeSpinner = useRef(new Animated.Value(0)).current;
+
+  // Holds the unsubscribe handle for the payment-status Firestore listener
+  // so we can clean it up on unmount, reset, or when the report arrives.
+  const paymentUnsubRef = useRef<(() => void) | null>(null);
 
   // Glow animation
   useEffect(() => {
@@ -165,17 +170,48 @@ export default function ScanScreen() {
     setScreenState('paying');
     setErrorMessage('');
 
+    // Defensive: tear down any previous payment listener before starting a new one
+    if (paymentUnsubRef.current) {
+      paymentUnsubRef.current();
+      paymentUnsubRef.current = null;
+    }
+
     try {
-      await createPaymentIntentRemote({
+      const intent = await createPaymentIntentRemote({
         level,
         vin,
         vehicleMake: decodedData?.nhtsa?.make,
         vehicleModel: decodedData?.nhtsa?.model,
       });
 
-      const mockReportId = `rpt_${Date.now()}_mock`;
-      setReportId(mockReportId);
-      setScreenState('pipeline');
+      // The Stripe webhook on the server creates the report doc and writes
+      // its id back onto payments/{paymentIntentId}. We listen for that
+      // update — the real reportId is the one ReportRadar will subscribe to.
+      paymentUnsubRef.current = subscribeToPaymentStatus(
+        intent.paymentIntentId,
+        (update) => {
+          if (update.paymentStatus === 'failed') {
+            setErrorMessage(update.failureReason || t('errors.paymentFailed'));
+            setScreenState('level_select');
+            paymentUnsubRef.current?.();
+            paymentUnsubRef.current = null;
+            return;
+          }
+          if (update.paymentStatus === 'completed' && update.reportId) {
+            setReportId(update.reportId);
+            setScreenState('pipeline');
+            // We've got what we needed — stop listening to the payment doc.
+            paymentUnsubRef.current?.();
+            paymentUnsubRef.current = null;
+          }
+        },
+        (err) => {
+          setErrorMessage(err.message || t('errors.paymentFailed'));
+          setScreenState('level_select');
+          paymentUnsubRef.current?.();
+          paymentUnsubRef.current = null;
+        }
+      );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const parsed = parseCloudError(error);
@@ -190,6 +226,10 @@ export default function ScanScreen() {
 
   // ── Reset ──
   const handleReset = useCallback(() => {
+    if (paymentUnsubRef.current) {
+      paymentUnsubRef.current();
+      paymentUnsubRef.current = null;
+    }
     setScreenState('input');
     setVin('');
     setDecodedData(null);
@@ -198,6 +238,17 @@ export default function ScanScreen() {
     setErrorMessage('');
     setEligibility(null);
     setEligibilityLoading(false);
+  }, []);
+
+  // Make sure the payment listener is detached if the user navigates away
+  // before the webhook fires.
+  useEffect(() => {
+    return () => {
+      if (paymentUnsubRef.current) {
+        paymentUnsubRef.current();
+        paymentUnsubRef.current = null;
+      }
+    };
   }, []);
 
   // ── Pipeline Complete ──

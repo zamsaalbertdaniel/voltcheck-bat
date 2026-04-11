@@ -1,6 +1,6 @@
 /**
- * VoltCheck — Cloud Function: Smart Report Share Link
- * 
+ * InspectEV — Cloud Function: Smart Report Share Link
+ *
  * Serves an HTML page with OG meta tags for WhatsApp/Telegram/iMessage
  * preview. When share link is opened:
  *   - Messaging apps see: Title, description, image preview
@@ -22,7 +22,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 const corsHandler = cors({
-    origin: ['https://voltcheck.app', 'https://www.voltcheck.app'],
+    origin: ['https://inspec-ev.app', 'https://www.inspec-ev.app'],
     methods: ['GET'],
 });
 
@@ -89,17 +89,17 @@ export const shareReport = onRequest(
     <meta property="og:type" content="article">
     <meta property="og:title" content="${escapeHtml(ogTitle)}">
     <meta property="og:description" content="${escapeHtml(ogDescription)}">
-    <meta property="og:image" content="https://inspectev.app/og-preview.png">
+    <meta property="og:image" content="https://inspec-ev.app/og-preview.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://inspectev.app/share/${reportId}">
+    <meta property="og:url" content="https://inspec-ev.app/share/${reportId}">
     <meta property="og:site_name" content="InspectEV by Probabilistic AI">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapeHtml(ogTitle)}">
     <meta name="twitter:description" content="${escapeHtml(ogDescription)}">
-    <meta name="twitter:image" content="https://inspectev.app/og-preview.png">
+    <meta name="twitter:image" content="https://inspec-ev.app/og-preview.png">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -160,7 +160,7 @@ export const shareReport = onRequest(
         <div class="vehicle">${escapeHtml(vehicleName)}</div>
         <div class="score">${riskScore}</div>
         <div class="category">${riskEmoji} ${riskCategory}</div>
-        <a class="cta" href="https://inspectev.app/download">
+        <a class="cta" href="https://inspec-ev.app/download">
             Descarcă InspectEV
         </a>
         <div class="footer">
