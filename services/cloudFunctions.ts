@@ -302,17 +302,21 @@ export function subscribeToReportStatus(
         return simulateMockPipeline(onUpdate);
     }
 
-    // Real Firestore listener
+    // Real Firestore listener — use cancelled flag to avoid race condition
+    // where cleanup runs before the async IIFE attaches the listener.
     let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
 
     (async () => {
         try {
             const { db } = await getFirebaseServices();
 
+            if (cancelled) return; // cleanup was called before we could attach
+
             if (Platform.OS === 'web') {
                 const { doc, onSnapshot } = await import('firebase/firestore');
                 const reportRef = doc(db, 'reports', reportId);
-                unsubscribe = onSnapshot(reportRef, (snap: any) => {
+                const unsub = onSnapshot(reportRef, (snap: any) => {
                     if (snap.exists()) {
                         const data = snap.data();
                         onUpdate({
@@ -327,10 +331,13 @@ export function subscribeToReportStatus(
                 }, (err: Error) => {
                     onError?.(err);
                 });
+
+                if (cancelled) { unsub(); return; }
+                unsubscribe = unsub;
             } else {
                 // @react-native-firebase
                 const rnFirestore = await import('@react-native-firebase/firestore');
-                unsubscribe = rnFirestore.default()
+                const unsub = rnFirestore.default()
                     .collection('reports')
                     .doc(reportId)
                     .onSnapshot((snap: any) => {
@@ -348,13 +355,17 @@ export function subscribeToReportStatus(
                     }, (err: Error) => {
                         onError?.(err);
                     });
+
+                if (cancelled) { unsub(); return; }
+                unsubscribe = unsub;
             }
         } catch (err: any) {
-            onError?.(err);
+            if (!cancelled) onError?.(err);
         }
     })();
 
     return () => {
+        cancelled = true;
         if (unsubscribe) unsubscribe();
     };
 }

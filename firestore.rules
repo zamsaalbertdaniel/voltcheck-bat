@@ -117,6 +117,37 @@ service cloud.firestore {
     }
 
     // ═══════════════════════════════════════════
+    // Smartcar Collections (Server-side only)
+    // Written by smartcarWebhook Cloud Function via Admin SDK
+    // ═══════════════════════════════════════════
+    match /smartcar_tokens/{docId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Cloud Functions only
+    }
+
+    match /smartcar_snapshots/{docId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Cloud Functions only
+    }
+
+    match /smartcar_history/{docId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Cloud Functions only
+    }
+
+    match /smartcar_alerts/{docId} {
+      allow read: if isAuth() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Cloud Functions only
+    }
+
+    // ═══════════════════════════════════════════
+    // Rate Limits (Server-side only)
+    // ═══════════════════════════════════════════
+    match /rate_limits/{docId} {
+      allow read, write: if false; // Cloud Functions only
+    }
+
+    // ═══════════════════════════════════════════
     // Default: Deny everything else
     // ═══════════════════════════════════════════
     match /{document=**} {

@@ -91,56 +91,20 @@ export default function ProfileScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const { auth, db } = await getFirebaseServices();
-
+                            // Server-side deletion via Cloud Function (bypasses Firestore rules)
                             if (Platform.OS === 'web') {
-                                const { collection, query, where, getDocs, deleteDoc, doc } = await import('firebase/firestore');
-                                const { deleteUser } = await import('firebase/auth');
-                                const uid = user?.uid;
-                                if (!uid) return;
-
-                                // Delete all reports
-                                const reportsQ = query(collection(db, 'reports'), where('userId', '==', uid));
-                                const reportsSnap = await getDocs(reportsQ);
-                                for (const docSnap of reportsSnap.docs) {
-                                    await deleteDoc(doc(db, 'reports', docSnap.id));
-                                }
-
-                                // Delete all payments
-                                const paymentsQ = query(collection(db, 'payments'), where('userId', '==', uid));
-                                const paymentsSnap = await getDocs(paymentsQ);
-                                for (const docSnap of paymentsSnap.docs) {
-                                    await deleteDoc(doc(db, 'payments', docSnap.id));
-                                }
-
-                                // Delete user profile doc
-                                await deleteDoc(doc(db, 'users', uid)).catch(() => {});
-
-                                // Delete Firebase Auth user
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                await deleteUser(auth.currentUser as any);
+                                const { getFirebaseServices } = await import('@/services/firebase');
+                                const { app } = await getFirebaseServices();
+                                const { getFunctions, httpsCallable } = await import('firebase/functions');
+                                const functions = getFunctions(app, 'europe-west1');
+                                const deleteAccount = httpsCallable(functions, 'deleteUserAccount');
+                                await deleteAccount();
                             } else {
+                                const rnFunctions = (await import('@react-native-firebase/app')) as any;
+                                const functions = rnFunctions.default.functions('europe-west1');
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                const nativeDb = db as any;
-                                const uid = user?.uid;
-                                if (!uid) return;
-
-                                // Delete reports
-                                const reportsSnap = await nativeDb.collection('reports').where('userId', '==', uid).get();
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                for (const docSnap of reportsSnap.docs) { await (docSnap as any).ref.delete(); }
-
-                                // Delete payments
-                                const paymentsSnap = await nativeDb.collection('payments').where('userId', '==', uid).get();
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                for (const docSnap of paymentsSnap.docs) { await (docSnap as any).ref.delete(); }
-
-                                // Delete user profile
-                                await nativeDb.collection('users').doc(uid).delete().catch(() => {});
-
-                                // Delete Firebase Auth user
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                await (auth as any).currentUser?.delete();
+                                const deleteAccount = (functions as any).httpsCallable('deleteUserAccount');
+                                await deleteAccount();
                             }
 
                             Alert.alert('✅', t('settings.deleteAccountSuccess'));

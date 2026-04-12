@@ -75,3 +75,6 @@ export { checkCloudEligibility } from './smartcar/checkEligibility';
 
 // ── Smartcar Webhook (push from Smartcar → live battery updates) ──
 export { smartcarWebhook } from './smartcar/smartcarWebhook';
+
+// ── Account Management (GDPR-safe server-side deletion) ──
+export { deleteUserAccount } from './account/deleteUserAccount';

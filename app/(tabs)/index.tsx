@@ -83,14 +83,16 @@ export default function ScanScreen() {
   // so we can clean it up on unmount, reset, or when the report arrives.
   const paymentUnsubRef = useRef<(() => void) | null>(null);
 
-  // Glow animation
+  // Glow animation (with proper cleanup to avoid leak)
   useEffect(() => {
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(glowAnim, { toValue: 1, duration: 2000, useNativeDriver: false }),
         Animated.timing(glowAnim, { toValue: 0, duration: 2000, useNativeDriver: false }),
       ])
-    ).start();
+    );
+    loop.start();
+    return () => loop.stop();
   }, [glowAnim]);
 
   // Handle returning from camera scan

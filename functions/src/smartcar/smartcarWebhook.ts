@@ -114,7 +114,7 @@ export const smartcarWebhook = onRequest(
         region: 'europe-west1',
         secrets: [smartcarMat],
         memory: '256MiB',
-        maxInstances: 5,
+        maxInstances: 20,
     },
     async (req, res) => {
         if (req.method !== 'POST') {
@@ -182,9 +182,17 @@ export const smartcarWebhook = onRequest(
 
             const writes: Promise<any>[] = [];
 
+            const VEHICLE_ID_REGEX = /^[a-zA-Z0-9-]{1,64}$/;
+
             for (const v of vehicles) {
                 const vehicleId: string = v?.vehicleId || v?.id;
                 if (!vehicleId) continue;
+
+                // Validate vehicleId before using as Firestore doc ID (prevent injection)
+                if (!VEHICLE_ID_REGEX.test(vehicleId)) {
+                    logger.warn(`[SmartcarWebhook] Invalid vehicleId rejected: ${vehicleId.substring(0, 20)}`);
+                    continue;
+                }
 
                 // Smartcar `userId` is our internal user ID only if we stored
                 // it previously at OAuth connect time; otherwise we fall back

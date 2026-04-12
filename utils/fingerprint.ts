@@ -5,6 +5,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
 import { Platform } from 'react-native';
 
 const FINGERPRINT_KEY = '@inspectev_device_fingerprint';
@@ -26,26 +27,17 @@ export async function getDeviceFingerprint(): Promise<string> {
         `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     ];
 
-    // Create a simple hash (production: use expo-crypto for real SHA-256)
+    // SHA-256 hash via expo-crypto (secure, no collisions)
     const raw = parts.join('|');
-    const hash = simpleHash(raw);
+    const hash = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        raw,
+    );
+    const fingerprint = `ef_${hash.substring(0, 16)}`;
 
     // Cache it persistently
-    await AsyncStorage.setItem(FINGERPRINT_KEY, hash);
-    return hash;
-}
-
-/**
- * Simple string hashing function (FNV-1a based)
- * In production, replace with expo-crypto SHA-256
- */
-function simpleHash(str: string): string {
-    let hash = 0x811c9dc5;
-    for (let i = 0; i < str.length; i++) {
-        hash ^= str.charCodeAt(i);
-        hash = (hash * 0x01000193) >>> 0;
-    }
-    return `vf_${hash.toString(16).padStart(8, '0')}`;
+    await AsyncStorage.setItem(FINGERPRINT_KEY, fingerprint);
+    return fingerprint;
 }
 
 /**
