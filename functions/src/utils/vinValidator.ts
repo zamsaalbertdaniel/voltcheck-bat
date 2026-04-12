@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Server-side VIN Validator
+ * InspectEV — Server-side VIN Validator
  * Strict ISO 3779 validation for Cloud Functions
  * Mirrors the client-side validation from types/firestore.ts
  */

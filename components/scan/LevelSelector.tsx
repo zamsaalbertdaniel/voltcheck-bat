@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Level Selector
+ * InspectEV — Level Selector
  * Extracted from ScanScreen (index.tsx).
  * Shows Level 1 (Detective) and Level 2 (Surgeon) cards with features + price.
  * Also renders the "paying" spinner overlay.

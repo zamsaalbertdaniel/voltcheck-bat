@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Vehicle State Store (Zustand)
+ * InspectEV — Vehicle State Store (Zustand)
  * Manages decoded vehicle data during scan flow
  */
 

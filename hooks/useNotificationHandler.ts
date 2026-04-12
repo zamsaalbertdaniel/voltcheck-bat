@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Notification Deep Link Handler
+ * InspectEV — Notification Deep Link Handler
  * Handles push notification taps and navigates to the relevant screen.
  *
  * When a user taps a notification with { type: 'report_ready', reportId: '...' },

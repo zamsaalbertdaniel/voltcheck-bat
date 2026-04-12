@@ -1,4 +1,4 @@
-# VoltCheck — Deployment Guide
+# InspectEV — Deployment Guide
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ git status   # should NOT show .env, service-account files
 
 # Initial commit
 git add .
-git commit -m "feat: VoltCheck Phase 1+2 — Foundation + Cloud Functions"
+git commit -m "feat: InspectEV Phase 1+2 — Foundation + Cloud Functions"
 git push -u origin main
 ```
 

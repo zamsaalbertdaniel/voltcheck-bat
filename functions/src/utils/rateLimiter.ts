@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Server-side Rate Limiter
+ * InspectEV — Server-side Rate Limiter
  * Per-UID throttling using Firestore as state store
  * Prevents abusive API queries
  */

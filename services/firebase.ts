@@ -50,6 +50,16 @@ async function initFirebase() {
         app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
         db = getFirestore(app);
         auth = getAuth(app);
+
+        // Initialize App Check (reCAPTCHA Enterprise) — web only
+        const recaptchaKey = process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY;
+        if (recaptchaKey) {
+            const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import('firebase/app-check');
+            initializeAppCheck(app, {
+                provider: new ReCaptchaEnterpriseProvider(recaptchaKey),
+                isTokenAutoRefreshEnabled: true,
+            });
+        }
     } else {
         // Native SDK (@react-native-firebase)
         // Config comes from google-services.json (Android) and GoogleService-Info.plist (iOS)

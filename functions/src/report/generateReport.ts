@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Function: PDF Report Generator
+ * InspectEV — Cloud Function: PDF Report Generator
  * Uses PDFKit to generate diagnostic report PDFs
  * Uploads to Firebase Storage and returns download URL
  *

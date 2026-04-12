@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Vehicle Result Card
+ * InspectEV — Vehicle Result Card
  * Extracted from ScanScreen (index.tsx).
  * Shows decoded vehicle info: make/model/year, provider statuses, recall banner.
  */

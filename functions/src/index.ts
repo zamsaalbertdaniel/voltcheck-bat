@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Functions Entry Point
+ * InspectEV — Cloud Functions Entry Point
  * Exports all Cloud Functions for Firebase deployment
  *
  * FAZA 2 — Full pipeline with:

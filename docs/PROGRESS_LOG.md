@@ -1,4 +1,4 @@
-# Jurnal de Progres (Progress Log) - VoltCheck
+# Jurnal de Progres (Progress Log) - InspectEV
 **Data:** 23 Martie 2026
 
 Acest document este creat pentru a salva starea curentă a proiectului și pentru a facilita reluarea lucrului în sesiunile viitoare. Funcționează ca un "Handoff Document".

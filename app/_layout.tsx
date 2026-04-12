@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Root Layout
+ * InspectEV — Root Layout
  * Dark theme, i18n, font loading, Dual Splash Sequence,
  * Auth listener + route guard, Toast + Error Boundary wrappers
  * FAZA 1 — BAT (Battery Analysis Technology)

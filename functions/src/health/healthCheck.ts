@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Health Check Endpoint
+ * InspectEV — Health Check Endpoint
  *
  * Returns system status: version, region, secrets presence, Firestore connectivity.
  * Public endpoint — no auth required (returns no sensitive data).

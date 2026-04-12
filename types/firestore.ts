@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Firestore Type Definitions
+ * InspectEV — Firestore Type Definitions
  * TypeScript interfaces matching the Firestore schema
  * Updated: FAZA 1 — BAT (Battery Analysis Technology)
  */

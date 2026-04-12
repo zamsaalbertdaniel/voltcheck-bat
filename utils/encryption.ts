@@ -1,5 +1,5 @@
 /**
- * VoltCheck — AES-256-GCM Encryption Helpers
+ * InspectEV — AES-256-GCM Encryption Helpers
  * Uses Web Crypto API (available in browsers + React Native Hermes)
  *
  * Key derivation: PBKDF2 with 100k iterations

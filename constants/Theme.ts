@@ -1,5 +1,5 @@
 /**
- * VoltCheck Design System — Dark Mode Tech
+ * InspectEV Design System — Dark Mode Tech
  * Accent: Neon Green (#00E676) — transmite precizie și tehnologie
  */
 

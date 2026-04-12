@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Report Detail Screen
+ * InspectEV — Report Detail Screen
  * Full report view: risk score gauge, vehicle info, alerts, battery data
  *
  * Pas 2: Real Firestore fetch + loading/error states
@@ -17,6 +17,8 @@ import {
     getRiskColor,
 } from '@/constants/Theme';
 import { subscribeToReportStatus, USE_MOCK_DATA } from '@/services/cloudFunctions';
+import RecallMap from '@/components/RecallMap';
+import type { Recall } from '@/utils/recallClassifier';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -101,6 +103,26 @@ const MOCK_REPORT = {
     recommendation:
         'Stare acceptabilă cu observații. Verificați condițiile de garanție și istoricul service.',
     pdfUrl: null as string | null,
+    recalls: [
+        {
+            campaignNumber: '22V-456',
+            component: 'HIGH VOLTAGE BATTERY',
+            summary: 'Potential thermal event in battery module under extreme fast-charging conditions. Dealer will update BMS firmware.',
+            date: '2022-07-12',
+        },
+        {
+            campaignNumber: '23V-118',
+            component: 'ELECTRICAL SYSTEM:SOFTWARE',
+            summary: 'Infotainment software can disable rearview camera on startup. Free OTA update scheduled.',
+            date: '2023-03-02',
+        },
+        {
+            campaignNumber: '21V-902',
+            component: 'EXTERIOR LIGHTING:HEADLAMP',
+            summary: 'Headlamp assembly may flicker in wet conditions. Replacement available at service.',
+            date: '2021-11-18',
+        },
+    ] as Recall[],
 };
 
 type ReportData = typeof MOCK_REPORT;
@@ -228,6 +250,7 @@ export default function ReportScreen() {
                 confidence: data.confidence || 0,
                 sourceTraceability: data.sourceTraceability || [],
                 pdfUrl: data.pdfUrl || null,
+                recalls: (data.recalls || []) as Recall[],
             });
             setScreenState('ready');
         } catch (err: any) {
@@ -473,6 +496,9 @@ export default function ReportScreen() {
                     ))}
                 </View>
             )}
+
+            {/* Recall Map (visual breakdown of affected components) */}
+            <RecallMap recalls={report.recalls || []} />
 
             {/* Recommendation Card */}
             {report.recommendation && (

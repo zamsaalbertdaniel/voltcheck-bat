@@ -1,4 +1,4 @@
-# VoltCheck — Master Improvement Plan
+# InspectEV — Master Improvement Plan
 # ⚡ ACEST FIȘIER ESTE SURSA DE ADEVĂR PENTRU PLANUL DE ÎMBUNĂTĂȚIRI
 # Actualizat: 2026-03-22T19:00:00+02:00
 # Status: APROBAT — Pas 1 ✅ Pas 2 ✅ Pas 3 ✅ Pas 7 ✅ Pas 4 ✅ Pas 5 ✅ Pas 6 ✅ Pas 8 ✅ (COMPLET)

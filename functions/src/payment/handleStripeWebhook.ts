@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Function: Stripe Webhook Handler
+ * InspectEV — Cloud Function: Stripe Webhook Handler
  * Processes payment events and triggers report pipeline
  *
  * FLOW: payment_intent.succeeded → Create report doc (status: processing)

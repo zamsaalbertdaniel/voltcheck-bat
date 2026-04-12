@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Auth State Listener Hook
+ * InspectEV — Auth State Listener Hook
  * Syncs Firebase Auth state with Zustand store
  * Handles auto-redirect: login ↔ tabs
  */

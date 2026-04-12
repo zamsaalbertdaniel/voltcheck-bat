@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Scan Screen (Main Tab)
+ * InspectEV — Scan Screen (Main Tab)
  * VIN input → Cloud Function decode → Level selection → Payment → Radar Pipeline
  *
  * FLOW:

@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Shared PDF Generator
+ * InspectEV — Shared PDF Generator
  * Single source of truth for PDF generation (Level 1 & Level 2 reports).
  *
  * Used by:

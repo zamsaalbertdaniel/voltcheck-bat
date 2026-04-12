@@ -1,11 +1,11 @@
 ---
-description: VoltCheck improvement plan status and implementation workflow
+description: InspectEV improvement plan status and implementation workflow
 ---
 
-# VoltCheck Improvement Plan Workflow
+# InspectEV Improvement Plan Workflow
 
 ## Overview
-This workflow tracks the 8-step improvement plan for VoltCheck approved on 2026-03-19.
+This workflow tracks the 8-step improvement plan for InspectEV approved on 2026-03-19.
 The master plan is stored in `IMPROVEMENT_PLAN.md` at the project root.
 
 ## Ultima sesiune: 2026-03-22

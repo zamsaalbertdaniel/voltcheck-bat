@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Order Summary Card
+ * InspectEV — Order Summary Card
  * Extracted from PaymentScreen (payment.tsx).
  * Shows vehicle info, service level, and total price.
  */

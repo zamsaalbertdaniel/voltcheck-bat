@@ -1,5 +1,5 @@
 /**
- * VoltCheck — VIN Validator & Decoder
+ * InspectEV — VIN Validator & Decoder
  * Validates format and extracts market/manufacturer from WMI
  */
 

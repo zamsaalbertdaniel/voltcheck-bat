@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Legal Screen (Privacy Policy / Terms of Service)
+ * InspectEV — Legal Screen (Privacy Policy / Terms of Service)
  * Rendered as modal from Settings.
  * Content conforms to GDPR, Apple App Store & Google Play Store requirements.
  */

@@ -1,5 +1,5 @@
 /**
- * VoltCheck — BAT Insight Screen
+ * InspectEV — BAT Insight Screen
  * Educational "Know-How" module with:
  * 1. Paradoxul Bateriei (The Battery Paradox) — Athlete Analogy
  * 2. Comparison Table (50k vs 100k km)

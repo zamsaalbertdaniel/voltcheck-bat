@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Offline Cache Service
+ * InspectEV — Offline Cache Service
  * AsyncStorage wrapper with TTL expiry and type-safe get/set
  *
  * Used for:
@@ -134,7 +134,7 @@ export async function cachePurgeExpired(): Promise<number> {
     return purgedCount;
 }
 
-// ── VoltCheck-specific cache keys ────────────────────────────────────────────
+// ── InspectEV-specific cache keys ────────────────────────────────────────────
 
 /** Cache key for VIN decode result */
 export const vinCacheKey = (vin: string) => `vin:${vin.toUpperCase()}`;

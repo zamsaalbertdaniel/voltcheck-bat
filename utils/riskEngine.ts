@@ -1,5 +1,5 @@
 /**
- * VoltCheck — AI Risk Score Engine
+ * InspectEV — AI Risk Score Engine
  * Probabilistic model for EV battery degradation risk assessment
  */
 

@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Garage Screen (Reports Vault)
+ * InspectEV — Garage Screen (Reports Vault)
  * Shows stored reports with TTL badges and risk indicators
  * Fetches real data from Firestore, filtered by authenticated user
  */

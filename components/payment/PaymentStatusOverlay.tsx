@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Payment Status Overlay
+ * InspectEV — Payment Status Overlay
  * Extracted from PaymentScreen (payment.tsx).
  * Renders: idle pay button, processing spinner+bar, success checkmark, failed error.
  */

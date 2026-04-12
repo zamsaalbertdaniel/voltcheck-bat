@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Error Boundary Component
+ * InspectEV — Error Boundary Component
  * Catches React rendering errors and displays recovery UI
  */
 
@@ -40,7 +40,7 @@ export default class VoltErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, info: React.ErrorInfo) {
-        console.error('[VoltCheck Error]', error, info.componentStack);
+        console.error('[InspectEV Error]', error, info.componentStack);
 
         if (Platform.OS !== 'web') {
             // Dynamic import — crashlytics is native-only, not available on web

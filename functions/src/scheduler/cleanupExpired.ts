@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Function: TTL Scheduler
+ * InspectEV — Cloud Function: TTL Scheduler
  * Runs daily at 3:00 AM EET to expire and clean up old reports
  *
  * Flow (with pagination — handles up to 5000 reports per run):

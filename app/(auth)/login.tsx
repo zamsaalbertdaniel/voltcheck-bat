@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Login Screen
+ * InspectEV — Login Screen
  * Social Login: Google + Apple Sign-In
  * Zero-password authentication with device fingerprinting
  */

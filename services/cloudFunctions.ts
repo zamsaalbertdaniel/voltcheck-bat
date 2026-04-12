@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Functions Client Service
+ * InspectEV — Cloud Functions Client Service
  *
  * Connects the frontend to Cloud Functions (onCall + Firestore listeners)
  * Handles: VIN decode, payment intents, report status subscriptions

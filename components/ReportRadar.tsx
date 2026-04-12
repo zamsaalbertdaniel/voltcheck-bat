@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Report Radar UI Component
+ * InspectEV — Report Radar UI Component
  *
  * Real-time animated display of report pipeline status.
  * Subscribes to Firestore `statusDetails` and shows a radar-like

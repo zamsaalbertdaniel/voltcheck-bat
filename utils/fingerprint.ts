@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Device Fingerprinting
+ * InspectEV — Device Fingerprinting
  * Creates a unique SHA-256 hash from device characteristics
  * Used for anti-fraud and associating reports with physical devices
  */

@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Stripe Web Payment Service
+ * InspectEV — Stripe Web Payment Service
  * Uses @stripe/stripe-js for web platform payments
  *
  * Flow:

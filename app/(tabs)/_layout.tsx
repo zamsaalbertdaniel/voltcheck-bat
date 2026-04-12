@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Tab Layout
+ * InspectEV — Tab Layout
  * Dark Mode Tech navigation with 4 tabs: Scanare, BAT Insight, Garaj, Setări
  * FAZA 1 — Updated tab structure
  */

@@ -1,5 +1,5 @@
 /**
- * VoltCheck — 404 Not Found Screen
+ * InspectEV — 404 Not Found Screen
  */
 
 import { VoltBorderRadius, VoltColors, VoltFontSize, VoltSpacing } from '@/constants/Theme';

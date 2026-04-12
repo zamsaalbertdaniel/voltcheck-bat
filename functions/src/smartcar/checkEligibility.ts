@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Function: Check Cloud Eligibility
+ * InspectEV — Cloud Function: Check Cloud Eligibility
  *
  * "Zero Țepe" Gate — verifies if a vehicle supports cloud-based
  * Level 2 battery diagnosis BEFORE the user pays 99 RON.

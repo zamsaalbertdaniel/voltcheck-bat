@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Server-side AI Risk Score Engine
+ * InspectEV — Server-side AI Risk Score Engine
  * Probabilistic model for EV battery degradation risk assessment
  * RUNS ON CLOUD FUNCTIONS — not exposed to client manipulation
  *

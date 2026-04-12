@@ -1,6 +1,6 @@
 /**
- * VoltCheck — Dual Splash Screen Sequence
- * Phase 1: Probabilistic AI logo (1.5s) → Phase 2: BAT/VoltCheck logo (1.5s)
+ * InspectEV — Dual Splash Screen Sequence
+ * Phase 1: Probabilistic AI logo (1.5s) → Phase 2: BAT/InspectEV logo (1.5s)
  * Total animation time: ~3.0s (under the 3.5s budget)
  *
  * Design: Dark Mode Tech — Carbon background, Neon Green + Cyan accents
@@ -21,7 +21,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // ── Timing Config (Total: ~3.0s — under the 3.5s budget) ──
 const PHASE_1_DURATION = 1500;   // Probabilistic AI logo visible
 const CROSSFADE_DURATION = 500;  // Transition between phases
-const PHASE_2_DURATION = 1000;   // BAT/VoltCheck logo visible
+const PHASE_2_DURATION = 1000;   // BAT/InspectEV logo visible
 const FADE_OUT_DURATION = 400;   // Final fade out
 
 interface SplashSequenceProps {
@@ -145,7 +145,7 @@ export default function SplashSequence({ onComplete }: SplashSequenceProps) {
                 <Text style={styles.companyTagline}>Intelligent Risk Analysis</Text>
             </Animated.View>
 
-            {/* ── Phase 2: BAT / VoltCheck ── */}
+            {/* ── Phase 2: BAT / InspectEV ── */}
             <Animated.View
                 style={[
                     styles.phaseContainer,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
         textTransform: 'uppercase',
     },
 
-    // ── Phase 2: BAT / VoltCheck ──
+    // ── Phase 2: BAT / InspectEV ──
     batIcon: {
         fontSize: 48,
         marginRight: VoltSpacing.sm,

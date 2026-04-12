@@ -14,7 +14,7 @@ export function maskVin(vin: string): string {
 }
 
 /**
- * VoltCheck — Structured JSON Logger for Report Pipeline
+ * InspectEV — Structured JSON Logger for Report Pipeline
  * 
  * Features:
  * - Emits JSON objects for easy GCP Log Explorer parsing

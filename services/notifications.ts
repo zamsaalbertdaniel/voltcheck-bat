@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Push Notifications Service
+ * InspectEV — Push Notifications Service
  * Handles FCM token registration, permission requests, and notification display.
  *
  * Platform strategy:

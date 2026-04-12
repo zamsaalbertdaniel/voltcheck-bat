@@ -1,6 +1,6 @@
 /**
- * VoltCheck — Loading Screen Component
- * Full-screen loading with animated VoltCheck branding
+ * InspectEV — Loading Screen Component
+ * Full-screen loading with animated InspectEV branding
  * Used during app initialization, data fetching, and transitions
  */
 

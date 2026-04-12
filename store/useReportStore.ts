@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Report State Store (Zustand)
+ * InspectEV — Report State Store (Zustand)
  * Manages active report generation pipeline state + report history
  */
 

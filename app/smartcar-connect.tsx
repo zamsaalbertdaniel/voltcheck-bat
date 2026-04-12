@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Smartcar Connect Screen (Modal)
+ * InspectEV — Smartcar Connect Screen (Modal)
  * OAuth flow for Level 2 battery diagnosis.
  *
  * Flow:

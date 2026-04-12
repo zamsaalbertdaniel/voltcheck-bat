@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Provider URL Configuration
+ * InspectEV — Provider URL Configuration
  *
  * All external API endpoints are defined here so they can be
  * overridden via environment variables (useful for staging/testing).

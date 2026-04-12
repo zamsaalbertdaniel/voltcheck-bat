@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Payment Screen
+ * InspectEV — Payment Screen
  * Stripe Payment Sheet integration with order summary
  *
  * Pas 1: Real payment flow + mock isolation + security badges fix

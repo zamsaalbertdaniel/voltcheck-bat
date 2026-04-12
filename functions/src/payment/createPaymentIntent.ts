@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Function: Stripe Payment Intent
+ * InspectEV — Cloud Function: Stripe Payment Intent
  * Creates a PaymentIntent for Level 1 (15 RON) or Level 2 (99 RON)
  *
  * SECURITY: onCall (authenticated) + Rate Limited + VIN Validated

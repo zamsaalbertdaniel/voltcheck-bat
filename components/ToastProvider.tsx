@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Toast Notification System
+ * InspectEV — Toast Notification System
  * Lightweight toast for success, error, and info messages
  */
 

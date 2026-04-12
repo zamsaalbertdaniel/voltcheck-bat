@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Internationalization (i18next)
+ * InspectEV — Internationalization (i18next)
  * Languages: Română (ro) + English (en)
  */
 
@@ -16,7 +16,7 @@ i18n.use(initReactI18next).init({
         ro: { translation: ro },
         en: { translation: en },
     },
-    // VoltCheck targets the Romanian market exclusively.
+    // InspectEV targets the Romanian market exclusively.
     // Default language is always Romanian — users can switch
     // to English manually via Settings → Language toggle.
     lng: 'ro',

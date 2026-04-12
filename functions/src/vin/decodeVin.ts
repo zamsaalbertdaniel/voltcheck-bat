@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Function: VIN Decode Endpoint
+ * InspectEV — Cloud Function: VIN Decode Endpoint
  * 
  * SECURITY: onCall (authenticated only) + Rate Limited + VIN Validated
  * OPTIMIZATION: 24h cache deduplication for paid providers

@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Smartcar API Service
+ * InspectEV — Smartcar API Service
  * Primary source for Level 2 live battery diagnosis
  * Extracts: SoH, Usable Capacity, Cycle Count, DC/AC ratio, Cell Balance
  */

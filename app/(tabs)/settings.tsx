@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Settings Screen (formerly Profile)
+ * InspectEV — Settings Screen (formerly Profile)
  * User profile, settings, language toggle, and app info
  * FAZA 1 — Renamed from Profil to Setări
  */

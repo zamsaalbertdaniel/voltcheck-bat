@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Auth State Store (Zustand)
+ * InspectEV — Auth State Store (Zustand)
  * Global authentication state accessible from any component
  */
 

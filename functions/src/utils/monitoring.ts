@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Cloud Functions Monitoring Utilities
+ * InspectEV — Cloud Functions Monitoring Utilities
  * Structured logging helpers for custom metrics and performance tracking
  */
 

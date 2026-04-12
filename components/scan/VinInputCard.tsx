@@ -1,5 +1,5 @@
 /**
- * VoltCheck — VIN Input Card
+ * InspectEV — VIN Input Card
  * Extracted from ScanScreen (index.tsx) for better modularity.
  * Handles: VIN text input, camera shortcut, decode button, spinner.
  */

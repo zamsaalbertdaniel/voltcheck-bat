@@ -1,5 +1,5 @@
 /**
- * VoltCheck — Auth Layout
+ * InspectEV — Auth Layout
  * Redirects authenticated users to tabs, shows login for unauthenticated
  */
 
