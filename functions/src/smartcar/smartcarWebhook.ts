@@ -141,6 +141,16 @@ export const smartcarWebhook = onRequest(
             return;
         }
 
+        // SEC-5: Replay Protection
+        // Use the SHA-256 signature itself as a unique ID for this exact payload
+        const webhookLogRef = db.collection('smartcar_webhook_log').doc(signature);
+        const webhookLogSnap = await webhookLogRef.get();
+        if (webhookLogSnap.exists) {
+            logger.warn('[SmartcarWebhook] Replay detected! Signature already processed.');
+            res.status(200).send('OK (Replay Ignored)');
+            return;
+        }
+
         const body = req.body as any;
         const eventName: string = body?.eventName || '';
         const version: string = body?.version || 'unknown';
@@ -239,6 +249,14 @@ export const smartcarWebhook = onRequest(
             }
 
             await Promise.all(writes);
+            
+            // Mark this webhook's signature as processed to prevent replay attacks
+            await webhookLogRef.set({
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                eventName,
+                vehiclesCount: vehicles.length
+            });
+
             logger.info(
                 `[SmartcarWebhook] Processed ${vehicles.length} vehicle(s) for event ${eventName}`
             );
