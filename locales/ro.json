@@ -237,17 +237,31 @@
     "poweredBy": "Powered by Probabilistic AI"
   },
   "auth": {
-    "welcome": "Bine ai venit la InspectEV",
+    "welcome": "Bine ai venit",
     "subtitle": "Verifică sănătatea bateriei EV-ului tău",
+    "heroTagline": "Cumperi un EV second-hand?\nVerifică bateria înainte.",
+    "heroDescription": "InspectEV analizează istoricul vehiculului, rechemările producătorului și starea reală a bateriei. Raport AI complet în 30 de secunde.",
+    "statSpeed": "Raport instant",
+    "statRisk": "Scor de Risc",
+    "statReport": "Raport oficial",
     "loginGoogle": "Continuă cu Google",
     "loginApple": "Continuă cu Apple",
+    "loginEmail": "Continuă cu Email",
+    "orEmail": "sau cu email",
+    "emailPlaceholder": "adresa@email.com",
+    "emailInvalid": "Te rugăm să introduci o adresă de email validă.",
+    "sendMagicLink": "Trimite link de acces",
+    "magicLinkSentTitle": "Verifică-ți emailul!",
+    "magicLinkSentDesc": "Am trimis un link de acces la adresa ta de email. Apasă linkul pentru a te conecta — funcționează și în altă zi.",
+    "resendLink": "Trimite din nou",
     "termsAgree": "Prin continuare, accepți Termenii și Condițiile",
     "errorTitle": "Eroare Autentificare",
     "errorGeneric": "Autentificarea a eșuat. Încearcă din nou.",
     "features": {
-      "security": "Autentificare fără parolă",
-      "speed": "Raport în 30 de secunde",
-      "ai": "Scor de Risc AI Proprietar"
+      "security": "Fără parolă",
+      "speed": "Raport în 30s",
+      "ai": "Scor AI Proprietar",
+      "ev": "Specializat 100% EV"
     }
   },
   "eligibility": {

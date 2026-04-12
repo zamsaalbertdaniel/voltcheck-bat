@@ -237,17 +237,31 @@
         "poweredBy": "Powered by Probabilistic AI"
     },
     "auth": {
-        "welcome": "Welcome to InspectEV",
+        "welcome": "Welcome",
         "subtitle": "Verify your EV's battery health",
+        "heroTagline": "Buying a used EV?\nCheck the battery first.",
+        "heroDescription": "InspectEV analyzes vehicle history, manufacturer recalls, and real battery health. Full AI report in 30 seconds.",
+        "statSpeed": "Instant report",
+        "statRisk": "Risk Score",
+        "statReport": "Official report",
         "loginGoogle": "Continue with Google",
         "loginApple": "Continue with Apple",
+        "loginEmail": "Continue with Email",
+        "orEmail": "or with email",
+        "emailPlaceholder": "you@email.com",
+        "emailInvalid": "Please enter a valid email address.",
+        "sendMagicLink": "Send access link",
+        "magicLinkSentTitle": "Check your email!",
+        "magicLinkSentDesc": "We sent an access link to your email address. Click the link to sign in — it works even on another day.",
+        "resendLink": "Send again",
         "termsAgree": "By continuing, you agree to the Terms & Conditions",
         "errorTitle": "Authentication Error",
         "errorGeneric": "Authentication failed. Please try again.",
         "features": {
-            "security": "Zero-password authentication",
-            "speed": "Report in 30 seconds",
-            "ai": "Proprietary AI Risk Score"
+            "security": "Zero-password",
+            "speed": "Report in 30s",
+            "ai": "Proprietary AI Score",
+            "ev": "100% EV specialized"
         }
     },
     "eligibility": {
