@@ -22,6 +22,7 @@ import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { calculateRiskScore, RiskInput } from '../utils/riskEngine';
 import { deriveAssessmentType, deriveSourceTraceability } from '../utils/reportDerivations';
 import { PipelineLogger } from '../utils/pipelineLogger';
+import { randomUUID } from 'crypto';
 // AssessmentType and SourceTraceability used via reportDerivations
 
 if (!admin.apps.length) {
@@ -327,6 +328,7 @@ export const reportPipeline = onDocumentCreated(
                 recallCount: recalls.length,
                 pdfUrl: downloadUrl,
                 storagePath: filePath,
+                shareToken: randomUUID(),
                 expiresAt,
                 vehicle,
                 pipelineDurationMs: pipelineDuration,

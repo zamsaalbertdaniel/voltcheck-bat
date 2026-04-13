@@ -181,7 +181,7 @@ export const decodeVin = onCall({
                 const cacheAge = Date.now() - (cacheData.cachedAt?.toDate?.()?.getTime() || 0);
 
                 if (cacheAge < CACHE_TTL_MS) {
-                    logger.info(`[VIN Cache] HIT for ${vin} (age: ${Math.round(cacheAge / 60000)}min)`);
+                    logger.info(`[VIN Cache] HIT for ${maskVin(vin)} (age: ${Math.round(cacheAge / 60000)}min)`);
                     return {
                         ...cacheData.decodedData,
                         source: 'cache',
@@ -245,7 +245,7 @@ export const decodeVin = onCall({
                             });
                         }
                         logger.info(
-                            `[API Deduplication] Reusing ${validCached.length} cached provider(s) for ${vin}`
+                            `[API Deduplication] Reusing ${validCached.length} cached provider(s) for ${maskVin(vin)}`
                         );
                     }
                 }
@@ -303,7 +303,7 @@ export const decodeVin = onCall({
 
             if (allProvidersFailed) {
                 logger.error(
-                    `[FAIL-SAFE] All providers failed for VIN ${vin}. Marking for manual review.`
+                    `[FAIL-SAFE] All providers failed for VIN ${maskVin(vin)}. Marking for manual review.`
                 );
             }
 
@@ -332,7 +332,7 @@ export const decodeVin = onCall({
 
             const totalTime = Date.now() - pipelineStart;
             logger.info(
-                `[VIN Decode] Complete for ${vin} in ${totalTime}ms — ` +
+                `[VIN Decode] Complete for ${maskVin(vin)} in ${totalTime}ms — ` +
                 `NHTSA:${nhtsaFailed ? 'FAIL' : 'OK'} ` +
                 `Providers:${paidProviderResults.map(p => `${p.provider}:${p.status}`).join(',')}`
             );
@@ -343,15 +343,8 @@ export const decodeVin = onCall({
     } catch (error: any) {
         if (error instanceof HttpsError) throw error;
         
-        // Check for specific error types that might be thrown by libraries
-        if (error.code && typeof error.code === 'string') {
-             // If it looks like an HttpsError but instance check failed
-             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-             throw new HttpsError(error.code as any, error.message);
-        }
-
         logger.error('[VIN Decode] Unexpected error:', error);
-        throw new HttpsError('internal', error.message || 'VIN decode failed');
+        throw new HttpsError('internal', 'VIN decode failed. Please try again.');
     }
 });
 

@@ -17,6 +17,7 @@ import { logger } from 'firebase-functions/v2';
 import { defineSecret } from 'firebase-functions/params';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
+import { validateVIN } from '../utils/vinValidator';
 
 const smartcarClientId = defineSecret('SMARTCAR_CLIENT_ID');
 
@@ -50,15 +51,20 @@ export const checkCloudEligibility = onCall(
         secrets: [smartcarClientId],
     },
     async (request): Promise<EligibilityResult> => {
-        // Auth is optional for eligibility check (can be used pre-login)
-        // Rate limit by UID if authenticated, otherwise by IP-derived key
-        const rateLimitKey = request.auth?.uid || request.rawRequest?.ip || 'anonymous';
-        await checkRateLimit(rateLimitKey, 'eligibility', RATE_LIMITS.eligibility);
+        // S3: Auth is now mandatory for maximum security
+        if (!request.auth) {
+            throw new HttpsError('unauthenticated', 'Authentication required for eligibility check');
+        }
+
+        // Rate limit by authenticated UID
+        await checkRateLimit(request.auth.uid, 'eligibility', RATE_LIMITS.eligibility);
 
         const { vin } = request.data;
 
-        if (!vin || typeof vin !== 'string' || vin.length !== 17) {
-            throw new HttpsError('invalid-argument', 'A valid 17-character VIN is required');
+        // A7: Full ISO 3779 VIN validation (not just length check)
+        const vinCheck = validateVIN(vin);
+        if (!vinCheck.valid) {
+            throw new HttpsError('invalid-argument', vinCheck.error || 'Invalid VIN');
         }
 
         const clientId = process.env.SMARTCAR_CLIENT_ID || '';
@@ -73,7 +79,7 @@ export const checkCloudEligibility = onCall(
             }
 
             // ── Step 2: Fallback — NHTSA decode + known makes list ──
-            logger.info(`[Eligibility] Smartcar API unavailable, falling back to NHTSA + known makes for VIN ${vin}`);
+            logger.info(`[Eligibility] Smartcar API unavailable, falling back to NHTSA for VIN ${vin.slice(0, 3)}***`);
             return await fallbackEligibilityCheck(vin);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
@@ -118,7 +124,7 @@ async function checkSmartcarCompatibility(
 
         const data = await response.json();
 
-        logger.info(`[Eligibility] Smartcar result for ${vin}: compatible=${data.compatible}`);
+        logger.info(`[Eligibility] Smartcar result for ${vin.slice(0, 3)}***: compatible=${data.compatible}`);
 
         if (data.compatible) {
             return {

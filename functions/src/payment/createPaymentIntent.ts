@@ -3,6 +3,7 @@
  * Creates a PaymentIntent for Level 1 (15 RON) or Level 2 (99 RON)
  *
  * SECURITY: onCall (authenticated) + Rate Limited + VIN Validated
+ * + idempotencyKey + duplicate payment guard
  */
 
 import * as admin from 'firebase-admin';
@@ -10,6 +11,7 @@ import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions/v2';
 import { defineSecret } from 'firebase-functions/params';
 import Stripe from 'stripe';
+import { createHash } from 'crypto';
 
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
@@ -89,6 +91,36 @@ export const createPaymentIntent = onCall({
         const cleanVin = vin.toUpperCase().trim();
         const amount = PRICES[level];
 
+        // ── A4: Duplicate payment guard per VIN/user/level ──
+        const existingPayments = await db.collection('payments')
+            .where('userId', '==', userId)
+            .where('vin', '==', cleanVin)
+            .where('level', '==', level)
+            .where('status', 'in', ['succeeded', 'pending'])
+            .limit(1)
+            .get();
+
+        if (!existingPayments.empty) {
+            const existing = existingPayments.docs[0].data();
+            // Allow if the pending payment is older than 30 minutes (abandoned)
+            if (existing.status === 'pending') {
+                const createdAt = existing.createdAt?.toDate?.() || new Date(0);
+                const ageMinutes = (Date.now() - createdAt.getTime()) / 60000;
+                if (ageMinutes < 30) {
+                    throw new HttpsError(
+                        'already-exists',
+                        'A payment for this VIN and level is already in progress.'
+                    );
+                }
+            } else {
+                // status === 'succeeded'
+                throw new HttpsError(
+                    'already-exists',
+                    'You have already purchased this report level for this VIN.'
+                );
+            }
+        }
+
         // TTL for payment + report
         const ttlDays = level === 1 ? 30 : 365;
         const expiresAt = new Date();
@@ -113,6 +145,12 @@ export const createPaymentIntent = onCall({
                 );
             }
 
+            // A3: Generate idempotencyKey to prevent duplicate PaymentIntents on network retry
+            const idempotencyKey = createHash('sha256')
+                .update(`${userId}_${cleanVin}_${level}_${Date.now()}`)
+                .digest('hex')
+                .substring(0, 48);
+
             // Create PaymentIntent with full metadata
             const paymentIntent = await getStripe().paymentIntents.create({
                 amount,
@@ -129,6 +167,8 @@ export const createPaymentIntent = onCall({
                 automatic_payment_methods: {
                     enabled: true,
                 },
+            }, {
+                idempotencyKey,
             });
 
             // Create payment record with expiry
@@ -159,7 +199,7 @@ export const createPaymentIntent = onCall({
         } catch (error: any) {
             if (error instanceof HttpsError) throw error;
             logger.error('[Payment] Intent creation failed:', error);
-            throw new HttpsError('internal', error.message || 'Payment setup failed');
+            throw new HttpsError('internal', 'Payment setup failed. Please try again.');
         }
     }
 );

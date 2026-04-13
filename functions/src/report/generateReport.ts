@@ -10,6 +10,7 @@ import * as admin from 'firebase-admin';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
 import { logger } from 'firebase-functions/v2';
 import { generatePDFBuffer } from './pdfGenerator';
+import { randomUUID } from 'crypto';
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -116,6 +117,7 @@ export const generateReport = onCall({
                 riskCategory: data.riskCategory,
                 pdfUrl: downloadUrl,
                 storagePath: filePath,
+                shareToken: randomUUID(),
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
                 expiresAt,
                 vehicle: data.vehicle,
@@ -134,7 +136,7 @@ export const generateReport = onCall({
         } catch (error: any) {
             if (error instanceof HttpsError) throw error;
             logger.error('[PDF] Generation failed:', error);
-            throw new HttpsError('internal', error.message || 'PDF generation failed');
+            throw new HttpsError('internal', 'PDF generation failed. Please try again.');
         }
     }
 );

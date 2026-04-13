@@ -8,6 +8,7 @@
  */
 
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
+import { logger } from 'firebase-functions/v2';
 import * as admin from 'firebase-admin';
 import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 
@@ -75,7 +76,7 @@ export const deleteUserAccount = onCall(
 
             return { success: true, deletedDocs };
         } catch (err: any) {
-            console.error(`[deleteUserAccount] Failed for uid=${uid}:`, err);
+            logger.error(`[deleteUserAccount] Failed for uid=${uid}:`, err);
             throw new HttpsError('internal', 'Account deletion failed. Please try again or contact support.');
         }
     }

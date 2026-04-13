@@ -98,7 +98,6 @@ export const ocrVin = onCall({ maxInstances: 10 }, async (request) => {
 
     } catch (error: unknown) {
         logger.error('[ocrVin] Vision API error:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        throw new HttpsError('internal', `OCR processing failed: ${errorMessage}`);
+        throw new HttpsError('internal', 'OCR processing failed. Please try again.');
     }
 });

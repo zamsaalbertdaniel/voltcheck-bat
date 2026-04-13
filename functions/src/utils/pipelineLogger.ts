@@ -108,7 +108,6 @@ export class PipelineLogger {
             step,
             error: {
                 message: error?.message || 'Unknown error',
-                stack: error?.stack,
                 code: error?.code,
             },
             ...extra,
@@ -127,7 +126,6 @@ export class PipelineLogger {
             elapsedMs,
             error: {
                 message: error?.message || 'Unknown error',
-                stack: error?.stack,
                 code: error?.code,
             },
             ...extra,
