@@ -20,6 +20,7 @@ import * as admin from 'firebase-admin';
 import { logger } from 'firebase-functions/v2';
 import { defineSecret } from 'firebase-functions/params';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 
 // Declare secrets so Firebase injects them at runtime
 const smartcarClientId = defineSecret('SMARTCAR_CLIENT_ID');
@@ -54,6 +55,9 @@ export const smartcarExchange = onCall(
         if (!request.auth?.uid) {
             throw new HttpsError('unauthenticated', 'Authentication required');
         }
+
+        // Rate limiting
+        await checkRateLimit(request.auth.uid, 'smartcarExchange', RATE_LIMITS.smartcarExchange);
 
         const { code } = request.data;
         if (!code || typeof code !== 'string') {
@@ -164,6 +168,9 @@ export const smartcarBatteryData = onCall(
         if (!request.auth?.uid) {
             throw new HttpsError('unauthenticated', 'Authentication required');
         }
+
+        // Rate limiting
+        await checkRateLimit(request.auth.uid, 'smartcarBattery', RATE_LIMITS.smartcarBattery);
 
         const { vehicleId, vehicleMake, nominalCapacityKwh } = request.data;
         if (!vehicleId || typeof vehicleId !== 'string') {
@@ -418,6 +425,9 @@ export const smartcarDisconnect = onCall(
         if (!request.auth?.uid) {
             throw new HttpsError('unauthenticated', 'Authentication required');
         }
+
+        // Rate limiting
+        await checkRateLimit(request.auth.uid, 'smartcarDisconnect', RATE_LIMITS.smartcarDisconnect);
 
         const userId = request.auth.uid;
 

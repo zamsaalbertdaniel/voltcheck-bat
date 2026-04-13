@@ -16,6 +16,7 @@
 import { logger } from 'firebase-functions/v2';
 import { defineSecret } from 'firebase-functions/params';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 
 const smartcarClientId = defineSecret('SMARTCAR_CLIENT_ID');
 
@@ -50,6 +51,10 @@ export const checkCloudEligibility = onCall(
     },
     async (request): Promise<EligibilityResult> => {
         // Auth is optional for eligibility check (can be used pre-login)
+        // Rate limit by UID if authenticated, otherwise by IP-derived key
+        const rateLimitKey = request.auth?.uid || request.rawRequest?.ip || 'anonymous';
+        await checkRateLimit(rateLimitKey, 'eligibility', RATE_LIMITS.eligibility);
+
         const { vin } = request.data;
 
         if (!vin || typeof vin !== 'string' || vin.length !== 17) {

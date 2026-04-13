@@ -104,4 +104,14 @@ export const RATE_LIMITS = {
     report: { maxRequests: 3, windowSeconds: 300 },
     /** OCR VIN scan: 8 per minute (Cloud Vision API is billed per call) */
     ocrVin: { maxRequests: 8, windowSeconds: 60 },
+    /** Smartcar token exchange: 5 per minute */
+    smartcarExchange: { maxRequests: 5, windowSeconds: 60 },
+    /** Smartcar battery data: 10 per minute */
+    smartcarBattery: { maxRequests: 10, windowSeconds: 60 },
+    /** Smartcar disconnect: 3 per minute */
+    smartcarDisconnect: { maxRequests: 3, windowSeconds: 60 },
+    /** Eligibility check: 15 per minute (public, but caps Smartcar API cost) */
+    eligibility: { maxRequests: 15, windowSeconds: 60 },
+    /** Account deletion: 2 per hour (destructive, irreversible) */
+    deleteAccount: { maxRequests: 2, windowSeconds: 3600 },
 } as const;

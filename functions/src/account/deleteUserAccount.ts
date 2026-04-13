@@ -9,6 +9,7 @@
 
 import { HttpsError, onCall } from 'firebase-functions/v2/https';
 import * as admin from 'firebase-admin';
+import { checkRateLimit, RATE_LIMITS } from '../utils/rateLimiter';
 
 const db = admin.firestore();
 const auth = admin.auth();
@@ -37,6 +38,9 @@ export const deleteUserAccount = onCall(
         }
 
         const uid = request.auth.uid;
+
+        // Rate limiting — 2 per hour (destructive action)
+        await checkRateLimit(uid, 'deleteAccount', RATE_LIMITS.deleteAccount);
 
         try {
             const batch = db.batch();
