@@ -23,6 +23,10 @@ import { calculateRiskScore, RiskInput } from '../utils/riskEngine';
 import { deriveAssessmentType, deriveSourceTraceability } from '../utils/reportDerivations';
 import { PipelineLogger } from '../utils/pipelineLogger';
 import { randomUUID } from 'crypto';
+import { defineSecret } from 'firebase-functions/params';
+
+const smtpUser = defineSecret('SMTP_USER');
+const smtpPass = defineSecret('SMTP_PASS');
 // AssessmentType and SourceTraceability used via reportDerivations
 
 if (!admin.apps.length) {
@@ -106,6 +110,7 @@ export const reportPipeline = onDocumentCreated(
         region: 'europe-west1',
         timeoutSeconds: 120,
         memory: '512MiB',
+        secrets: [smtpUser, smtpPass]
     },
     async (event) => {
         const snap = event.data;

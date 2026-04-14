@@ -20,6 +20,7 @@ import {
 import {
     checkEligibilityRemote,
     createPaymentIntentRemote,
+    createCheckoutSessionRemote,
     decodeVinRemote,
     EligibilityResponse,
     parseCloudError,
@@ -174,12 +175,41 @@ export default function DashboardIndex() {
         }
 
         try {
+            if (Platform.OS === 'web') {
+                const { url } = await createCheckoutSessionRemote({
+                    level,
+                    vin,
+                    vehicleMake: decodedData?.nhtsa?.make,
+                    vehicleModel: decodedData?.nhtsa?.model,
+                    returnUrl: window.location.origin + '/payment-complete',
+                });
+                // Redirect to Hosted Checkout
+                window.location.href = url;
+                return;
+            }
+
             const intent = await createPaymentIntentRemote({
                 level,
                 vin,
                 vehicleMake: decodedData?.nhtsa?.make,
                 vehicleModel: decodedData?.nhtsa?.model,
             });
+
+            const { initializeStripePayment, presentStripePayment } = await import('@/services/stripeService');
+            
+            const { error: initError } = await initializeStripePayment(intent.clientSecret);
+            if (initError) throw new Error(initError.message || t('errors.paymentFailed'));
+
+            const { error: presentError } = await presentStripePayment();
+            if (presentError) {
+                if (presentError.code === 'Canceled') {
+                    setScreenState('teaser');
+                    return;
+                }
+                throw new Error(presentError.message || t('errors.paymentFailed'));
+            }
+
+            setScreenState('pipeline');
 
             paymentUnsubRef.current = subscribeToPaymentStatus(
                 intent.paymentIntentId,
@@ -193,6 +223,7 @@ export default function DashboardIndex() {
                     }
                     if (update.paymentStatus === 'completed' && update.reportId) {
                         setReportId(update.reportId);
+                        // Make sure screenState is pipeline
                         setScreenState('pipeline');
                         paymentUnsubRef.current?.();
                         paymentUnsubRef.current = null;
@@ -211,7 +242,7 @@ export default function DashboardIndex() {
             setErrorMessage(
                 parsed.isRateLimit
                     ? t('errors.rateLimit', { seconds: parsed.retryAfterSeconds || 60 })
-                    : t('errors.paymentFailed')
+                    : (error.message || t('errors.paymentFailed'))
             );
             setScreenState('teaser');
         }

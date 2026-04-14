@@ -263,18 +263,18 @@ export default function LoginScreen() {
                     throw new Error('Autentificarea nu s-a inițializat. Reîncarcă pagina și încearcă din nou.');
                 }
 
-                const { signInWithRedirect, GoogleAuthProvider, OAuthProvider } = _webAuthMod;
+                const { signInWithPopup, GoogleAuthProvider, OAuthProvider } = _webAuthMod;
                 const auth = _webAuth;
 
                 if (provider === 'google') {
-                    await signInWithRedirect(auth, new GoogleAuthProvider());
+                    await signInWithPopup(auth, new GoogleAuthProvider());
                 } else {
                     const appleProvider = new OAuthProvider('apple.com');
                     appleProvider.addScope('email');
                     appleProvider.addScope('name');
-                    await signInWithRedirect(auth, appleProvider);
+                    await signInWithPopup(auth, appleProvider);
                 }
-                // Browser will redirect away — no code runs after this point
+                // Auth listener will handle redirect instantly after popup closes
                 return;
             } else {
                 const rnAuth = (await import('@react-native-firebase/auth')).default;

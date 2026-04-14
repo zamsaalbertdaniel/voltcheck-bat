@@ -1,4 +1,5 @@
 import { logger } from 'firebase-functions/v2';
+import { sendEmailAlert } from './alerting';
 
 export interface PipelineLoggerContext {
     reportId: string;
@@ -119,16 +120,30 @@ export class PipelineLogger {
         const now = Date.now();
         const elapsedMs = now - this.startTime;
 
+        const errMessage = error?.message || 'Unknown error';
+
         this.safeLog('error', {
             event: 'pipeline_failed',
             outcome: 'failure',
             failedAtStep: step,
             elapsedMs,
             error: {
-                message: error?.message || 'Unknown error',
+                message: errMessage,
                 code: error?.code,
             },
             ...extra,
         });
+
+        // Fire & Forget email alert for maximum visibility
+        const emailBody = `Eroare Severă în Pipeline-ul de generare raport.\n\n`
+            + `Report ID: ${this.context.reportId}\n`
+            + `User ID: ${this.context.userId}\n`
+            + `VIN: ${this.context.vin}\n`
+            + `Pas: ${step}\n\n`
+            + `Mesaj eroare:\n${errMessage}\n\n`
+            + `Acest raport a eșuat. Verifică logurile pe Firebase.`;
+            
+        sendEmailAlert(`Eșec Pipeline (Pas: ${step})`, emailBody)
+            .catch(e => logger.error('[Alerting] Eroare trimitere fail mail:', e));
     }
 }

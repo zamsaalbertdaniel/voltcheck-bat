@@ -289,6 +289,40 @@ export async function createPaymentIntentRemote(params: {
     }
 }
 
+export interface CheckoutSessionResponse {
+    url: string;
+    sessionId: string;
+}
+
+/**
+ * Create Stripe Checkout Session (for Web platform)
+ */
+export async function createCheckoutSessionRemote(params: {
+    level: 1 | 2;
+    vin: string;
+    vehicleMake?: string;
+    vehicleModel?: string;
+    returnUrl: string;
+}): Promise<CheckoutSessionResponse> {
+    if (USE_MOCK_DATA) {
+        await simulateDelay(800);
+        return {
+            url: params.returnUrl + '?session_id=mock_session_123',
+            sessionId: 'cs_mock_' + Date.now(),
+        };
+    }
+
+    const { app } = await getFirebaseServices();
+
+    const { getFunctions, httpsCallable } = await import('firebase/functions');
+    const functions = getFunctions(app, FUNCTIONS_REGION);
+    const createSession = httpsCallable<typeof params, CheckoutSessionResponse>(
+        functions, 'createCheckoutSession'
+    );
+    const result = await createSession(params);
+    return result.data;
+}
+
 /**
  * Subscribe to report status updates in real-time
  * Returns an unsubscribe function
