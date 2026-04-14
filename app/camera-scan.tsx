@@ -56,7 +56,7 @@ export default function CameraScanScreen() {
             if (response.success && response.vin) {
                 // Success! Pass back to the tabs (specifically the scan tab)
                 router.dismissAll();
-                router.replace({ pathname: '/(tabs)', params: { scannedVin: response.vin } });
+                router.replace({ pathname: '/(dashboard)', params: { scannedVin: response.vin } } as any);
             } else {
                 Alert.alert(
                     'Eroare Scanare',

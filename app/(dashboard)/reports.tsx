@@ -1,5 +1,5 @@
 /**
- * InspectEV — Garage Screen (Reports Vault)
+ * InspectEV — Reports Screen (formerly Garage)
  * Shows stored reports with TTL badges and risk indicators
  * Fetches real data from Firestore, filtered by authenticated user
  */
@@ -282,7 +282,7 @@ export default function GarageScreen() {
       <Text style={styles.emptyTitle}>{t('garage.empty')}</Text>
       <TouchableOpacity
         style={styles.firstScanButton}
-        onPress={() => router.push('/(tabs)')}
+        onPress={() => router.push('/(dashboard)')}
         activeOpacity={0.8}
       >
         <MaterialCommunityIcons name="magnify-scan" size={20} color={VoltColors.textOnGreen} />

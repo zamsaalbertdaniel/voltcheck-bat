@@ -52,13 +52,48 @@ async function initFirebase() {
         auth = getAuth(app);
 
         // Initialize App Check (reCAPTCHA Enterprise) — web only
+        // IMPORTANT: If reCAPTCHA Enterprise script is unreachable (503 / broken keys),
+        // we MUST NOT call initializeAppCheck — once initialized with a broken provider,
+        // it silently blocks ALL Firebase Auth operations that require App Check tokens.
+        // Strategy: pre-flight check the script, only init if it actually loaded.
         const recaptchaKey = process.env.EXPO_PUBLIC_RECAPTCHA_SITE_KEY;
         if (recaptchaKey) {
-            const { initializeAppCheck, ReCaptchaEnterpriseProvider } = await import('firebase/app-check');
-            initializeAppCheck(app, {
-                provider: new ReCaptchaEnterpriseProvider(recaptchaKey),
-                isTokenAutoRefreshEnabled: true,
-            });
+            try {
+                // In development, use debug token
+                if (process.env.NODE_ENV === 'development' || process.env.EXPO_PUBLIC_USE_MOCK_DATA === 'true') {
+                    (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+                }
+
+                // Pre-flight: verify reCAPTCHA Enterprise script is accessible
+                const scriptOk = await new Promise<boolean>((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${recaptchaKey}`;
+                    script.onload = () => { resolve(true); };
+                    script.onerror = () => { resolve(false); };
+                    // 5s timeout — if script doesn't load, skip App Check
+                    const timer = setTimeout(() => resolve(false), 5000);
+                    script.addEventListener('load', () => clearTimeout(timer));
+                    script.addEventListener('error', () => clearTimeout(timer));
+                    document.head.appendChild(script);
+                });
+
+                if (scriptOk) {
+                    const appCheckMod = await import('firebase/app-check');
+                    appCheckMod.initializeAppCheck(app, {
+                        provider: new appCheckMod.ReCaptchaEnterpriseProvider(recaptchaKey),
+                        isTokenAutoRefreshEnabled: true,
+                    });
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.warn(
+                        '[Firebase] reCAPTCHA Enterprise script unreachable (503 or timeout). ' +
+                        'App Check skipped — fix reCAPTCHA keys in Google Cloud Console.'
+                    );
+                }
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.warn('[Firebase] App Check init failed:', e);
+            }
         }
     } else {
         // Native SDK (@react-native-firebase)

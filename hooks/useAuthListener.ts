@@ -120,18 +120,40 @@ export function useAuthListener() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 2. Route guard — redirect based on auth state ──────────────────────
+  // Public routes: '/' (landing), '/legal/*', '/report/[id]' (shared links)
+  // Protected routes: '(dashboard)/*' only
   useEffect(() => {
     if (!isReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inDashboardGroup = segments[0] === '(dashboard)';
 
     if (isAuthenticated && inAuthGroup) {
-      // Logged in but on auth screen → go to tabs (home)
-      router.replace('/');
-    } else if (!isAuthenticated && !inAuthGroup) {
-      // Not logged in but on protected screen → go to login
+      // Logged in but on auth screen → go to dashboard
+      // Recover pending VIN from magic link flow or query params
+      let pendingVin: string | null = null;
+      if (Platform.OS === 'web') {
+        pendingVin = window.sessionStorage.getItem('inspectev_pending_vin');
+        if (pendingVin) {
+          window.sessionStorage.removeItem('inspectev_pending_vin');
+        }
+        // Also check current URL params (Google/Apple redirect preserves ?vin=)
+        if (!pendingVin) {
+          const urlParams = new URLSearchParams(window.location.search);
+          pendingVin = urlParams.get('vin');
+        }
+      }
+
+      if (pendingVin) {
+        router.replace({ pathname: '/(dashboard)', params: { vin: pendingVin } } as never);
+      } else {
+        router.replace('/(dashboard)');
+      }
+    } else if (!isAuthenticated && inDashboardGroup) {
+      // Not logged in but on protected dashboard → go to login
       router.replace('/login');
     }
+    // Public routes (/, /legal/*, /report/[id]) — no redirect
   }, [isAuthenticated, segments, isReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { isReady, user };

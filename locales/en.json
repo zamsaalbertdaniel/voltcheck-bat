@@ -4,12 +4,6 @@
         "tagline": "Check the battery. Buy with confidence.",
         "version": "v1.0"
     },
-    "tabs": {
-        "scan": "Scan",
-        "insight": "BAT Insight",
-        "garage": "Garage",
-        "settings": "Settings"
-    },
     "scan": {
         "title": "Check Your EV",
         "subtitle": "Enter the VIN to get a full report",

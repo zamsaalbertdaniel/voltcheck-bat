@@ -18,6 +18,8 @@ import {
 } from '@/constants/Theme';
 import { subscribeToReportStatus, USE_MOCK_DATA } from '@/services/cloudFunctions';
 import RecallMap from '@/components/RecallMap';
+import InfoTooltip from '@/components/report/InfoTooltip';
+import VoltFooter from '@/components/layout/VoltFooter';
 import type { Recall } from '@/utils/recallClassifier';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
@@ -375,7 +377,21 @@ export default function ReportScreen() {
                 <Text style={[styles.riskCategoryText, { color: riskColor }]}>
                     {t(`report.riskCategories.${riskCat}`)}
                 </Text>
-                <Text style={styles.riskTitle}>{t('report.riskScore')}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.riskTitle}>{t('report.riskScore')}</Text>
+                    <InfoTooltip
+                        title={t('report.tooltip.riskTitle', 'Scor de Risc AI')}
+                        explanation={
+                            report.riskScore <= 25
+                                ? t('report.tooltip.riskLow', 'Un scor sub 25 indică un vehicul cu risc scăzut. Bateria și istoricul sunt în parametri optimi.')
+                                : report.riskScore <= 50
+                                    ? t('report.tooltip.riskMedium', 'Un scor între 26-50 indică degradare normală. Verifică factorii individuali pentru detalii.')
+                                    : report.riskScore <= 75
+                                        ? t('report.tooltip.riskHigh', 'Un scor între 51-75 sugerează factori de risc semnificativi. Recomandăm o inspecție fizică suplimentară.')
+                                        : t('report.tooltip.riskCritical', 'Un scor peste 75 indică risc critic. Recomandăm prudență maximă și inspecție profesională.')
+                        }
+                    />
+                </View>
 
                 <View style={[styles.assessmentBadge, { backgroundColor: badge.bg }]}>
                     <Text style={[styles.assessmentBadgeText, { color: badge.text }]}>
@@ -424,7 +440,21 @@ export default function ReportScreen() {
                             }]} />
                         </View>
                         <View style={styles.sohLabels}>
-                            <Text style={styles.sohLabel}>{t('report.battery.soh')}</Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                <Text style={styles.sohLabel}>{t('report.battery.soh')}</Text>
+                                <InfoTooltip
+                                    title={t('report.tooltip.sohTitle', 'Sănătate Baterie (SoH)')}
+                                    explanation={
+                                        report.stateOfHealth > 90
+                                            ? t('report.tooltip.sohExcellent', `O degradare de ${100 - report.stateOfHealth}% este minimă. Bateria este aproape nouă, cu o viață utilă estimată de peste 10 ani.`)
+                                            : report.stateOfHealth > 80
+                                                ? t('report.tooltip.sohGood', `O degradare de ${100 - report.stateOfHealth}% este absolut normală pentru vârsta vehiculului. Bateria mai are o viață utilă estimată de 6-8 ani.`)
+                                                : report.stateOfHealth > 70
+                                                    ? t('report.tooltip.sohFair', `O degradare de ${100 - report.stateOfHealth}% indică uzură moderată. Autonomia reală este cu ~${100 - report.stateOfHealth}% mai mică decât cea nominală.`)
+                                                    : t('report.tooltip.sohPoor', `O degradare de ${100 - report.stateOfHealth}% este semnificativă. Recomandăm evaluarea costului de înlocuire a bateriei înainte de achiziție.`)
+                                    }
+                                />
+                            </View>
                             <Text style={[styles.sohValue, {
                                 color: report.stateOfHealth > 80 ? VoltColors.success : VoltColors.warning,
                             }]}>
@@ -617,6 +647,8 @@ export default function ReportScreen() {
                 <Text style={styles.metaText}>Generat: {report.createdAt}</Text>
                 <Text style={styles.metaText}>Expiră: {report.expiresAt}</Text>
             </View>
+
+            <VoltFooter />
         </ScrollView>
     );
 }

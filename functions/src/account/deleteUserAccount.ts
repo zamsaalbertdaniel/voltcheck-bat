@@ -75,6 +75,7 @@ export const deleteUserAccount = onCall(
             await auth.deleteUser(uid);
 
             return { success: true, deletedDocs };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             logger.error(`[deleteUserAccount] Failed for uid=${uid}:`, err);
             throw new HttpsError('internal', 'Account deletion failed. Please try again or contact support.');

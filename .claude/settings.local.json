@@ -1,42 +1,200 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -r \"TODO\\\\|FIXME\\\\|BUG\\\\|HACK\\\\|XXX\\\\|SECURITY\" /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/functions/src --include=*.ts)",
-      "Bash(wc -l /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/*/*tsx /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/components/*.tsx)",
-      "Bash(npm outdated:*)",
-      "Bash(ls -la *.md)",
-      "Bash(grep -r \"SECURITY\\\\|security-related\\\\|vulnerability\" /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman --include=*.ts --include=*.tsx --include=*.md)",
-      "Bash(grep -r \"TODO\\\\|FIXME\" /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman --include=*.ts --include=*.tsx)",
-      "Bash(wc -l functions/src/__tests__/*.test.ts)",
-      "Bash(find /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman -maxdepth 3 -name *.test.ts -o -name *.spec.ts)",
-      "Bash(xargs wc:*)",
       "Bash(npm run:*)",
       "Bash(npm test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run format:*)",
+      "Bash(npm outdated:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx expo:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx prettier:*)",
+      "Bash(npx lint-staged:*)",
+      "Bash(ls:*)",
+      "Bash(ls -la:*)",
+      "Bash(ls -la *.md)",
+      "Bash(wc -l:*)",
+      "Bash(xargs wc:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:*)",
+      "Bash(curl -s -m 5 http://localhost:*)",
+      "Bash(curl -s -m 10 https://api.nhtsa.gov:*)",
+      "Bash(netstat -ano)",
+      "Bash(pkill -f:*)",
+      "Bash(firebase emulators:*)",
+      "Bash(firebase deploy --only functions:*)",
+      "Bash(firebase deploy --only firestore:rules)",
+      "Bash(firebase deploy --only storage)",
+      "Bash(eas build:*)",
+      "Bash(grep -r:*)",
+      "Bash(find . -maxdepth:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git status)",
+      "Bash(git branch:*)",
+
       "mcp__Claude_Preview__preview_start",
+      "mcp__Claude_Preview__preview_stop",
+      "mcp__Claude_Preview__preview_screenshot",
+      "mcp__Claude_Preview__preview_snapshot",
+      "mcp__Claude_Preview__preview_logs",
+      "mcp__Claude_Preview__preview_console_logs",
+      "mcp__Claude_Preview__preview_network",
+      "mcp__Claude_Preview__preview_eval",
+      "mcp__Claude_Preview__preview_inspect",
+      "mcp__Claude_Preview__preview_click",
+      "mcp__Claude_Preview__preview_fill",
+      "mcp__Claude_Preview__preview_resize",
+
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_teams",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_projects",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_deployments",
-      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_deployment_build_logs",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_deployment",
-      "Bash(wc -l \"/c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/\\(tabs\\)/index.tsx\" \"/c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/payment.tsx\" \"/c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/frosty-lichterman/app/\\(tabs\\)/garage.tsx\")",
-      "Bash(npx tsc:*)",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_deployment_build_logs",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_runtime_logs",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_project",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__deploy_to_vercel",
-      "Bash(Start-Sleep -Seconds 8)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8081/)",
-      "Bash(netstat -ano)",
-      "Bash(tasklist /FI 'PID eq 14108')",
-      "Bash(curl -s -m 5 http://localhost:8081/)",
-      "Bash(curl -v -m 10 http://localhost:8081/)",
-      "Bash(npx expo:*)",
-      "Bash(ls \"C:\\\\Users\\\\Albert\\\\Desktop\\\\VoltCheck\\\\node_modules\\\\.bin\"\" | grep -i \"expo \")",
-      "Bash(ls \"C:\\\\Users\\\\Albert\\\\Desktop\\\\VoltCheck\\\\node_modules\\\\.bin | grep -i serve\")",
-      "Bash(http-server)",
-      "Bash(static)",
-      "Bash(npx --yes serve --version)",
-      "Bash(pkill -f \"serve dist\")",
-      "Bash(ls -la \"/c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/vigorous-hodgkin/app/\\(auth\\)/\")",
-      "Bash(grep -r \"Apple\\\\|apple\\\\|expo-apple\\\\|sign.?in\" /c/Users/Albert/Desktop/VoltCheck/.claude/worktrees/vigorous-hodgkin --include=*.md --include=*.txt -i)",
-      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__web_fetch_vercel_url"
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__web_fetch_vercel_url",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__search_vercel_documentation",
+
+      "mcp__plugin_firebase_firebase__firebase_get_project",
+      "mcp__plugin_firebase_firebase__firebase_list_projects",
+      "mcp__plugin_firebase_firebase__firebase_list_apps",
+      "mcp__plugin_firebase_firebase__firebase_get_environment",
+      "mcp__plugin_firebase_firebase__firebase_get_sdk_config",
+      "mcp__plugin_firebase_firebase__firebase_get_security_rules",
+      "mcp__plugin_firebase_firebase__firebase_validate_security_rules",
+      "mcp__plugin_firebase_firebase__firebase_read_resources",
+      "mcp__plugin_firebase_firebase__firestore_list_collections",
+      "mcp__plugin_firebase_firebase__firestore_list_databases",
+      "mcp__plugin_firebase_firebase__firestore_get_database",
+      "mcp__plugin_firebase_firebase__firestore_list_documents",
+      "mcp__plugin_firebase_firebase__firestore_get_document",
+      "mcp__plugin_firebase_firebase__firestore_query_collection",
+      "mcp__plugin_firebase_firebase__firestore_list_indexes",
+      "mcp__plugin_firebase_firebase__firestore_get_index",
+      "mcp__plugin_firebase_firebase__functions_list_functions",
+      "mcp__plugin_firebase_firebase__functions_get_logs",
+      "mcp__plugin_firebase_firebase__auth_get_users",
+      "mcp__plugin_firebase_firebase__developerknowledge_get_documents",
+      "mcp__plugin_firebase_firebase__developerknowledge_search_documents",
+      "mcp__plugin_firebase_firebase__remoteconfig_get_template"
+    ],
+    "deny": [
+      "Bash(firebase deploy --only firestore:indexes)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)",
+      "Bash(firebase projects:delete:*)",
+      "mcp__plugin_firebase_firebase__firestore_delete_database",
+      "mcp__plugin_firebase_firebase__firebase_create_project"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CHANGED_FILE=\"$TOOL_INPUT_file_path\"; if echo \"$CHANGED_FILE\" | grep -q 'functions/src/.*\\.ts$'; then echo '[InspectEV] functions/ editat → rulează: cd functions && npm run build' >&2; fi",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CHANGED_FILE=\"$TOOL_INPUT_file_path\"; if echo \"$CHANGED_FILE\" | grep -q 'functions/src/.*\\.ts$'; then COUNT=$(grep -c 'console\\.log\\|console\\.error\\|console\\.warn' \"$CHANGED_FILE\" 2>/dev/null || echo 0); if [ \"$COUNT\" -gt 0 ]; then echo \"[InspectEV WARN] $COUNT console.log în $CHANGED_FILE → folosește pipelineLogger.ts!\" >&2; fi; fi",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CHANGED_FILE=\"$TOOL_INPUT_file_path\"; if echo \"$CHANGED_FILE\" | grep -qE 'firestore\\.rules|storage\\.rules'; then echo '[InspectEV ALERT] Reguli securitate modificate! Verifică și deployează: firebase deploy --only firestore:rules' >&2; fi",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CHANGED_FILE=\"$TOOL_INPUT_file_path\"; if echo \"$CHANGED_FILE\" | grep -qE 'locales/(ro|en)\\.json$'; then OTHER=$(echo \"$CHANGED_FILE\" | sed 's/ro\\.json/en.json/' | sed 's/en\\.json/ro.json/'); echo \"[InspectEV i18n] Tradus $(basename $CHANGED_FILE) — verifică $(basename $OTHER) să fie sincron!\" >&2; fi",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CHANGED_FILE=\"$TOOL_INPUT_file_path\"; if echo \"$CHANGED_FILE\" | grep -qE 'utils/riskEngine\\.ts'; then echo '[InspectEV SYNC] riskEngine.ts modificat — verifică că și cealaltă versiune (client/server) e sincronă! Rulează /sync-risk-engine' >&2; fi",
+            "timeout": 3000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=\"$TOOL_INPUT_command\"; if echo \"$CMD\" | grep -qE '^firebase deploy( --only functions)?$'; then echo '[InspectEV] DEPLOY LA PRODUCȚIE Firebase → confirmat?' >&2; fi",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_firebase_firebase__firestore_delete_document",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[InspectEV SECURITATE] Ești pe punctul de a ȘTERGE un document Firestore din PRODUCȚIE. Această acțiune este ireversibilă.' >&2",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_firebase_firebase__firestore_update_document",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[InspectEV] Modifici date Firestore PRODUCȚIE direct. Ești sigur?' >&2",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_firebase_firebase__auth_update_user",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[InspectEV SECURITATE] Modifici un user Firebase Auth din PRODUCȚIE. Verifică dublu!' >&2",
+            "timeout": 3000
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__plugin_firebase_firebase__remoteconfig_update_template",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[InspectEV] Remote Config update → va afecta toți userii live imediat!' >&2",
+            "timeout": 3000
+          }
+        ]
+      }
     ]
   }
 }

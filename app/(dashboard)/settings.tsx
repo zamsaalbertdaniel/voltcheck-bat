@@ -176,16 +176,14 @@ export default function ProfileScreen() {
             iconComponent: Ionicons,
             label: t('settings.privacy'),
             showArrow: true,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onPress: () => router.push({ pathname: '/legal' as any, params: { type: 'privacy' } }),
+            onPress: () => router.push('/legal/privacy' as never),
         },
         {
             icon: 'document-text-outline' as const,
             iconComponent: Ionicons,
             label: t('settings.terms'),
             showArrow: true,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onPress: () => router.push({ pathname: '/legal' as any, params: { type: 'terms' } }),
+            onPress: () => router.push('/legal/terms' as never),
         },
         {
             icon: 'information-circle-outline' as const,
@@ -274,10 +272,9 @@ export default function ProfileScreen() {
 
             {/* Version */}
             <View style={styles.versionContainer}>
-                <MaterialCommunityIcons
-                    name="battery-charging-high"
-                    size={20}
-                    color={VoltColors.textTertiary}
+                <Image
+                    source={require('@/assets/images/logo-small.png')}
+                    style={{ width: 22, height: 22, resizeMode: 'contain', opacity: 0.5 }}
                 />
                 <Text style={styles.versionText}>
                     InspectEV {t('settings.version')} 1.0.0

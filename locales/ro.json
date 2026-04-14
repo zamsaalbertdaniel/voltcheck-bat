@@ -4,12 +4,6 @@
     "tagline": "Verifică bateria. Cumpără în siguranță.",
     "version": "v1.0"
   },
-  "tabs": {
-    "scan": "Scanare",
-    "insight": "BAT Insight",
-    "garage": "Garaj",
-    "settings": "Setări"
-  },
   "scan": {
     "title": "Verifică-ți EV-ul",
     "subtitle": "Introdu VIN-ul pentru a obține un raport complet",

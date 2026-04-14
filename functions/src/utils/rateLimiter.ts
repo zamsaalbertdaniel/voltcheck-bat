@@ -55,6 +55,7 @@ export async function checkRateLimit(
                 endpoint,
                 requests: [now],
                 firstRequestAt: now,
+                expiresAt: new Date(now + windowMs),
             });
             return;
         }
@@ -88,6 +89,7 @@ export async function checkRateLimit(
         tx.update(ref, {
             requests: recentRequests,
             lastRequestAt: now,
+            expiresAt: new Date(now + windowMs),
         });
     });
 }

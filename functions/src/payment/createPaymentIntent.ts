@@ -147,7 +147,7 @@ export const createPaymentIntent = onCall({
 
             // A3: Generate idempotencyKey to prevent duplicate PaymentIntents on network retry
             const idempotencyKey = createHash('sha256')
-                .update(`${userId}_${cleanVin}_${level}_${Date.now()}`)
+                .update(`${userId}_${cleanVin}_${level}`)
                 .digest('hex')
                 .substring(0, 48);
 

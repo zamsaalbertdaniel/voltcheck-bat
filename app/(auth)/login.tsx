@@ -27,10 +27,13 @@ import {
     StyleSheet,
     Text,
     TextInput,
+    Image,
     useWindowDimensions,
     View,
 } from 'react-native';
+import VoltFooter from '@/components/layout/VoltFooter';
 import { getFirebaseServices } from '@/services/firebase';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const DESKTOP_BREAKPOINT = 900;
 
@@ -48,6 +51,53 @@ async function ensureGoogleSignInConfigured() {
     } catch {
         // SDK not available — will fallback to anonymous in handleLogin
     }
+}
+
+/**
+ * Pre-initialize Firebase Auth for web at module level.
+ * Uses signInWithRedirect (not signInWithPopup) because:
+ *  1. signInWithPopup requires synchronous user-gesture — breaks with any await
+ *  2. Popup blockers silently kill signInWithPopup on most browsers
+ *  3. signInWithRedirect works universally (desktop, mobile, all browsers)
+ */
+let _webAuth: import('firebase/auth').Auth | null = null;
+let _webAuthMod: typeof import('firebase/auth') | null = null;
+
+async function initWebAuth() {
+    if (Platform.OS !== 'web') return;
+    if (_webAuth && _webAuthMod) return;
+    try {
+        const [mod, { app }] = await Promise.all([
+            import('firebase/auth'),
+            getFirebaseServices(),
+        ]);
+        _webAuthMod = mod;
+        _webAuth = mod.getAuth(app);
+    } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[Auth] initWebAuth failed:', e);
+    }
+}
+
+/**
+ * Check for redirect result after coming back from Google/Apple sign-in.
+ * Called on mount — if the user just completed OAuth, this picks up
+ * the credential and logs them in automatically.
+ */
+async function tryCompleteRedirectSignIn(): Promise<boolean> {
+    if (Platform.OS !== 'web') return false;
+    try {
+        await initWebAuth();
+        if (!_webAuth || !_webAuthMod) return false;
+        const result = await _webAuthMod.getRedirectResult(_webAuth);
+        if (result?.user) {
+            return true; // Auth state listener will handle navigation
+        }
+    } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('[Auth] Redirect sign-in completion failed:', e);
+    }
+    return false;
 }
 
 /**
@@ -72,6 +122,19 @@ async function tryCompleteMagicLink(): Promise<boolean> {
             if (email) {
                 await signInWithEmailLink(auth, email, url);
                 window.localStorage.removeItem('inspectev_magic_email');
+
+                // Recover VIN from URL params or localStorage (user may return on different tab/device)
+                const urlParams = new URLSearchParams(window.location.search);
+                const vinFromUrl = urlParams.get('vin');
+                const vinFromStorage = window.localStorage.getItem('inspectev_magic_vin');
+                const recoveredVin = vinFromUrl || vinFromStorage;
+
+                if (recoveredVin) {
+                    // Store VIN for useAuthListener to pick up during post-login redirect
+                    window.sessionStorage.setItem('inspectev_pending_vin', recoveredVin);
+                    window.localStorage.removeItem('inspectev_magic_vin');
+                }
+
                 // Clean up the URL so the magic link params don't linger
                 window.history.replaceState(null, '', window.location.pathname);
                 return true;
@@ -86,6 +149,8 @@ async function tryCompleteMagicLink(): Promise<boolean> {
 
 export default function LoginScreen() {
     const { t } = useTranslation();
+    const router = useRouter();
+    const params = useLocalSearchParams<{ vin?: string }>();
     const { width } = useWindowDimensions();
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
 
@@ -106,14 +171,27 @@ export default function LoginScreen() {
     const orbFloat2 = useRef(new Animated.Value(0)).current;
     const glowPulse = useRef(new Animated.Value(0.2)).current;
 
-    // Configure Google Sign-In on mount (native only)
+    // Pre-warm auth + check for OAuth redirect results on mount
     useEffect(() => {
-        ensureGoogleSignInConfigured();
-    }, []);
+        ensureGoogleSignInConfigured(); // native
+        initWebAuth();                  // web — pre-warm
 
-    // Try to complete magic link sign-in on mount (web only)
-    useEffect(() => {
-        tryCompleteMagicLink();
+        // Check if we're returning from a Google/Apple redirect sign-in
+        if (Platform.OS === 'web') {
+            setIsLoading(true);
+            setLoadingProvider('redirect');
+            tryCompleteRedirectSignIn()
+                .then((signedIn) => {
+                    if (!signedIn) {
+                        // Also try magic link completion
+                        return tryCompleteMagicLink();
+                    }
+                })
+                .finally(() => {
+                    setIsLoading(false);
+                    setLoadingProvider(null);
+                });
+        }
     }, []);
 
     // Entry animations
@@ -175,18 +253,29 @@ export default function LoginScreen() {
 
         try {
             if (Platform.OS === 'web') {
-                const { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider } = await import('firebase/auth');
-                const { app } = await getFirebaseServices();
-                const auth = getAuth(app);
+                // Use signInWithRedirect — works universally, no popup blockers.
+                // After redirect completes, the user returns to this page and
+                // tryCompleteRedirectSignIn() (useEffect on mount) picks up the credential.
+                if (!_webAuth || !_webAuthMod) {
+                    await initWebAuth();
+                }
+                if (!_webAuth || !_webAuthMod) {
+                    throw new Error('Autentificarea nu s-a inițializat. Reîncarcă pagina și încearcă din nou.');
+                }
+
+                const { signInWithRedirect, GoogleAuthProvider, OAuthProvider } = _webAuthMod;
+                const auth = _webAuth;
 
                 if (provider === 'google') {
-                    await signInWithPopup(auth, new GoogleAuthProvider());
+                    await signInWithRedirect(auth, new GoogleAuthProvider());
                 } else {
                     const appleProvider = new OAuthProvider('apple.com');
                     appleProvider.addScope('email');
                     appleProvider.addScope('name');
-                    await signInWithPopup(auth, appleProvider);
+                    await signInWithRedirect(auth, appleProvider);
                 }
+                // Browser will redirect away — no code runs after this point
+                return;
             } else {
                 const rnAuth = (await import('@react-native-firebase/auth')).default;
 
@@ -262,18 +351,23 @@ export default function LoginScreen() {
             const { app } = await getFirebaseServices();
             const auth = getAuth(app);
 
+            // Preserve VIN in magic link return URL so auto-decode works after sign-in
+            const vinSuffix = params.vin ? `?vin=${encodeURIComponent(params.vin)}` : '';
             const actionCodeSettings = {
                 url: Platform.OS === 'web'
-                    ? window.location.origin + '/login'
-                    : 'https://inspec-ev.app/login',
+                    ? window.location.origin + '/login' + vinSuffix
+                    : 'https://inspect-ev.app/login' + vinSuffix,
                 handleCodeInApp: true,
             };
 
             await sendSignInLinkToEmail(auth, trimmed, actionCodeSettings);
 
-            // Store email for when they come back
+            // Store email + VIN for when they come back (possibly different tab/device)
             if (Platform.OS === 'web') {
                 window.localStorage.setItem('inspectev_magic_email', trimmed);
+                if (params.vin) {
+                    window.localStorage.setItem('inspectev_magic_vin', params.vin);
+                }
             }
 
             setMagicLinkSent(true);
@@ -305,10 +399,9 @@ export default function LoginScreen() {
                 {/* Logo */}
                 <View style={styles.heroLogoRow}>
                     <View style={styles.heroLogoBg}>
-                        <MaterialCommunityIcons
-                            name="battery-charging-high"
-                            size={isDesktop ? 44 : 36}
-                            color={VoltColors.neonGreen}
+                        <Image
+                            source={require('@/assets/images/logo-small.png')}
+                            style={{ width: isDesktop ? 48 : 40, height: isDesktop ? 48 : 40, resizeMode: 'contain' }}
                         />
                     </View>
                     <View style={styles.heroLogoText}>
@@ -467,8 +560,24 @@ export default function LoginScreen() {
                     </View>
                 )}
 
-                {/* Terms */}
-                <Text style={styles.termsText}>{t('auth.termsAgree')}</Text>
+                {/* Legal consent — mandatory visibility */}
+                <Text style={styles.termsText}>
+                    {t('auth.legalPrefix', 'Prin crearea contului și continuarea procesului, ești de acord cu')}{' '}
+                    <Text
+                        style={styles.termsLink}
+                        onPress={() => router.push('/legal/terms')}
+                    >
+                        {t('auth.termsLink', 'Termenii și Condițiile')}
+                    </Text>
+                    {' '}{t('auth.legalAnd', 'și')}{' '}
+                    <Text
+                        style={styles.termsLink}
+                        onPress={() => router.push('/legal/privacy')}
+                    >
+                        {t('auth.privacyLink', 'Politica de Confidențialitate')}
+                    </Text>
+                    .
+                </Text>
 
                 {/* Trust badges */}
                 <View style={styles.trustRow}>
@@ -495,6 +604,7 @@ export default function LoginScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     {renderAuth()}
+                    <VoltFooter />
                 </ScrollView>
             </View>
         );
@@ -508,6 +618,7 @@ export default function LoginScreen() {
         >
             {renderHero()}
             {renderAuth()}
+            <VoltFooter />
         </ScrollView>
     );
 }
@@ -942,13 +1053,17 @@ const styles = StyleSheet.create({
         textDecorationLine: 'underline',
     },
 
-    // Terms
+    // Legal consent
     termsText: {
         fontSize: VoltFontSize.xs,
         color: VoltColors.textTertiary,
         textAlign: 'center',
         marginTop: VoltSpacing.lg,
-        lineHeight: 16,
+        lineHeight: 18,
+    },
+    termsLink: {
+        color: VoltColors.neonGreen,
+        textDecorationLine: 'underline',
     },
 
     // Trust badges

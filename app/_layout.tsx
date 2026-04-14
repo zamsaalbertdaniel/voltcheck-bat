@@ -5,6 +5,7 @@
  * FAZA 1 — BAT (Battery Analysis Technology)
  */
 
+import CookieConsent from '@/components/layout/CookieConsent';
 import SplashSequence from '@/components/SplashSequence';
 import { ToastProvider } from '@/components/ToastProvider';
 import VoltErrorBoundary from '@/components/VoltErrorBoundary';
@@ -34,7 +35,7 @@ export {
 } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: '(auth)',
+  initialRouteName: 'index',
 };
 
 SplashScreen.preventAutoHideAsync();
@@ -131,8 +132,9 @@ export default function RootLayout() {
           )}
 
           <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
             <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(dashboard)" />
             <Stack.Screen
               name="report/[id]"
               options={{
@@ -181,6 +183,9 @@ export default function RootLayout() {
               }}
             />
           </Stack>
+
+          {/* GDPR Cookie Consent — web only, first visit */}
+          <CookieConsent />
         </ThemeProvider>
       </ToastProvider>
     </VoltErrorBoundary>
