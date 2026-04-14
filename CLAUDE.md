@@ -2,7 +2,7 @@
 
 ## Project Identity
 **InspectEV** (fost VoltCheck) — aplicație cross-platform pentru inspecție EV (iOS/Android/Web).
-Domeniu live: `inspec-ev.app` | Piață primară: România | Limbi: RO + EN
+Domeniu live: `inspect-ev.app` | Piață primară: România | Limbi: RO + EN
 
 ---
 

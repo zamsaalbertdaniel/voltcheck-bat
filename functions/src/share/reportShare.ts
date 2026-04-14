@@ -167,7 +167,7 @@ export const shareReport = onRequest(
         <div class="vehicle">${escapeHtml(vehicleName)}</div>
         <div class="score">${riskScore}</div>
         <div class="category">${riskEmoji} ${riskCategory}</div>
-        <a class="cta" href="https://inspec-ev.app/download">
+        <a class="cta" href="https://inspect-ev.app/download">
             Descarcă InspectEV
         </a>
         <div class="footer">
