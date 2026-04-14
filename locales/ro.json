@@ -112,6 +112,8 @@
     "expiresIn": "Expiră în {{days}} zile",
     "downloadPdf": "Descarcă PDF",
     "shareReport": "Distribuie Raportul",
+    "pdfNotReady": "PDF-ul nu este încă disponibil. Raportul este în curs de procesare.",
+    "linkCopied": "Link-ul raportului a fost copiat în clipboard.",
     "recallMap": {
       "title": "Harta Rechemărilor",
       "subtitle": "{{count}} zone afectate din schema vehiculului",
@@ -157,6 +159,7 @@
     "terms": "Termeni și Condiții",
     "logout": "Deconectare",
     "logoutConfirm": "Ești sigur că vrei să te deconectezi?",
+    "logoutFailed": "Deconectarea a eșuat. Încearcă din nou.",
     "notificationPermissionDenied": "Permisiunea pentru notificări a fost refuzată. Activează-o din Setările telefonului.",
     "version": "Versiunea",
     "deleteAccount": "Șterge contul",
@@ -324,6 +327,10 @@
       "paymentFailed": "Plata a eșuat. Te rugăm să încerci din nou.",
       "unknownError": "A apărut o eroare neașteptată."
     },
+  "camera": {
+    "scanFailed": "Nu am putut detecta un VIN valid. Încearcă din nou sau introdu manual.",
+    "processError": "Eroare la procesarea imaginii"
+  },
   "common": {
     "loading": "Se încarcă...",
     "error": "A apărut o eroare",

@@ -112,6 +112,8 @@
         "expiresIn": "Expires in {{days}} days",
         "downloadPdf": "Download PDF",
         "shareReport": "Share Report",
+        "pdfNotReady": "PDF is not ready yet. Report is still being processed.",
+        "linkCopied": "Report link copied to clipboard.",
         "recallMap": {
             "title": "Recall Map",
             "subtitle": "{{count}} zone(s) affected on this vehicle",
@@ -157,6 +159,7 @@
         "terms": "Terms & Conditions",
         "logout": "Log Out",
         "logoutConfirm": "Are you sure you want to log out?",
+        "logoutFailed": "Logout failed. Please try again.",
         "notificationPermissionDenied": "Notification permission was denied. Enable it in your phone Settings.",
         "version": "Version",
         "deleteAccount": "Delete Account",
@@ -323,6 +326,10 @@
         "vin_forbidden_chars": "VIN cannot contain letters I, O, or Q (ISO 3779).",
         "paymentFailed": "Payment failed. Please try again.",
         "unknownError": "An unexpected error occurred."
+    },
+    "camera": {
+        "scanFailed": "Could not detect a valid VIN. Try again or enter manually.",
+        "processError": "Error processing image"
     },
     "common": {
         "loading": "Loading...",

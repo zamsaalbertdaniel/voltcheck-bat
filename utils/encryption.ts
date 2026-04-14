@@ -52,7 +52,8 @@ async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKe
     return crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
-            salt,
+            // Cast: lib.dom narrowed BufferSource to ArrayBuffer-backed views; Uint8Array is fine at runtime
+            salt: salt as unknown as BufferSource,
             iterations: 100_000,
             hash: 'SHA-256',
         },

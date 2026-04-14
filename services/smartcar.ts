@@ -91,6 +91,7 @@ export async function exchangeAuthCode(code: string): Promise<{
         const result = await callable({ code });
         return result.data as { success: boolean; vehicles: SmartcarVehicle[]; vehicleCount: number };
     } else {
+        // @ts-expect-error — native-only module, not installed in web build
         const rnFunctions = await import('@react-native-firebase/functions');
         const callable = rnFunctions.default().httpsCallable('smartcarExchange');
         const result = await callable({ code });

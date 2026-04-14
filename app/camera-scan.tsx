@@ -1,11 +1,12 @@
 import { VoltBorderRadius, VoltColors, VoltFontSize, VoltSpacing } from '@/constants/Theme';
 import { ocrVinRemote } from '@/services/cloudFunctions';
+import { useToast } from '@/components/ToastProvider';
 import { Ionicons } from '@expo/vector-icons';
-import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Alert, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const SCAN_FRAME_WIDTH = width * 0.85;
@@ -14,6 +15,7 @@ const SCAN_FRAME_HEIGHT = 120;
 export default function CameraScanScreen() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { showToast } = useToast();
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef<CameraView>(null);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -56,22 +58,24 @@ export default function CameraScanScreen() {
             if (response.success && response.vin) {
                 // Success! Pass back to the tabs (specifically the scan tab)
                 router.dismissAll();
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 router.replace({ pathname: '/(dashboard)', params: { scannedVin: response.vin } } as any);
             } else {
-                Alert.alert(
-                    'Eroare Scanare',
-                    response.message || 'Nu am putut detecta un VIN valid în imagine. Te rugăm să încerci din nou sau să îl introduci manual.',
-                    [{ text: 'OK' }]
+                showToast(
+                    'error',
+                    response.message || t('camera.scanFailed') || 'Nu am putut detecta un VIN valid. Încearcă din nou sau introdu manual.',
+                    4000,
                 );
                 setIsProcessing(false);
             }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             // eslint-disable-next-line no-console
             console.error('[CameraScan] Error:', error);
-            Alert.alert(
-                'Eroare',
-                'A apărut o eroare la procesarea imaginii. ' + error.message,
-                [{ text: 'OK' }]
+            showToast(
+                'error',
+                (t('camera.processError') || 'Eroare la procesarea imaginii') + ': ' + error.message,
+                4000,
             );
             setIsProcessing(false);
         }

@@ -21,12 +21,9 @@ import React, {
 } from 'react';
 import {
     Animated,
-    Dimensions,
     StyleSheet,
     Text
 } from 'react-native';
-
-const { width } = Dimensions.get('window');
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -74,7 +71,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     const [toast, setToast] = useState<Toast | null>(null);
     const slideAnim = useRef(new Animated.Value(-100)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const showToast = useCallback((type: ToastType, message: string, duration = 3000) => {
         // Clear existing timeout
@@ -104,6 +101,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         timeoutRef.current = setTimeout(() => {
             dismissToast();
         }, duration);
+    // refs (slideAnim, opacityAnim) are stable; dismissToast is also stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const dismissToast = useCallback(() => {
@@ -121,6 +120,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         ]).start(() => {
             setToast(null);
         });
+    // refs (slideAnim, opacityAnim) are stable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -146,6 +147,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                         },
                     ]}
                 >
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     <Ionicons name={config.icon as any} size={22} color={config.color} />
                     <Text style={styles.toastMessage} numberOfLines={2}>
                         {toast.message}

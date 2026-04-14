@@ -134,6 +134,7 @@ async function unregisterWeb(userId: string): Promise<void> {
 
 async function registerNative(userId: string): Promise<string | null> {
     try {
+        // @ts-expect-error — native-only module, not installed in web build
         const messaging = (await import('@react-native-firebase/messaging')).default;
 
         // Request permission (iOS requires explicit request; Android grants by default)
@@ -155,7 +156,7 @@ async function registerNative(userId: string): Promise<string | null> {
             await saveTokenToFirestore(userId, token);
 
             // Listen for token refresh
-            messaging().onTokenRefresh(async (newToken) => {
+            messaging().onTokenRefresh(async (newToken: string) => {
                 // eslint-disable-next-line no-console
                 console.log('[Notifications] Token refreshed');
                 await saveTokenToFirestore(userId, newToken);
@@ -176,6 +177,7 @@ async function registerNative(userId: string): Promise<string | null> {
 
 async function unregisterNative(userId: string): Promise<void> {
     try {
+        // @ts-expect-error — native-only module, not installed in web build
         const messaging = (await import('@react-native-firebase/messaging')).default;
         const token = await messaging().getToken();
         if (token) {

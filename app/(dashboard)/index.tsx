@@ -3,7 +3,6 @@
  * VIN input → Decode → Teaser Cards → Paywall → Payment → Radar Pipeline
  */
 
-import LevelSelector from '@/components/scan/LevelSelector';
 import VehicleResultCard from '@/components/scan/VehicleResultCard';
 import VehicleResultSkeleton from '@/components/scan/VehicleResultSkeleton';
 import VinInputCard from '@/components/scan/VinInputCard';
@@ -12,6 +11,7 @@ import VoltFooter from '@/components/layout/VoltFooter';
 import TeaserBatteryCard from '@/components/dashboard/TeaserBatteryCard';
 import TeaserDamageCard from '@/components/dashboard/TeaserDamageCard';
 import PaywallSection from '@/components/dashboard/PaywallSection';
+import { useToast } from '@/components/ToastProvider';
 import {
     VoltColors,
     VoltFontSize,
@@ -28,7 +28,6 @@ import {
     VINDecodeResponse,
 } from '@/services/cloudFunctions';
 import { isValidVIN } from '@/utils/vinDecoder';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -56,11 +55,13 @@ type ScreenState =
 export default function DashboardIndex() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { showToast } = useToast();
     const { vin: vinParam, scannedVin } = useLocalSearchParams<{ vin?: string; scannedVin?: string }>();
 
     const [vin, setVin] = useState('');
     const [vinError, setVinError] = useState('');
     const [screenState, setScreenState] = useState<ScreenState>('input');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [selectedLevel, setSelectedLevel] = useState<1 | 2 | null>(null);
     const [decodedData, setDecodedData] = useState<VINDecodeResponse | null>(null);
     const [reportId, setReportId] = useState<string | null>(null);
@@ -265,10 +266,9 @@ export default function DashboardIndex() {
     }, [router, reportId, handleReset, t]);
 
     const handlePipelineError = useCallback((error: string) => {
-        Alert.alert(`${t('scan.errorTitle')}`, error, [
-            { text: 'OK', onPress: () => setScreenState('teaser') },
-        ]);
-    }, [t]);
+        showToast('error', `${t('scan.errorTitle')}: ${error}`, 5000);
+        setScreenState('teaser');
+    }, [t, showToast]);
 
     const glowOpacity = glowAnim.interpolate({ inputRange: [0, 1], outputRange: [0.3, 0.8] });
     const spinRotation = decodeSpinner.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
@@ -287,6 +287,7 @@ export default function DashboardIndex() {
                 <View style={styles.header}>
                     <Animated.View style={[styles.logoGlow, { opacity: glowOpacity }]} />
                     <Image
+                        // eslint-disable-next-line @typescript-eslint/no-require-imports
                         source={require('@/assets/images/logo-small.png')}
                         style={styles.headerLogo}
                     />

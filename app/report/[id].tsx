@@ -20,6 +20,8 @@ import { subscribeToReportStatus, USE_MOCK_DATA } from '@/services/cloudFunction
 import RecallMap from '@/components/RecallMap';
 import InfoTooltip from '@/components/report/InfoTooltip';
 import VoltFooter from '@/components/layout/VoltFooter';
+import { useToast } from '@/components/ToastProvider';
+import Skeleton from '@/components/ui/Skeleton';
 import type { Recall } from '@/utils/recallClassifier';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
@@ -27,7 +29,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
-    Alert,
     Animated,
     ScrollView,
     Share,
@@ -132,6 +133,7 @@ type ScreenState = 'loading' | 'processing' | 'ready' | 'error';
 
 export default function ReportScreen() {
     const { t } = useTranslation();
+    const { showToast } = useToast();
     const { id } = useLocalSearchParams<{ id: string }>();
     const [screenState, setScreenState] = useState<ScreenState>('loading');
     const [report, setReport] = useState<ReportData | null>(null);
@@ -286,10 +288,37 @@ export default function ReportScreen() {
     // ═══════════════════════════════════════════
     if (screenState === 'loading') {
         return (
-            <View style={styles.centeredContainer}>
-                <ActivityIndicator size="large" color={VoltColors.neonGreen} />
-                <Text style={styles.loadingText}>Se încarcă raportul...</Text>
-            </View>
+            <ScrollView style={styles.container} contentContainerStyle={{ padding: VoltSpacing.lg }}>
+                {/* Header skeleton */}
+                <Skeleton width="60%" height={28} style={{ marginBottom: VoltSpacing.sm }} />
+                <Skeleton width="40%" height={16} style={{ marginBottom: VoltSpacing.lg }} />
+
+                {/* Risk gauge skeleton */}
+                <View style={{ alignItems: 'center', marginVertical: VoltSpacing.lg }}>
+                    <Skeleton width={160} height={160} borderRadius={80} />
+                    <Skeleton width={120} height={20} style={{ marginTop: VoltSpacing.md }} />
+                </View>
+
+                {/* Section blocks */}
+                {[1, 2, 3].map((key) => (
+                    <View
+                        key={key}
+                        style={{
+                            backgroundColor: VoltColors.bgSecondary,
+                            borderRadius: VoltBorderRadius.lg,
+                            padding: VoltSpacing.lg,
+                            marginBottom: VoltSpacing.md,
+                            borderWidth: 1,
+                            borderColor: VoltColors.border,
+                        }}
+                    >
+                        <Skeleton width="50%" height={20} style={{ marginBottom: VoltSpacing.md }} />
+                        <Skeleton width="100%" height={14} style={{ marginBottom: 8 }} />
+                        <Skeleton width="90%" height={14} style={{ marginBottom: 8 }} />
+                        <Skeleton width="70%" height={14} />
+                    </View>
+                ))}
+            </ScrollView>
         );
     }
 
@@ -598,9 +627,9 @@ export default function ReportScreen() {
                                 Linking.openURL(report.pdfUrl);
                             }
                         } else {
-                            Alert.alert(
-                                'PDF',
-                                'PDF-ul nu este încă disponibil. Raportul este în curs de procesare.',
+                            showToast(
+                                'info',
+                                t('report.pdfNotReady') || 'PDF-ul nu este încă disponibil. Raportul este în curs de procesare.',
                             );
                         }
                     }}
@@ -626,7 +655,7 @@ export default function ReportScreen() {
                                 });
                             } else {
                                 await navigator.clipboard.writeText(shareMessage);
-                                Alert.alert('Copiat!', 'Link-ul raportului a fost copiat în clipboard.');
+                                showToast('success', t('report.linkCopied') || 'Link-ul raportului a fost copiat în clipboard.');
                             }
                         } else {
                             await Share.share({

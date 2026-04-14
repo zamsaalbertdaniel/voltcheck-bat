@@ -33,7 +33,6 @@
       "Bash(git diff:*)",
       "Bash(git status)",
       "Bash(git branch:*)",
-
       "mcp__Claude_Preview__preview_start",
       "mcp__Claude_Preview__preview_stop",
       "mcp__Claude_Preview__preview_screenshot",
@@ -46,7 +45,6 @@
       "mcp__Claude_Preview__preview_click",
       "mcp__Claude_Preview__preview_fill",
       "mcp__Claude_Preview__preview_resize",
-
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_teams",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_projects",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_deployments",
@@ -57,7 +55,6 @@
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__deploy_to_vercel",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__web_fetch_vercel_url",
       "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__search_vercel_documentation",
-
       "mcp__plugin_firebase_firebase__firebase_get_project",
       "mcp__plugin_firebase_firebase__firebase_list_projects",
       "mcp__plugin_firebase_firebase__firebase_list_apps",
@@ -79,7 +76,8 @@
       "mcp__plugin_firebase_firebase__auth_get_users",
       "mcp__plugin_firebase_firebase__developerknowledge_get_documents",
       "mcp__plugin_firebase_firebase__developerknowledge_search_documents",
-      "mcp__plugin_firebase_firebase__remoteconfig_get_template"
+      "mcp__plugin_firebase_firebase__remoteconfig_get_template",
+      "Bash(git commit -m ':*)"
     ],
     "deny": [
       "Bash(firebase deploy --only firestore:indexes)",

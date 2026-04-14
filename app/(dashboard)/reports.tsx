@@ -12,10 +12,11 @@ import { useAuthStore } from '@/store/useAuthStore';
 import Skeleton from '@/components/ui/Skeleton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
+  Animated,
+  Easing,
   FlatList,
   Platform,
   RefreshControl,
@@ -153,6 +154,51 @@ const ReportCard = memo(function ReportCard({
   );
 });
 
+/** Animated empty state for the Garage screen. Fade + rise, gentle. */
+function EmptyGarageState({ onScan }: { onScan: () => void }) {
+  const { t } = useTranslation();
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(16)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 420,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 420,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, translateY]);
+
+  return (
+    <Animated.View style={[styles.emptyState, { opacity, transform: [{ translateY }] }]}>
+      <MaterialCommunityIcons
+        name="garage-variant"
+        size={80}
+        color={VoltColors.textTertiary}
+      />
+      <Text style={styles.emptyTitle}>{t('garage.empty')}</Text>
+      <TouchableOpacity
+        style={styles.firstScanButton}
+        onPress={onScan}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={t('garage.firstScanCta')}
+      >
+        <MaterialCommunityIcons name="magnify-scan" size={20} color={VoltColors.textOnGreen} />
+        <Text style={styles.firstScanText}>{t('garage.firstScanCta')}</Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
 export default function GarageScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -272,24 +318,7 @@ export default function GarageScreen() {
     setTimeout(() => setIsRefreshing(false), 1000);
   }, []);
 
-  const renderEmpty = () => (
-    <View style={styles.emptyState}>
-      <MaterialCommunityIcons
-        name="garage-variant"
-        size={80}
-        color={VoltColors.textTertiary}
-      />
-      <Text style={styles.emptyTitle}>{t('garage.empty')}</Text>
-      <TouchableOpacity
-        style={styles.firstScanButton}
-        onPress={() => router.push('/(dashboard)')}
-        activeOpacity={0.8}
-      >
-        <MaterialCommunityIcons name="magnify-scan" size={20} color={VoltColors.textOnGreen} />
-        <Text style={styles.firstScanText}>{t('garage.firstScanCta')}</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderEmpty = () => <EmptyGarageState onScan={() => router.push('/(dashboard)')} />;
 
   return (
     <View style={styles.container}>

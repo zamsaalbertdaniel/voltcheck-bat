@@ -22,14 +22,14 @@ export default function Root({ children }: PropsWithChildren) {
                     content="Raport AI complet cu scor de risc, analiză baterie și istoric vehicul electric. Verificare VIN în 30 de secunde. Standard 99 RON / Premium 120 RON."
                 />
                 <meta name="robots" content="index, follow" />
-                <link rel="canonical" href="https://www.inspect-ev.app" />
+                <link rel="canonical" href="https://www.inspec-ev.app" />
 
                 {/* Open Graph */}
                 <meta property="og:title" content="InspectEV — Verifică Bateria EV-ului Second-Hand" />
                 <meta property="og:description" content="Cumperi un EV second-hand? Verifică sănătatea bateriei înainte. Raport AI complet în 30 de secunde." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://www.inspect-ev.app" />
-                <meta property="og:image" content="https://www.inspect-ev.app/assets/og-image.png" />
+                <meta property="og:url" content="https://www.inspec-ev.app" />
+                <meta property="og:image" content="https://www.inspec-ev.app/og-image.png" />
                 <meta property="og:image:width" content="1200" />
                 <meta property="og:image:height" content="630" />
                 <meta property="og:site_name" content="InspectEV" />
@@ -39,10 +39,14 @@ export default function Root({ children }: PropsWithChildren) {
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content="InspectEV — Verifică Bateria EV-ului Second-Hand" />
                 <meta name="twitter:description" content="Raport AI de sănătate baterie EV. Scor de risc, analiză BMS, predicție degradare. În 30 de secunde." />
-                <meta name="twitter:image" content="https://www.inspect-ev.app/assets/og-image.png" />
+                <meta name="twitter:image" content="https://www.inspec-ev.app/og-image.png" />
 
                 {/* Theme */}
                 <meta name="theme-color" content="#0A0E17" />
+
+                {/* Icons */}
+                <link rel="icon" type="image/png" href="/favicon.png" />
+                <link rel="apple-touch-icon" href="/favicon.png" />
 
                 {/* Prevent body scroll on web */}
                 <ScrollViewStyleReset />

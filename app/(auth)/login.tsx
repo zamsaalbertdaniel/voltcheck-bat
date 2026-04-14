@@ -12,14 +12,12 @@ import {
     VoltFontSize,
     VoltSpacing,
 } from '@/constants/Theme';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     ActivityIndicator,
-    Alert,
     Animated,
-    Dimensions,
     Easing,
     Platform,
     Pressable,
@@ -32,6 +30,7 @@ import {
     View,
 } from 'react-native';
 import VoltFooter from '@/components/layout/VoltFooter';
+import { useToast } from '@/components/ToastProvider';
 import { getFirebaseServices } from '@/services/firebase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -150,6 +149,7 @@ async function tryCompleteMagicLink(): Promise<boolean> {
 export default function LoginScreen() {
     const { t } = useTranslation();
     const router = useRouter();
+    const { showToast } = useToast();
     const params = useLocalSearchParams<{ vin?: string }>();
     const { width } = useWindowDimensions();
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
@@ -325,9 +325,10 @@ export default function LoginScreen() {
         } catch (error: any) {
             // eslint-disable-next-line no-console
             console.error(`[Auth] ${provider} sign-in failed:`, error);
-            Alert.alert(
-                t('auth.errorTitle') || 'Eroare Autentificare',
+            showToast(
+                'error',
                 error.message || t('auth.errorGeneric') || 'Autentificarea a eșuat. Încearcă din nou.',
+                4500,
             );
         } finally {
             setIsLoading(false);
@@ -380,7 +381,7 @@ export default function LoginScreen() {
             setIsLoading(false);
             setLoadingProvider(null);
         }
-    }, [email, t]);
+    }, [email, t, params.vin]);
 
     // ── HERO PANEL (left side on desktop, top on mobile) ──
     const renderHero = () => {
@@ -400,6 +401,7 @@ export default function LoginScreen() {
                 <View style={styles.heroLogoRow}>
                     <View style={styles.heroLogoBg}>
                         <Image
+                            // eslint-disable-next-line @typescript-eslint/no-require-imports
                             source={require('@/assets/images/logo-small.png')}
                             style={{ width: isDesktop ? 48 : 40, height: isDesktop ? 48 : 40, resizeMode: 'contain' }}
                         />
@@ -466,6 +468,9 @@ export default function LoginScreen() {
                     style={({ pressed }) => [styles.btnGoogle, pressed && styles.btnPressed]}
                     onPress={() => handleLogin('google')}
                     disabled={isLoading}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('auth.loginGoogle')}
+                    accessibilityState={{ disabled: isLoading, busy: loadingProvider === 'google' }}
                 >
                     {loadingProvider === 'google' ? (
                         <ActivityIndicator size="small" color="#1A1A1A" />
@@ -485,6 +490,9 @@ export default function LoginScreen() {
                         style={({ pressed }) => [styles.btnApple, pressed && styles.btnPressed]}
                         onPress={() => handleLogin('apple')}
                         disabled={isLoading}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('auth.loginApple')}
+                        accessibilityState={{ disabled: isLoading, busy: loadingProvider === 'apple' }}
                     >
                         {loadingProvider === 'apple' ? (
                             <ActivityIndicator size="small" color="#fff" />
@@ -510,6 +518,8 @@ export default function LoginScreen() {
                         style={({ pressed }) => [styles.btnEmail, pressed && styles.btnPressed]}
                         onPress={() => setShowEmailInput(true)}
                         disabled={isLoading}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('auth.loginEmail')}
                     >
                         <Ionicons name="mail-outline" size={20} color={VoltColors.neonGreen} />
                         <Text style={styles.btnEmailText}>{t('auth.loginEmail')}</Text>
@@ -534,6 +544,9 @@ export default function LoginScreen() {
                             style={({ pressed }) => [styles.btnSendLink, pressed && styles.btnPressed]}
                             onPress={handleSendMagicLink}
                             disabled={isLoading}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('auth.sendMagicLink')}
+                            accessibilityState={{ disabled: isLoading, busy: loadingProvider === 'email' }}
                         >
                             {loadingProvider === 'email' ? (
                                 <ActivityIndicator size="small" color={VoltColors.bgPrimary} />

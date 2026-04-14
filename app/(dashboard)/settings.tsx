@@ -14,6 +14,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { setNotificationPreference, registerForPushNotifications, unregisterPushNotifications } from '@/services/notifications';
 import { getFirebaseServices } from '@/services/firebase';
+import { useToast } from '@/components/ToastProvider';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
@@ -34,6 +35,7 @@ export default function ProfileScreen() {
     const { t, i18n } = useTranslation();
     const [notifications, setNotifications] = useState(true);
     const { user } = useAuthStore();
+    const { showToast } = useToast();
     const router = useRouter();
     const isRo = i18n.language === 'ro';
 
@@ -71,13 +73,13 @@ export default function ProfileScreen() {
                         } catch (err) {
                             // eslint-disable-next-line no-console
                             console.error('[Settings] Logout failed:', err);
-                            Alert.alert('Eroare', 'Deconectarea a eșuat. Încearcă din nou.');
+                            showToast('error', t('settings.logoutFailed') || 'Deconectarea a eșuat. Încearcă din nou.');
                         }
                     },
                 },
             ],
         );
-    }, [user, t]);
+    }, [user, t, showToast]);
 
     const handleDeleteAccount = useCallback(async () => {
         Alert.alert(
@@ -107,17 +109,17 @@ export default function ProfileScreen() {
                                 await deleteAccount();
                             }
 
-                            Alert.alert('✅', t('settings.deleteAccountSuccess'));
+                            showToast('success', t('settings.deleteAccountSuccess'));
                         } catch (err) {
                             // eslint-disable-next-line no-console
                             console.error('[Settings] Delete account failed:', err);
-                            Alert.alert('❌', t('settings.deleteAccountError'));
+                            showToast('error', t('settings.deleteAccountError'));
                         }
                     },
                 },
             ],
         );
-    }, [t]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [t, showToast]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleNotificationToggle = useCallback(async (enabled: boolean) => {
         setNotifications(enabled);
@@ -129,9 +131,10 @@ export default function ProfileScreen() {
             if (enabled) {
                 const token = await registerForPushNotifications(userId);
                 if (!token) {
-                    Alert.alert(
-                        t('settings.notifications'),
+                    showToast(
+                        'warning',
                         t('settings.notificationPermissionDenied') || 'Permisiunea pentru notificari a fost refuzata. Activeaz-o din Setarile telefonului.',
+                        4000,
                     );
                     setNotifications(false);
                 }
@@ -140,7 +143,7 @@ export default function ProfileScreen() {
             // eslint-disable-next-line no-console
             console.warn('[Settings] Notification toggle failed:', err);
         }
-    }, [user, t]);
+    }, [user, t, showToast]);
 
     const menuItems = [
         {

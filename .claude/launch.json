@@ -10,8 +10,8 @@
     {
       "name": "Expo Dev Server",
       "runtimeExecutable": "C:\\Users\\Albert\\Desktop\\VoltCheck\\node_modules\\.bin\\expo.cmd",
-      "runtimeArgs": ["start"],
-      "port": 8081
+      "runtimeArgs": ["start", "--web", "--port", "8085"],
+      "port": 8085
     },
     {
       "name": "Firebase Emulators",

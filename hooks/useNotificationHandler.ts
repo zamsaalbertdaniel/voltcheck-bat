@@ -63,11 +63,13 @@ function handleNotificationNavigation(
 async function setupNativeHandler(router: Router) {
   try {
     const messaging = (
+      // @ts-expect-error — native-only module, not bundled on web; web build skips this branch via Platform.OS
       await import("@react-native-firebase/messaging")
     ).default;
 
     // 1. App opened from background (notification tapped while app was in background)
-    messaging().onNotificationOpenedApp((remoteMessage) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    messaging().onNotificationOpenedApp((remoteMessage: any) => {
       const data = remoteMessage.data as NotificationData | undefined;
       handleNotificationNavigation(router, data);
     });
@@ -80,7 +82,8 @@ async function setupNativeHandler(router: Router) {
     }
 
     // 3. Foreground notification (app is open — show an in-app alert)
-    messaging().onMessage(async (remoteMessage) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    messaging().onMessage(async (remoteMessage: any) => {
       const title =
         remoteMessage.notification?.title || "InspectEV Notification";
       const body = remoteMessage.notification?.body || "";
