@@ -21,7 +21,6 @@ import { useTranslation } from 'react-i18next';
 import {
     Alert,
     Image,
-    Linking,
     Platform,
     ScrollView,
     StyleSheet,
@@ -100,6 +99,7 @@ export default function ProfileScreen() {
                                 const deleteAccount = httpsCallable(functions, 'deleteUserAccount');
                                 await deleteAccount();
                             } else {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 const rnFunctions = (await import('@react-native-firebase/app')) as any;
                                 const functions = rnFunctions.default.functions('europe-west1');
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -117,7 +117,7 @@ export default function ProfileScreen() {
                 },
             ],
         );
-    }, [user, t]);
+    }, [t]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleNotificationToggle = useCallback(async (enabled: boolean) => {
         setNotifications(enabled);
@@ -170,6 +170,13 @@ export default function ProfileScreen() {
                     thumbColor={notifications ? VoltColors.neonGreen : VoltColors.textTertiary}
                 />
             ),
+        },
+        {
+            icon: 'car-connected' as const,
+            iconComponent: MaterialCommunityIcons,
+            label: t('settings.smartcarConnect', 'Conectare Smartcar'),
+            showArrow: true,
+            onPress: () => router.push('/smartcar-connect' as never),
         },
         {
             icon: 'shield-checkmark-outline' as const,
@@ -239,7 +246,7 @@ export default function ProfileScreen() {
                         onPress={item.onPress}
                     >
                         <item.iconComponent
-                            name={item.icon}
+                            name={item.icon as never}
                             size={22}
                             color={VoltColors.textSecondary}
                         />
@@ -273,6 +280,7 @@ export default function ProfileScreen() {
             {/* Version */}
             <View style={styles.versionContainer}>
                 <Image
+                    // eslint-disable-next-line @typescript-eslint/no-require-imports
                     source={require('@/assets/images/logo-small.png')}
                     style={{ width: 22, height: 22, resizeMode: 'contain', opacity: 0.5 }}
                 />

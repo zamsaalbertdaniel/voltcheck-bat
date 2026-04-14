@@ -146,16 +146,6 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="payment"
-              options={{
-                presentation: 'modal',
-                headerShown: true,
-                headerTitle: 'Plată',
-                headerStyle: { backgroundColor: VoltColors.bgSecondary },
-                headerTintColor: VoltColors.textPrimary,
-              }}
-            />
-            <Stack.Screen
               name="smartcar-connect"
               options={{
                 presentation: 'modal',

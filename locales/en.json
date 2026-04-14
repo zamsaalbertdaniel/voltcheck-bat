@@ -163,7 +163,8 @@
         "deleteAccountConfirm": "Are you sure you want to delete your account? All your data will be permanently deleted, including reports in Garage. This action cannot be undone.",
         "deleteAccountSuccess": "Your account has been successfully deleted.",
         "deleteAccountError": "Account deletion failed. Please try again.",
-        "rateApp": "Rate InspectEV"
+        "rateApp": "Rate InspectEV",
+        "smartcarConnect": "Smartcar Connect"
     },
     "insight": {
         "title": "BAT Insight",

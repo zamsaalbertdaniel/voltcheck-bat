@@ -163,7 +163,8 @@
     "deleteAccountConfirm": "Ești sigur că vrei să îți ștergi contul? Toate datele tale vor fi șterse permanent, inclusiv rapoartele din Garaj. Această acțiune este ireversibilă.",
     "deleteAccountSuccess": "Contul tău a fost șters cu succes.",
     "deleteAccountError": "Ștergerea contului a eșuat. Te rugăm să încerci din nou.",
-    "rateApp": "Evaluează InspectEV"
+    "rateApp": "Evaluează InspectEV",
+    "smartcarConnect": "Conectare Smartcar"
   },
   "insight": {
     "title": "BAT Insight",
