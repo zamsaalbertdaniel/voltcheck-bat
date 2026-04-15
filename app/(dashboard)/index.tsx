@@ -34,7 +34,6 @@ import * as Haptics from 'expo-haptics';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
     Animated,
     Image,
     KeyboardAvoidingView,
@@ -275,26 +274,23 @@ export default function DashboardIndex() {
 
     const handlePipelineComplete = useCallback((status: ReportStatus) => {
         setScreenState('complete');
-        Alert.alert(
-            'InspectEV',
-            `${t('scan.reportCompleted')}\n${t('scan.riskScoreLabel')}: ${status.riskScore}/100 (${status.riskCategory})`,
-            [
-                {
-                    text: t('scan.viewReport') || 'Vezi Raport',
-                    onPress: () => {
-                        const currentReportId = reportId;
-                        handleReset();
-                        if (currentReportId) {
-                            router.push(`/report/${currentReportId}`);
-                        } else {
-                            router.push('/(dashboard)/reports');
-                        }
-                    },
-                },
-                { text: t('scan.newScan') || 'Scanare Nouă', onPress: handleReset },
-            ]
+        // Non-blocking success toast + auto-navigate la raport.
+        // Userul tocmai a terminat fluxul, îl ducem direct la rezultat.
+        showToast(
+            'success',
+            `${t('scan.reportCompleted')} — ${t('scan.riskScoreLabel')}: ${status.riskScore}/100 (${status.riskCategory})`,
+            4000,
         );
-    }, [router, reportId, handleReset, t]);
+        const currentReportId = reportId;
+        handleReset();
+        setTimeout(() => {
+            if (currentReportId) {
+                router.push(`/report/${currentReportId}`);
+            } else {
+                router.push('/(dashboard)/reports');
+            }
+        }, 600);
+    }, [router, reportId, handleReset, t, showToast]);
 
     const handlePipelineError = useCallback((error: string) => {
         showToast('error', `${t('scan.errorTitle')}: ${error}`, 5000);

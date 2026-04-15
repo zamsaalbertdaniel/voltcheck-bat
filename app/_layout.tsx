@@ -7,8 +7,10 @@
 
 import CookieConsent from '@/components/layout/CookieConsent';
 import SplashSequence from '@/components/SplashSequence';
+import { toastConfig } from '@/components/ToastConfig';
 import { ToastProvider } from '@/components/ToastProvider';
 import VoltErrorBoundary from '@/components/VoltErrorBoundary';
+import Toast from 'react-native-toast-message';
 import { VoltColors } from '@/constants/Theme';
 import { useAuthListener } from '@/hooks/useAuthListener';
 import { useNotificationHandler } from '@/hooks/useNotificationHandler';
@@ -185,6 +187,8 @@ export default function RootLayout() {
           <CookieConsent />
         </ThemeProvider>
       </ToastProvider>
+      {/* Global toast renderer — stil Deep-Tech via toastConfig */}
+      <Toast config={toastConfig} />
     </VoltErrorBoundary>
   );
 }

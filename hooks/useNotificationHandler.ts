@@ -10,9 +10,10 @@
  *   - Web: firebase/messaging onMessage (foreground only)
  */
 
+import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
-import { Alert, Platform } from "react-native";
+import { Platform } from "react-native";
 
 /**
  * Call this hook once in the root layout.
@@ -81,7 +82,8 @@ async function setupNativeHandler(router: Router) {
       handleNotificationNavigation(router, data);
     }
 
-    // 3. Foreground notification (app is open — show an in-app alert)
+    // 3. Foreground notification (app is open — afișăm toast non-blocking;
+    // la tap navigăm la raport dacă există reportId în payload).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     messaging().onMessage(async (remoteMessage: any) => {
       const title =
@@ -89,17 +91,20 @@ async function setupNativeHandler(router: Router) {
       const body = remoteMessage.notification?.body || "";
       const data = remoteMessage.data as NotificationData | undefined;
 
-      Alert.alert(title, body, [
-        { text: "OK", style: "cancel" },
-        ...(data?.reportId
-          ? [
-              {
-                text: "Vezi Raport",
-                onPress: () => handleNotificationNavigation(router, data),
-              },
-            ]
-          : []),
-      ]);
+      Toast.show({
+        type: data?.type === "report_ready" ? "success" : "info",
+        text1: title,
+        text2: body,
+        visibilityTime: 5000,
+        position: "top",
+        topOffset: 60,
+        onPress: () => {
+          if (data?.reportId) {
+            handleNotificationNavigation(router, data);
+          }
+          Toast.hide();
+        },
+      });
     });
   } catch {
     // @react-native-firebase/messaging not installed — skip silently
