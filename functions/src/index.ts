@@ -56,6 +56,7 @@ export { reportPipeline } from './report/reportPipeline';
 
 // ── Payment ──
 export { createPaymentIntent } from './payment/createPaymentIntent';
+export { createCheckoutSession } from './payment/createCheckoutSession';
 export { handleStripeWebhook } from './payment/handleStripeWebhook';
 
 // ── Share ──
@@ -63,6 +64,7 @@ export { shareReport } from './share/reportShare';
 
 // ── Scheduler ──
 export { cleanupExpiredReports } from './scheduler/cleanupExpired';
+export { retryStuckReports } from './report/retryStuckReports';
 
 // ── Health Check ──
 export { healthCheck } from './health/healthCheck';

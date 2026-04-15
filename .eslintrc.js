@@ -31,6 +31,8 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'warn',
     // No console.log in production code
     'no-console': 'warn',
+    // React Native Expo requires require() for static assets
+    '@typescript-eslint/no-require-imports': 'off',
   },
   ignorePatterns: [
     'node_modules/',
