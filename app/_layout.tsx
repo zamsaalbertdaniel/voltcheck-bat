@@ -146,6 +146,13 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="preview/[vin]"
+              options={{
+                headerShown: false,
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen
               name="smartcar-connect"
               options={{
                 presentation: 'modal',

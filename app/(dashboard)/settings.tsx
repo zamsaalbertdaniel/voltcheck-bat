@@ -16,11 +16,11 @@ import { setNotificationPreference, registerForPushNotifications, unregisterPush
 import { getFirebaseServices } from '@/services/firebase';
 import { useToast } from '@/components/ToastProvider';
 import { useAuthStore } from '@/store/useAuthStore';
+import { platformConfirm } from '@/utils/platformConfirm';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    Alert,
     Image,
     Platform,
     ScrollView,
@@ -44,82 +44,74 @@ export default function ProfileScreen() {
     };
 
     const handleLogout = useCallback(async () => {
-        Alert.alert(
-            t('settings.logout') || 'Deconectare',
-            t('settings.logoutConfirm') || 'Ești sigur că vrei să te deconectezi?',
-            [
-                { text: t('common.cancel') || 'Anulează', style: 'cancel' },
-                {
-                    text: t('settings.logout') || 'Deconectare',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            // Unregister push notifications
-                            if (user?.uid) {
-                                await unregisterPushNotifications(user.uid).catch(() => {});
-                            }
+        const confirmed = await platformConfirm({
+            title: t('settings.logout') || 'Deconectare',
+            message: t('settings.logoutConfirm') || 'Ești sigur că vrei să te deconectezi?',
+            confirmText: t('settings.logout') || 'Deconectare',
+            cancelText: t('common.cancel') || 'Anulează',
+            destructive: true,
+        });
+        if (!confirmed) return;
 
-                            // Sign out from Firebase
-                            const { auth } = await getFirebaseServices();
-                            if (Platform.OS === 'web') {
-                                const { signOut } = await import('firebase/auth');
-                                await signOut(auth);
-                            } else {
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                await (auth as any).signOut();
-                            }
+        try {
+            // Unregister push notifications
+            if (user?.uid) {
+                await unregisterPushNotifications(user.uid).catch(() => {});
+            }
 
-                            // Auth listener will auto-redirect to (auth)
-                        } catch (err) {
-                            // eslint-disable-next-line no-console
-                            console.error('[Settings] Logout failed:', err);
-                            showToast('error', t('settings.logoutFailed') || 'Deconectarea a eșuat. Încearcă din nou.');
-                        }
-                    },
-                },
-            ],
-        );
+            // Sign out from Firebase
+            const { auth } = await getFirebaseServices();
+            if (Platform.OS === 'web') {
+                const { signOut } = await import('firebase/auth');
+                await signOut(auth);
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await (auth as any).signOut();
+            }
+
+            // Auth listener will auto-redirect to (auth)
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[Settings] Logout failed:', err);
+            showToast('error', t('settings.logoutFailed') || 'Deconectarea a eșuat. Încearcă din nou.');
+        }
     }, [user, t, showToast]);
 
     const handleDeleteAccount = useCallback(async () => {
-        Alert.alert(
-            t('settings.deleteAccount'),
-            t('settings.deleteAccountConfirm'),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                    text: t('settings.deleteAccount'),
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            // Server-side deletion via Cloud Function (bypasses Firestore rules)
-                            if (Platform.OS === 'web') {
-                                const { getFirebaseServices } = await import('@/services/firebase');
-                                const { app } = await getFirebaseServices();
-                                const { getFunctions, httpsCallable } = await import('firebase/functions');
-                                const functions = getFunctions(app, 'europe-west1');
-                                const deleteAccount = httpsCallable(functions, 'deleteUserAccount');
-                                await deleteAccount();
-                            } else {
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                const rnFunctions = (await import('@react-native-firebase/app')) as any;
-                                const functions = rnFunctions.default.functions('europe-west1');
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                const deleteAccount = (functions as any).httpsCallable('deleteUserAccount');
-                                await deleteAccount();
-                            }
+        const confirmed = await platformConfirm({
+            title: t('settings.deleteAccount'),
+            message: t('settings.deleteAccountConfirm'),
+            confirmText: t('settings.deleteAccount'),
+            cancelText: t('common.cancel'),
+            destructive: true,
+        });
+        if (!confirmed) return;
 
-                            showToast('success', t('settings.deleteAccountSuccess'));
-                        } catch (err) {
-                            // eslint-disable-next-line no-console
-                            console.error('[Settings] Delete account failed:', err);
-                            showToast('error', t('settings.deleteAccountError'));
-                        }
-                    },
-                },
-            ],
-        );
-    }, [t, showToast]); // eslint-disable-line react-hooks/exhaustive-deps
+        try {
+            // Server-side deletion via Cloud Function (bypasses Firestore rules)
+            if (Platform.OS === 'web') {
+                const { getFirebaseServices } = await import('@/services/firebase');
+                const { app } = await getFirebaseServices();
+                const { getFunctions, httpsCallable } = await import('firebase/functions');
+                const functions = getFunctions(app, 'europe-west1');
+                const deleteAccount = httpsCallable(functions, 'deleteUserAccount');
+                await deleteAccount();
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const rnFunctions = (await import('@react-native-firebase/app')) as any;
+                const functions = rnFunctions.default.functions('europe-west1');
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const deleteAccount = (functions as any).httpsCallable('deleteUserAccount');
+                await deleteAccount();
+            }
+
+            showToast('success', t('settings.deleteAccountSuccess'));
+        } catch (err) {
+            // eslint-disable-next-line no-console
+            console.error('[Settings] Delete account failed:', err);
+            showToast('error', t('settings.deleteAccountError'));
+        }
+    }, [t, showToast]);
 
     const handleNotificationToggle = useCallback(async (enabled: boolean) => {
         setNotifications(enabled);

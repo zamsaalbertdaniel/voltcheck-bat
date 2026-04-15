@@ -66,7 +66,9 @@ export default function LandingPage() {
         if (isAuthenticated) {
             router.push({ pathname: '/(dashboard)', params: { vin } });
         } else {
-            router.push({ pathname: '/login', params: { vin } });
+            // Free preview — no login required. Shows make/model/year (NHTSA)
+            // + locked teaser cards with signup CTA for the full report.
+            router.push({ pathname: '/preview/[vin]', params: { vin } } as never);
         }
     };
 
@@ -105,11 +107,13 @@ export default function LandingPage() {
                 ) : (
                     <Pressable
                         style={styles.topBarBtn}
-                        onPress={() => router.push('/login')}
+                        onPress={() => router.push({ pathname: '/login', params: { mode: 'signup' } })}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('landing.signup', 'Creează cont')}
                     >
-                        <Ionicons name="log-in-outline" size={18} color={VoltColors.neonGreen} />
+                        <Ionicons name="person-add-outline" size={18} color={VoltColors.neonGreen} />
                         <Text style={styles.topBarBtnText}>
-                            {t('landing.login', 'Intră în cont')}
+                            {t('landing.signup', 'Creează cont')}
                         </Text>
                     </Pressable>
                 )}
@@ -119,6 +123,7 @@ export default function LandingPage() {
             <Animated.View style={[styles.hero, { opacity: fadeIn }]}>
                 {/* Green glow background */}
                 {Platform.OS === 'web' && (
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     <View style={[styles.glowOrb, glowStyle as any]} pointerEvents="none" />
                 )}
 
