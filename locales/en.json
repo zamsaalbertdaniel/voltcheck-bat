@@ -340,5 +340,21 @@
         "close": "Close",
         "next": "Continue",
         "back": "Back"
+    },
+    "compat": {
+        "backHome": "Back to homepage",
+        "login": "Sign in",
+        "badge": "PREMIUM PACKAGE",
+        "title": "Compatible Models",
+        "subtitle": "Over 50 EV models fully covered with live battery diagnostics and AI risk scoring.",
+        "searchPlaceholder": "Search brand or model (e.g. Tesla, Ioniq, ID.4)",
+        "searchA11y": "Search EV brand or model",
+        "clearSearch": "Clear search",
+        "noResults": "No brand matches your search",
+        "resultsCount": "{{count}} brands shown",
+        "faqTitle": "Your car isn't listed?",
+        "faqBody": "We fully cover (Premium) the brands above with live battery diagnostics and certified SoH. For any other electric vehicle, the Standard package still offers: full VIN decoding, AI risk score, accident history, recalls and PDF report — no live Smartcar telemetry, but complete for a pre-purchase evaluation.",
+        "cta": "Check a VIN now",
+        "ctaA11y": "Check a VIN now — Standard package"
     }
 }

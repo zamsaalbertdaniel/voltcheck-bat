@@ -340,5 +340,21 @@
     "close": "Închide",
     "next": "Continuă",
     "back": "Înapoi"
+  },
+  "compat": {
+    "backHome": "Înapoi la pagina principală",
+    "login": "Conectează-te",
+    "badge": "PACHET PREMIUM",
+    "title": "Modele Compatibile",
+    "subtitle": "Peste 50 de modele EV acoperite integral cu diagnoză live a bateriei și scor de risc AI.",
+    "searchPlaceholder": "Caută brand sau model (ex. Tesla, Ioniq, ID.4)",
+    "searchA11y": "Caută brand sau model EV",
+    "clearSearch": "Șterge căutarea",
+    "noResults": "Niciun brand nu corespunde căutării",
+    "resultsCount": "{{count}} branduri afișate",
+    "faqTitle": "Mașina ta nu e în listă?",
+    "faqBody": "Acoperim complet (Premium) brandurile de mai sus cu diagnoză live a bateriei și SoH certificat. Pentru orice alt vehicul electric, pachetul Standard oferă oricum: decodare VIN completă, scor de risc AI, istoric accidente, rechemări (recalls) și raport PDF — fără Smartcar live, dar complet pentru o evaluare pre-cumpărare.",
+    "cta": "Verifică acum un VIN",
+    "ctaA11y": "Verifică acum un VIN — pachet Standard"
   }
 }
