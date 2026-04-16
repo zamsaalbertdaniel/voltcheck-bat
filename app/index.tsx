@@ -16,7 +16,7 @@ import {
 } from '@/constants/Theme';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -40,6 +40,9 @@ export default function LandingPage() {
     const { isAuthenticated } = useAuthStore();
     const { width } = useWindowDimensions();
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
+    // ?focusVin=true declanșează auto-focus pe VIN input (ex. din /modele-compatibile CTA).
+    const { focusVin } = useLocalSearchParams<{ focusVin?: string }>();
+    const shouldFocusVin = focusVin === 'true';
 
     // Animated green glow
     const glowPulse = useRef(new Animated.Value(0.15)).current;
@@ -149,7 +152,7 @@ export default function LandingPage() {
                     </Text>
 
                     <View style={styles.heroInputContainer}>
-                        <HeroVinInput onSubmit={handleVinSubmit} />
+                        <HeroVinInput onSubmit={handleVinSubmit} autoFocus={shouldFocusVin} />
                     </View>
 
                     {/* Trust badges */}

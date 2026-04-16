@@ -11,7 +11,7 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Platform,
@@ -28,14 +28,25 @@ const VIN_LENGTH = 17;
 
 interface HeroVinInputProps {
     onSubmit: (vin: string) => void;
+    /** Auto-focus input la mount (folosit la navigare din /modele-compatibile cu ?focusVin=true). */
+    autoFocus?: boolean;
 }
 
-export default function HeroVinInput({ onSubmit }: HeroVinInputProps) {
+export default function HeroVinInput({ onSubmit, autoFocus }: HeroVinInputProps) {
     const { t } = useTranslation();
     const [vin, setVin] = useState('');
     const { width } = useWindowDimensions();
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
     const isValid = vin.replace(/[^A-HJ-NPR-Z0-9]/gi, '').length === VIN_LENGTH;
+    const inputRef = useRef<TextInput>(null);
+
+    useEffect(() => {
+        if (autoFocus) {
+            // Delay pentru a lăsa animațiile landing-ului să pornească înainte de focus.
+            const timer = setTimeout(() => inputRef.current?.focus(), 300);
+            return () => clearTimeout(timer);
+        }
+    }, [autoFocus]);
 
     const handleChangeText = (text: string) => {
         // Only allow valid VIN chars, auto-uppercase
@@ -52,6 +63,7 @@ export default function HeroVinInput({ onSubmit }: HeroVinInputProps) {
                     style={styles.icon}
                 />
                 <TextInput
+                    ref={inputRef}
                     style={[styles.input, isDesktop && styles.inputDesktop] as any}
                     value={vin}
                     onChangeText={handleChangeText}
