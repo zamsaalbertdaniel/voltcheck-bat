@@ -20,18 +20,28 @@ import type { BrandInfo, CarModel } from '@/types/brands';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInUp, LinearTransition } from 'react-native-reanimated';
+
+// Stagger offset per card (index * STAGGER_MS). Păstrat mic pentru a nu încetini
+// rezultatele Smart Search când utilizatorul tastează rapid.
+const STAGGER_MS = 50;
+const ENTER_DURATION_MS = 450;
 
 interface BrandBentoCardProps {
     brand: BrandInfo;
     /** Opțional — dacă e furnizat, card-ul afișează doar aceste modele (subset al brand.models). */
     models?: CarModel[];
+    /** Index în grid, folosit pentru stagger FadeInUp. */
+    index?: number;
 }
 
-export default function BrandBentoCard({ brand, models }: BrandBentoCardProps) {
+export default function BrandBentoCard({ brand, models, index = 0 }: BrandBentoCardProps) {
     const visibleModels = models ?? brand.models;
 
     return (
-        <View
+        <Animated.View
+            entering={FadeInUp.duration(ENTER_DURATION_MS).delay(index * STAGGER_MS)}
+            layout={LinearTransition.duration(300)}
             style={[
                 styles.card,
                 // Halo în culoarea brandului pe web (pe native shadow-ul e suficient)
@@ -83,7 +93,7 @@ export default function BrandBentoCard({ brand, models }: BrandBentoCardProps) {
                     </View>
                 ))}
             </View>
-        </View>
+        </Animated.View>
     );
 }
 

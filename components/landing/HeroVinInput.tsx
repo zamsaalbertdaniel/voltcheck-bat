@@ -64,6 +64,7 @@ export default function HeroVinInput({ onSubmit, autoFocus }: HeroVinInputProps)
                 />
                 <TextInput
                     ref={inputRef}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     style={[styles.input, isDesktop && styles.inputDesktop] as any}
                     value={vin}
                     onChangeText={handleChangeText}

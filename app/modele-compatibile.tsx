@@ -33,6 +33,7 @@ import {
     useWindowDimensions,
     View,
 } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 const DESKTOP_BREAKPOINT = 900;
 const TABLET_BREAKPOINT = 600;
@@ -134,7 +135,10 @@ export default function ModeleCompatibilePage() {
                     )}
 
                     <View style={styles.heroContent}>
-                        <View style={styles.badge}>
+                        <Animated.View
+                            entering={FadeInDown.duration(500)}
+                            style={styles.badge}
+                        >
                             <MaterialCommunityIcons
                                 name="shield-star"
                                 size={16}
@@ -143,21 +147,30 @@ export default function ModeleCompatibilePage() {
                             <Text style={styles.badgeText}>
                                 {t('compat.badge', 'PACHET PREMIUM')}
                             </Text>
-                        </View>
+                        </Animated.View>
 
-                        <Text style={[styles.heroTitle, isDesktop && styles.heroTitleDesktop]}>
+                        <Animated.Text
+                            entering={FadeInDown.duration(600).delay(100)}
+                            style={[styles.heroTitle, isDesktop && styles.heroTitleDesktop]}
+                        >
                             {t('compat.title', 'Modele Compatibile')}
-                        </Text>
+                        </Animated.Text>
 
-                        <Text style={styles.heroSubtitle}>
+                        <Animated.Text
+                            entering={FadeInDown.duration(600).delay(200)}
+                            style={styles.heroSubtitle}
+                        >
                             {t(
                                 'compat.subtitle',
                                 'Peste 50 de modele EV acoperite integral cu diagnoză live a bateriei și scor de risc AI.'
                             )}
-                        </Text>
+                        </Animated.Text>
 
                         {/* Smart Search */}
-                        <View style={styles.searchWrapper}>
+                        <Animated.View
+                            entering={FadeIn.duration(500).delay(300)}
+                            style={styles.searchWrapper}
+                        >
                             <Ionicons
                                 name="search"
                                 size={20}
@@ -194,7 +207,7 @@ export default function ModeleCompatibilePage() {
                                     />
                                 </Pressable>
                             )}
-                        </View>
+                        </Animated.View>
 
                         <Text
                             style={styles.resultsCount}
@@ -213,7 +226,7 @@ export default function ModeleCompatibilePage() {
                 {/* Results Grid */}
                 <View style={[styles.gridWrapper, isDesktop && styles.gridWrapperDesktop]}>
                     <View style={styles.grid}>
-                        {results.map((result) => (
+                        {results.map((result, idx) => (
                             <View
                                 key={result.brand.id}
                                 style={[styles.gridItem, { width: cardWidthPercent }]}
@@ -221,6 +234,7 @@ export default function ModeleCompatibilePage() {
                                 <BrandBentoCard
                                     brand={result.brand}
                                     models={result.matchedModels}
+                                    index={idx}
                                 />
                             </View>
                         ))}
@@ -229,7 +243,10 @@ export default function ModeleCompatibilePage() {
 
                 {/* FAQ + CTA Fallback */}
                 <View style={[styles.faqWrapper, isDesktop && styles.faqWrapperDesktop]}>
-                    <View style={styles.faqCard}>
+                    <Animated.View
+                        entering={FadeInDown.duration(600).delay(200)}
+                        style={styles.faqCard}
+                    >
                         <View style={styles.faqIcon}>
                             <MaterialCommunityIcons
                                 name="help-circle-outline"
@@ -273,7 +290,7 @@ export default function ModeleCompatibilePage() {
                                 color={VoltColors.textOnGreen}
                             />
                         </Pressable>
-                    </View>
+                    </Animated.View>
                 </View>
 
                 <VoltFooter />
