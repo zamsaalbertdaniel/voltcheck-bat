@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:/Users/Albert/Desktop/VoltCheck\" branch -a)",
+      "Bash(git -C \"C:/Users/Albert/Desktop/VoltCheck\" worktree list)",
+      "Bash(git -C \"C:/Users/Albert/Desktop/VoltCheck\" stash list)",
+      "Bash(git -C \"C:/Users/Albert/Desktop/VoltCheck\" branch -D claude/bold-elbakyan)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('locales/ro.json','utf8'\\)\\); JSON.parse\\(require\\('fs'\\).readFileSync\\('locales/en.json','utf8'\\)\\); console.log\\('Both JSONs valid'\\);\")",
+      "Bash(git -C /c/Users/Albert/Desktop/VoltCheck log --oneline -10)",
+      "Bash(git -C /c/Users/Albert/Desktop/VoltCheck diff --stat)",
+      "Bash(git -C /c/Users/Albert/Desktop/VoltCheck add app/index.tsx locales/ro.json locales/en.json components/landing/CompatibleModelsCTA.tsx components/landing/LandingFAQ.tsx utils/analytics.ts)",
+      "Bash(git -C /c/Users/Albert/Desktop/VoltCheck status)",
+      "Bash(git -C /c/Users/Albert/Desktop/VoltCheck commit -m 'feat\\(landing\\): CTA pulsant Modele Compatibile + FAQ public cu JSON-LD SEO:*)",
+      "Bash(git -C /c/Users/Albert/Desktop/VoltCheck push origin main)",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_deployments",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_teams",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__list_projects",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__get_deployment",
+      "mcp__c46a5615-8f26-41ea-bc60-f6442fd71470__web_fetch_vercel_url"
+    ]
+  }
+}

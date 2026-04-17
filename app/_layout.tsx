@@ -6,6 +6,7 @@
  */
 
 import CookieConsent from '@/components/layout/CookieConsent';
+import RegionSelectorModal from '@/components/layout/RegionSelectorModal';
 import SplashSequence from '@/components/SplashSequence';
 import { toastConfig } from '@/components/ToastConfig';
 import { ToastProvider } from '@/components/ToastProvider';
@@ -185,6 +186,9 @@ export default function RootLayout() {
 
           {/* GDPR Cookie Consent — web only, first visit */}
           <CookieConsent />
+          
+          {/* Geolocation Region Selector */}
+          <RegionSelectorModal />
         </ThemeProvider>
       </ToastProvider>
       {/* Global toast renderer — stil Deep-Tech via toastConfig */}

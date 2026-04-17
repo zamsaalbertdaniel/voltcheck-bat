@@ -377,5 +377,18 @@
     "faqBody": "Acoperim complet (Premium) brandurile de mai sus cu diagnoză live a bateriei și SoH certificat. Pentru orice alt vehicul electric, pachetul Standard oferă oricum: decodare VIN completă, scor de risc AI, istoric accidente, rechemări (recalls) și raport PDF — fără Smartcar live, dar complet pentru o evaluare pre-cumpărare.",
     "cta": "Verifică acum un VIN",
     "ctaA11y": "Verifică acum un VIN — pachet Standard"
+  },
+  "cookie": {
+    "message": "Folosim cookie-uri esențiale pentru funcționalitatea site-ului, logare securizată și procesarea plăților (Stripe).",
+    "accept": "Acceptă Toate",
+    "manage": "Configurează"
+  },
+  "region": {
+    "mismatch_title": "Interfață Localizată",
+    "mismatch_desc": "Se pare că ne vizitezi din {{country}}. Vrei să actualizăm setările pentru a-ți oferi conținut adaptat, în limba Engleză?",
+    "stay_home": "Rămâi pe România (RO)",
+    "switch_global": "Schimbă pe Restul Lumii (EN)",
+    "current_lang": "România",
+    "switch_lang": "🌍 Restul Lumii"
   }
 }

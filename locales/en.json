@@ -377,5 +377,18 @@
         "faqBody": "We fully cover (Premium) the brands above with live battery diagnostics and certified SoH. For any other electric vehicle, the Standard package still offers: full VIN decoding, AI risk score, accident history, recalls and PDF report — no live Smartcar telemetry, but complete for a pre-purchase evaluation.",
         "cta": "Check a VIN now",
         "ctaA11y": "Check a VIN now — Standard package"
+    },
+    "cookie": {
+        "message": "We use essential cookies for website functionality, secure login, and payment processing (Stripe).",
+        "accept": "Accept All",
+        "manage": "Manage Preferences"
+    },
+    "region": {
+        "mismatch_title": "Localized Interface",
+        "mismatch_desc": "It looks like you are visiting us from {{country}}. Would you like to update your settings to view adapted content in English?",
+        "stay_home": "Keep Romania (RO)",
+        "switch_global": "Switch to Rest of the World (EN)",
+        "current_lang": "Rest of the World",
+        "switch_lang": "🌍 Rest of the World"
     }
 }

@@ -52,5 +52,14 @@ export default function middleware(request: Request) {
         );
     }
 
-    // Permite accesul către aplicație (nu returna nimic)
+    // Citește regiunea de la marginea rețelei (Vercel)
+    const country = request.headers.get('x-vercel-ip-country') || 'RO';
+
+    // Permite accesul către aplicație dar injectează Set-Cookie
+    return new Response(null, {
+        headers: {
+            'x-middleware-next': '1',
+            'Set-Cookie': `vercel_country=${country}; Path=/; Max-Age=2592000; SameSite=Lax`
+        }
+    });
 }

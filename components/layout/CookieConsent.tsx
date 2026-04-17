@@ -89,7 +89,7 @@ export default function CookieConsent() {
                 <Text style={[styles.text, isDesktop && styles.textDesktop]}>
                     {t(
                         'cookie.message',
-                        'Folosim cookie-uri esențiale pentru autentificare (Firebase) și plăți sigure (Stripe). Nu colectăm date pentru publicitate.'
+                        'Folosim cookie-uri esențiale pentru funcționalitatea site-ului, logare securizată și procesarea plăților (Stripe).'
                     )}
                 </Text>
 
@@ -99,7 +99,7 @@ export default function CookieConsent() {
                         onPress={() => router.push('/legal/privacy' as never)}
                     >
                         <Text style={styles.learnMoreText}>
-                            {t('cookie.learnMore', 'Află mai mult')}
+                            {t('cookie.manage', 'Configurează')}
                         </Text>
                     </Pressable>
 
@@ -108,7 +108,7 @@ export default function CookieConsent() {
                         onPress={handleAccept}
                     >
                         <Text style={styles.acceptText}>
-                            {t('cookie.accept', 'Accept')}
+                            {t('cookie.accept', 'Acceptă Toate')}
                         </Text>
                     </Pressable>
                 </View>

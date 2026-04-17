@@ -8,6 +8,8 @@ import {
     VoltColors,
     VoltFontSize,
     VoltSpacing,
+    VoltBorderRadius,
+    VoltFontFamily,
 } from '@/constants/Theme';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -24,7 +26,7 @@ import {
 const DESKTOP_BREAKPOINT = 900;
 
 export default function VoltFooter() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const router = useRouter();
     const { width } = useWindowDimensions();
     const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
@@ -57,9 +59,20 @@ export default function VoltFooter() {
                         </Pressable>
                     ))}
                 </View>
-                <Text style={styles.copyright}>
-                    © 2026 InspectEV SRL. All rights reserved.
-                </Text>
+                <View style={[styles.bottomRow, isDesktop && styles.bottomRowDesktop]}>
+                    <Text style={styles.copyright}>
+                        © 2026 InspectEV SRL. All rights reserved.
+                    </Text>
+                    
+                    <Pressable 
+                        onPress={() => i18n.changeLanguage(i18n.language === 'ro' ? 'en' : 'ro')}
+                        style={({ pressed }) => [styles.langToggle, pressed && styles.linkPressed]}
+                    >
+                        <Text style={styles.langToggleText}>
+                            {i18n.language === 'ro' ? '🌍 România (RO)' : '🌍 Global (EN)'}
+                        </Text>
+                    </Pressable>
+                </View>
             </View>
         </View>
     );
@@ -114,5 +127,28 @@ const styles = StyleSheet.create({
         fontSize: VoltFontSize.xs,
         color: VoltColors.textTertiary,
         opacity: 0.7,
+    },
+    bottomRow: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: VoltSpacing.md,
+        marginTop: VoltSpacing.sm,
+    },
+    bottomRowDesktop: {
+        flexDirection: 'row',
+        gap: VoltSpacing.lg,
+        marginTop: 0,
+    },
+    langToggle: {
+        paddingVertical: VoltSpacing.xs,
+        paddingHorizontal: VoltSpacing.sm,
+        borderWidth: 1,
+        borderColor: VoltColors.border,
+        borderRadius: VoltBorderRadius.sm,
+    },
+    langToggleText: {
+        fontSize: VoltFontSize.xs,
+        fontFamily: VoltFontFamily.medium,
+        color: VoltColors.textSecondary,
     },
 });
