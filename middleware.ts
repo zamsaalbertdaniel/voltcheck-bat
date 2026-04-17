@@ -10,7 +10,24 @@ const ipMap = new Map<string, { count: number; lastReset: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minut fereastră
 const MAX_REQUESTS_PER_WINDOW = 60; // maxim 60 requesturi/min per IP pentru pagini. Foarte iertător, dar blochează boții agresivi
 
+// Geo-blocking: Țări sancționate sau cu risc mare de boți și atacuri cibernetice
+const BLOCKED_COUNTRIES = new Set(['RU', 'CN', 'KP', 'IR', 'SY', 'CU']);
+
 export default function middleware(request: Request) {
+    // Citește regiunea de la marginea rețelei (Vercel)
+    const country = request.headers.get('x-vercel-ip-country') || 'RO';
+
+    // Firewall Edge: Blocare imediată a traficului din țările sancționate
+    if (BLOCKED_COUNTRIES.has(country)) {
+        return new Response(
+            JSON.stringify({
+                error: 'Access forbidden from this region.',
+                code: 'REGION_BLOCKED'
+            }),
+            { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+    }
+
     const ip = request.headers.get('x-forwarded-for') || '127.0.0.1';
 
     const now = Date.now();
@@ -52,10 +69,8 @@ export default function middleware(request: Request) {
         );
     }
 
-    // Citește regiunea de la marginea rețelei (Vercel)
-    const country = request.headers.get('x-vercel-ip-country') || 'RO';
-
     // Permite accesul către aplicație dar injectează Set-Cookie
+
     return new Response(null, {
         headers: {
             'x-middleware-next': '1',
