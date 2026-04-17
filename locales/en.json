@@ -341,6 +341,27 @@
         "next": "Continue",
         "back": "Back"
     },
+    "landing": {
+        "compatCta": "See Compatible Models",
+        "compatCtaA11y": "View the full list of electric cars with live battery diagnostics",
+        "compatCtaHint": "Check if your EV is covered with live battery diagnostics",
+        "faq": {
+            "title": "Frequently asked questions",
+            "subtitle": "Quick answers before you enter your VIN.",
+            "q1": "How does InspectEV work?",
+            "a1": "Enter your electric vehicle's VIN (17 characters) on the homepage. Within about 30 seconds you receive a complete AI report: risk score, accident history, active recalls and — for covered brands — live battery diagnostics via Smartcar.",
+            "q2": "What's in the report?",
+            "a2": "Full VIN decoding (make, model, year, powertrain, battery capacity kWh), AI risk score (0–100), accident and damage history, active NHTSA/EU recalls, reported mileage and theft checks. The Premium package adds battery State of Health (SoH), DC/AC charging cycles and real usable capacity, all delivered as an official PDF report.",
+            "q3": "How long until I receive the report?",
+            "a3": "About 30 seconds for the Standard package — the result is instant once the VIN is validated. For Premium, Smartcar live battery diagnostics adds 1–2 minutes (OAuth authorization in the manufacturer's app + BMS reading).",
+            "q4": "What's the difference between Standard and Premium?",
+            "a4": "The Standard package (99 RON) includes VIN decoding, AI risk score, accident history, recalls and PDF report — suitable for any second-hand EV. The [[Premium package (120 RON)|/modele-compatibile]] adds live battery diagnostics via Smartcar for covered brands — you get a real SoH certificate before buying, not just an estimate.",
+            "q5": "Where do I find the VIN?",
+            "a5": "The VIN has 17 characters and can be found in 3 places: on the dashboard (bottom-left corner of the windshield, visible from outside), in the vehicle registration document, and on the driver's door jamb. It never contains the letters I, O or Q to avoid confusion with the digits 1 and 0.",
+            "q6": "Can I get a refund if I'm not satisfied?",
+            "a6": "Yes — we offer a 14-day guarantee for inaccurate or incomplete reports, per our [[full refund policy|/legal/refund]]. If the decoded data is wrong or important sections are missing, we refund the full amount paid."
+        }
+    },
     "compat": {
         "backHome": "Back to homepage",
         "login": "Sign in",

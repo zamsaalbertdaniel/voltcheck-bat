@@ -5,7 +5,9 @@
  */
 
 import BentoBox from '@/components/landing/BentoBox';
+import CompatibleModelsCTA from '@/components/landing/CompatibleModelsCTA';
 import HeroVinInput from '@/components/landing/HeroVinInput';
+import LandingFAQ, { getFaqJsonLd } from '@/components/landing/LandingFAQ';
 import VoltFooter from '@/components/layout/VoltFooter';
 import {
     VoltBorderRadius,
@@ -16,8 +18,9 @@ import {
 } from '@/constants/Theme';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import Head from 'expo-router/head';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     Animated,
@@ -81,8 +84,22 @@ export default function LandingPage() {
         }
         : {};
 
+    // FAQPage JSON-LD schema — rebuilt when language changes so RO/EN
+    // both get indexed correctly on Rich Snippets.
+    const faqJsonLd = useMemo(() => JSON.stringify(getFaqJsonLd(t)), [t]);
+
     return (
-        <ScrollView
+        <>
+            <Head>
+                {Platform.OS === 'web' && (
+                    <script
+                        type="application/ld+json"
+                        // eslint-disable-next-line react/no-danger
+                        dangerouslySetInnerHTML={{ __html: faqJsonLd }}
+                    />
+                )}
+            </Head>
+            <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={Platform.OS === 'web'}
@@ -170,6 +187,9 @@ export default function LandingPage() {
                         ))}
                     </View>
 
+                    {/* Pulsing CTA — discover covered EV brands (Premium coverage). */}
+                    <CompatibleModelsCTA source="landing_hero" />
+
                     {/* Secondary CTA — Login prompt for unauthenticated users */}
                     {!isAuthenticated && (
                         <Pressable
@@ -190,9 +210,13 @@ export default function LandingPage() {
             {/* Know-How Bento Box Section */}
             <BentoBox />
 
+            {/* FAQ Section — public, accessible without auth */}
+            <LandingFAQ />
+
             {/* Footer */}
             <VoltFooter />
         </ScrollView>
+        </>
     );
 }
 

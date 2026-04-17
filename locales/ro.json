@@ -341,6 +341,27 @@
     "next": "Continuă",
     "back": "Înapoi"
   },
+  "landing": {
+    "compatCta": "Vezi Modele Compatibile",
+    "compatCtaA11y": "Vezi lista completă de mașini electrice compatibile cu diagnoză live",
+    "compatCtaHint": "Verifică dacă EV-ul tău e acoperit cu diagnoză live baterie",
+    "faq": {
+      "title": "Întrebări frecvente",
+      "subtitle": "Răspunsuri rapide înainte să introduci VIN-ul.",
+      "q1": "Cum funcționează InspectEV?",
+      "a1": "Introduci VIN-ul mașinii electrice (17 caractere) pe pagina principală. În aproximativ 30 de secunde primești un raport AI complet: scor de risc, istoric accidente, rechemări active și — pentru brandurile acoperite — diagnoză live a bateriei prin Smartcar.",
+      "q2": "Ce conține raportul?",
+      "a2": "Decodare VIN completă (marcă, model, an, motorizare, capacitate baterie kWh), scor de risc AI (0–100), istoric accidente și daune, rechemări NHTSA/UE active, kilometraj raportat și verificări de furt. Pachetul Premium adaugă State of Health (SoH) al bateriei, cicluri de încărcare DC/AC și capacitate reală utilizabilă, totul într-un raport PDF oficial.",
+      "q3": "Cât durează să primesc raportul?",
+      "a3": "Aproximativ 30 de secunde pentru pachetul Standard — rezultatul e instant după ce validăm VIN-ul. Pentru pachetul Premium, conectarea Smartcar pentru diagnoza live a bateriei adaugă 1–2 minute suplimentare (autorizare OAuth în app-ul producătorului + citire BMS).",
+      "q4": "Care e diferența între Standard și Premium?",
+      "a4": "Pachetul Standard (99 RON) include decodare VIN, scor de risc AI, istoric accidente, rechemări și raport PDF — potrivit pentru orice EV second-hand. Pachetul [[Premium (120 RON)|/modele-compatibile]] adaugă diagnoza live a bateriei prin Smartcar pentru brandurile acoperite — primești un certificat SoH real înainte să cumperi, nu doar o estimare.",
+      "q5": "Unde găsesc VIN-ul mașinii?",
+      "a5": "VIN-ul are 17 caractere și se află în 3 locuri: pe bord (colțul din stânga jos al parbrizului, vizibil din exterior), în certificatul de înmatriculare (talonul mașinii), și pe stâlpul portierei șoferului. Nu conține literele I, O sau Q pentru a evita confuziile cu cifrele 1 și 0.",
+      "q6": "Pot cere refund dacă raportul nu mă mulțumește?",
+      "a6": "Da — oferim garanție de 14 zile pentru raport inexact sau incomplet, conform [[politicii noastre de refund|/legal/refund]]. Dacă datele decodate sunt greșite sau lipsesc secțiuni importante, îți returnăm integral suma plătită."
+    }
+  },
   "compat": {
     "backHome": "Înapoi la pagina principală",
     "login": "Conectează-te",
