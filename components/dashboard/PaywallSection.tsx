@@ -116,11 +116,11 @@ export default function PaywallSection({ isPaying, errorMessage, onSelect, level
                     </View>
                     <Text style={styles.price}>120 <Text style={styles.currency}>RON</Text></Text>
                     <Text style={styles.cardSubtitle}>
-                        {t('paywall.premium_desc', 'Baterie + Daune CarVertical + Certificat')}
+                        {t('paywall.premium_desc', 'Baterie + Istoric Daune + Certificat')}
                     </Text>
                     <View style={styles.featureList}>
                         <Feature text={t('paywall.feat_all_standard', 'Tot din pachetul Standard')} included />
-                        <Feature text={t('paywall.feat_damage', 'Istoric daune CarVertical')} premium />
+                        <Feature text={t('paywall.feat_damage', 'Istoric daune complet')} premium />
                         <Feature text={t('paywall.feat_mileage', 'Verificare kilometraj')} premium />
                         <Feature text={t('paywall.feat_theft', 'Verificare furt')} premium />
                         <Feature text={t('paywall.feat_cert', 'Certificat complet InspectEV')} premium />

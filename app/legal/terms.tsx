@@ -19,7 +19,7 @@ InspectEV oferă rapoarte de evaluare a riscului pentru vehicule electrice (EV),
 
 3. NIVELURI DE SERVICIU
 • Pachet Standard — 99 RON: raport istoric + AI Risk Score + analiză baterie SoH
-• Pachet Premium — 120 RON: tot ce include Standard + raport daune CarVertical + certificat complet
+• Pachet Premium — 120 RON: tot ce include Standard + raport complet de daune + certificat complet
 
 4. DISCLAIMER IMPORTANT
 InspectEV NU este un substitut pentru o inspecție mecanică profesională.
@@ -75,7 +75,7 @@ InspectEV provides risk assessment reports for electric vehicles (EV), based on:
 
 3. SERVICE LEVELS
 • Standard Package — 99 RON: history report + AI Risk Score + battery SoH analysis
-• Premium Package — 120 RON: everything in Standard + CarVertical damage report + complete certificate
+• Premium Package — 120 RON: everything in Standard + complete damage report + complete certificate
 
 4. IMPORTANT DISCLAIMER
 InspectEV is NOT a substitute for a professional mechanical inspection.

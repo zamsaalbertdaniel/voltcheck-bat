@@ -1,6 +1,6 @@
 /**
  * InspectEV — Damage Teaser Card (Glassmorphism)
- * Shows CarVertical damage warning preview.
+ * Shows damage warning preview.
  */
 
 import {
@@ -40,7 +40,7 @@ export default function TeaserDamageCard() {
             </View>
 
             <Text style={styles.desc}>
-                {t('teaser.damage_desc', 'Raportul CarVertical include: istoric daune, kilometraj, schimbări de proprietar, înmatriculări în alte țări și verificare furt.')}
+                {t('teaser.damage_desc', 'Raportul include: istoric daune, kilometraj, schimbări de proprietar, înmatriculări în alte țări și verificare furt.')}
             </Text>
 
             <View style={styles.lockRow}>
