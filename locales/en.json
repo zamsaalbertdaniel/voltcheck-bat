@@ -341,6 +341,9 @@
         "next": "Continue",
         "back": "Back"
     },
+    "nav": {
+        "returnToBase": "Return to homepage"
+    },
     "landing": {
         "dashboard": "Dashboard",
         "signup": "Create account",

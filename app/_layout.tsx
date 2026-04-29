@@ -7,6 +7,7 @@
 
 import CookieConsent from '@/components/layout/CookieConsent';
 import RegionSelectorModal from '@/components/layout/RegionSelectorModal';
+import ReturnToBase from '@/components/layout/ReturnToBase';
 import SplashSequence from '@/components/SplashSequence';
 import { toastConfig } from '@/components/ToastConfig';
 import { ToastProvider } from '@/components/ToastProvider';
@@ -186,9 +187,12 @@ export default function RootLayout() {
             />
           </Stack>
 
+          {/* Floating "Return to Base" home button — hidden on landing */}
+          <ReturnToBase />
+
           {/* GDPR Cookie Consent — web only, first visit */}
           <CookieConsent />
-          
+
           {/* Geolocation Region Selector */}
           <RegionSelectorModal />
         </ThemeProvider>

@@ -341,6 +341,9 @@
     "next": "Continuă",
     "back": "Înapoi"
   },
+  "nav": {
+    "returnToBase": "Înapoi la pagina principală"
+  },
   "landing": {
     "dashboard": "Dashboard",
     "signup": "Creează cont",
