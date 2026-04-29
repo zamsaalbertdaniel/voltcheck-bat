@@ -11,6 +11,7 @@
 
 import CornerMarks from '@/components/design/CornerMarks';
 import HudLabel from '@/components/design/HudLabel';
+import LiveTicker, { type LiveTickerSpec } from '@/components/landing/LiveTicker';
 import {
     VoltBorderRadius,
     VoltColors,
@@ -19,6 +20,7 @@ import {
     VoltMotion,
     VoltSpacing,
 } from '@/constants/Theme';
+import useInViewOnce from '@/hooks/useInViewOnce';
 import useScrambleText from '@/hooks/useScrambleText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
@@ -29,6 +31,7 @@ import {
     Pressable,
     StyleSheet,
     Text,
+    useWindowDimensions,
     View,
 } from 'react-native';
 
@@ -42,7 +45,11 @@ export interface MatrixCardProps {
     variant: MatrixCardVariant;
     /** Optional HUD tag rendered above the title (e.g. "01", "02"). */
     tag?: string;
+    /** Optional live-data ticker rendered below the description in LIVE cards. */
+    liveMetric?: LiveTickerSpec;
 }
+
+const HOVER_BREAKPOINT = 900;
 
 /**
  * Web hook to detect hover via onMouseEnter/Leave. On native we keep the
@@ -58,14 +65,32 @@ export default function MatrixCard({
     description,
     variant,
     tag,
+    liveMetric,
 }: MatrixCardProps) {
     const isLive = variant === 'live';
     const [hovered, setHovered] = useState(false);
+    const { width } = useWindowDimensions();
+    // Mobile/touch heuristic: small viewport on web, or any native target.
+    const noHoverEnv =
+        Platform.OS !== 'web' || (Platform.OS === 'web' && width < HOVER_BREAKPOINT);
 
-    // On web, the first hover plays the decode; subsequent hovers replay it.
-    // On native, decode is permanently "on" so the user sees the final text
-    // (no hover events on native — pressing replays).
-    const scrambleTrigger = Platform.OS === 'web' ? hovered : false;
+    // E5.A — auto-trigger scramble once when card scrolls into view on
+    // touch devices that have no hover events. Web-only observer; native
+    // returns true immediately so we still see the decoded text.
+    const { ref: inViewRef, isInView } = useInViewOnce<HTMLDivElement>({
+        threshold: 0.4,
+        enabled: noHoverEnv,
+    });
+    const [autoPlayed, setAutoPlayed] = useState(false);
+    useEffect(() => {
+        if (noHoverEnv && isInView && !autoPlayed) {
+            setAutoPlayed(true);
+        }
+    }, [noHoverEnv, isInView, autoPlayed]);
+
+    // On web hover replays freely; on touch we trigger once via in-view.
+    const scrambleTrigger =
+        Platform.OS === 'web' && (hovered || (noHoverEnv && autoPlayed));
     const { displayText } = useScrambleText(description, {
         trigger: scrambleTrigger,
         duration: 480,
@@ -132,6 +157,9 @@ export default function MatrixCard({
 
     return (
         <Pressable
+            // RN-Web forwards ref to the underlying DOM node — used by the
+            // IntersectionObserver in useInViewOnce. On native this is harmless.
+            ref={inViewRef as unknown as React.Ref<View>}
             onHoverIn={() => setHovered(true)}
             onHoverOut={() => setHovered(false)}
             onPressIn={() => setHovered(true)}
@@ -201,6 +229,9 @@ export default function MatrixCard({
             <Text style={styles.desc}>
                 {Platform.OS === 'web' ? displayText : description}
             </Text>
+
+            {/* Live data ticker — only on LIVE cards */}
+            {isLive && liveMetric ? <LiveTicker {...liveMetric} /> : null}
         </Pressable>
     );
 }

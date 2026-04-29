@@ -17,6 +17,7 @@
  */
 
 import CornerMarks from '@/components/design/CornerMarks';
+import { type LiveTickerSpec } from '@/components/landing/LiveTicker';
 import MatrixCard, { type MatrixCardVariant } from '@/components/landing/MatrixCard';
 import SectorHeader from '@/components/landing/SectorHeader';
 import {
@@ -50,6 +51,8 @@ type Card = {
     descKey: string;
     descFallback: string;
     tag: string;
+    /** Simulated live-data ticker spec — only on LIVE cards. */
+    liveMetric?: LiveTickerSpec;
 };
 
 const LIVE_CARDS: Card[] = [
@@ -61,6 +64,7 @@ const LIVE_CARDS: Card[] = [
         descFallback:
             'Procentul real de viață rămasă în celulele chimice, extras direct din creierul mașinii.',
         tag: '01',
+        liveMetric: { label: 'SoH', base: 89.4, jitter: 0.12, decimals: 1, unit: '%' },
     },
     {
         icon: 'battery-charging-medium',
@@ -70,6 +74,7 @@ const LIVE_CARDS: Card[] = [
         descFallback:
             'Câți kWh mai poate reține bateria fizic, comparativ cu ziua ieșirii din fabrică.',
         tag: '02',
+        liveMetric: { label: 'kWh', base: 78.2, jitter: 0.08, decimals: 1, unit: '/82' },
     },
     {
         icon: 'speedometer',
@@ -79,6 +84,7 @@ const LIVE_CARDS: Card[] = [
         descFallback:
             'Rulajul intern criptat în computerul motorului, imposibil de manipulat vizual.',
         tag: '03',
+        liveMetric: { label: 'BMS·km', base: 47218, jitter: 0, decimals: 0, unit: '', intervalMs: 2400 },
     },
     {
         icon: 'lightning-bolt-circle',
@@ -88,6 +94,7 @@ const LIVE_CARDS: Card[] = [
         descFallback:
             'Tiparul de utilizare — raportul dintre încărcările lente sănătoase și DC Fast-Charge.',
         tag: '04',
+        liveMetric: { label: 'DC·ratio', base: 14.0, jitter: 0.4, decimals: 1, unit: '%' },
     },
 ];
 
@@ -111,6 +118,51 @@ const HISTORY_CARDS: Card[] = [
         tag: '06',
     },
 ];
+
+/**
+ * SectorStrand — decorative "connection" link between the SectorHeader and
+ * the card grid. Desktop/tablet only; hidden on mobile to keep the small
+ * viewport uncluttered. Visual: a short vertical hairline with a glowing
+ * neon node in the middle and a dotted continuation.
+ */
+function SectorStrand({ variant }: { variant: MatrixCardVariant }) {
+    const isLive = variant === 'live';
+    const accent = isLive ? VoltColors.neonGreen : VoltColors.borderStrong;
+    return (
+        <View pointerEvents="none" style={strandStyles.wrap}>
+            <View style={[strandStyles.line, { backgroundColor: isLive ? VoltColors.neonGreenHairline : VoltColors.border }]} />
+            <View style={[strandStyles.node, { backgroundColor: accent, borderColor: accent }]} />
+            <View
+                style={[
+                    strandStyles.line,
+                    {
+                        backgroundColor: isLive ? VoltColors.neonGreenHairline : VoltColors.border,
+                    },
+                ]}
+            />
+        </View>
+    );
+}
+
+const strandStyles = StyleSheet.create({
+    wrap: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 4,
+        marginVertical: 2,
+        gap: 3,
+    },
+    line: {
+        width: 1,
+        height: 8,
+    },
+    node: {
+        width: 6,
+        height: 6,
+        borderRadius: 999,
+        borderWidth: 1,
+    },
+});
 
 /**
  * Sector — frames a group of cards with HUD corner marks. The "live" variant
@@ -209,6 +261,7 @@ export default function DataDiscoveryMatrix() {
                 description={t(card.descKey, card.descFallback)}
                 variant={variant}
                 tag={card.tag}
+                liveMetric={card.liveMetric}
             />
         </View>
     );
@@ -249,6 +302,7 @@ export default function DataDiscoveryMatrix() {
                         )}
                         variant="live"
                     />
+                    {isTablet ? <SectorStrand variant="live" /> : null}
                     <View style={[styles.grid, isTablet && styles.gridTablet]}>
                         {LIVE_CARDS.map((c) => renderCard(c, 'live'))}
                     </View>
@@ -271,6 +325,7 @@ export default function DataDiscoveryMatrix() {
                         )}
                         variant="history"
                     />
+                    {isTablet ? <SectorStrand variant="history" /> : null}
                     <View style={[styles.grid, isTablet && styles.gridTablet]}>
                         {HISTORY_CARDS.map((c) => renderCard(c, 'history'))}
                     </View>
