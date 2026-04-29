@@ -16,9 +16,11 @@
  * native shows static text).
  */
 
+import CornerMarks from '@/components/design/CornerMarks';
 import MatrixCard, { type MatrixCardVariant } from '@/components/landing/MatrixCard';
 import SectorHeader from '@/components/landing/SectorHeader';
 import {
+    VoltBorderRadius,
     VoltColors,
     VoltFontFamily,
     VoltFontSize,
@@ -26,9 +28,11 @@ import {
     VoltSpacing,
 } from '@/constants/Theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+    Animated,
+    Easing,
     Platform,
     StyleSheet,
     Text,
@@ -108,6 +112,83 @@ const HISTORY_CARDS: Card[] = [
     },
 ];
 
+/**
+ * Sector — frames a group of cards with HUD corner marks. The "live" variant
+ * also breathes a subtle ambient glow (4s loop) to draw the eye first on
+ * the reading-direction (left on desktop, top on mobile).
+ */
+function Sector({
+    variant,
+    children,
+}: {
+    variant: MatrixCardVariant;
+    children: React.ReactNode;
+}) {
+    const isLive = variant === 'live';
+    const ambient = useRef(new Animated.Value(isLive ? 0.35 : 0)).current;
+
+    useEffect(() => {
+        if (!isLive) return;
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.timing(ambient, {
+                    toValue: 1,
+                    duration: 2000,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: false,
+                }),
+                Animated.timing(ambient, {
+                    toValue: 0.35,
+                    duration: 2000,
+                    easing: Easing.inOut(Easing.sin),
+                    useNativeDriver: false,
+                }),
+            ]),
+        );
+        loop.start();
+        return () => loop.stop();
+    }, [isLive, ambient]);
+
+    // Web-only ambient glow via box-shadow opacity interpolation
+    const shadowOpacity = ambient.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, 0.18],
+    });
+
+    return (
+        <Animated.View
+            style={[
+                styles.sector,
+                isLive && styles.sectorLive,
+                isLive && Platform.OS !== 'web'
+                    ? {
+                          shadowColor: VoltColors.neonGreen,
+                          shadowOffset: { width: 0, height: 0 },
+                          shadowOpacity,
+                          shadowRadius: 24,
+                      }
+                    : null,
+                isLive && Platform.OS === 'web'
+                    ? // Static glow on web — animated box-shadow on every frame is expensive.
+                      // The pulsing dots in SectorHeader + LIVE badge already convey motion.
+                      ({
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- web-only CSS not in RN ViewStyle
+                          boxShadow: `0 0 0 1px ${VoltColors.neonGreenHairline}, 0 0 48px rgba(0, 255, 136, 0.10)`,
+                      } as unknown as object)
+                    : null,
+            ]}
+        >
+            <CornerMarks
+                color={isLive ? VoltColors.neonGreenHairline : VoltColors.border}
+                size={14}
+                thickness={1.2}
+                inset={8}
+            />
+            {children}
+        </Animated.View>
+    );
+}
+
 export default function DataDiscoveryMatrix() {
     const { t } = useTranslation();
     const { width } = useWindowDimensions();
@@ -155,7 +236,7 @@ export default function DataDiscoveryMatrix() {
 
             <View style={[styles.matrix, isDesktop && styles.matrixDesktop]}>
                 {/* SECTOR 01 — LIVE (stânga pe desktop / sus pe mobile) */}
-                <View style={[styles.sector, isDesktop && styles.sectorDesktop]}>
+                <Sector variant="live">
                     <SectorHeader
                         label={t('landing.matrix.live.label', 'SECTOR 01 · LIVE')}
                         title={t(
@@ -171,10 +252,10 @@ export default function DataDiscoveryMatrix() {
                     <View style={[styles.grid, isTablet && styles.gridTablet]}>
                         {LIVE_CARDS.map((c) => renderCard(c, 'live'))}
                     </View>
-                </View>
+                </Sector>
 
                 {/* SECTOR 02 — HISTORY (dreapta pe desktop / jos pe mobile) */}
-                <View style={[styles.sector, isDesktop && styles.sectorDesktop]}>
+                <Sector variant="history">
                     <SectorHeader
                         label={t(
                             'landing.matrix.history.label',
@@ -193,7 +274,7 @@ export default function DataDiscoveryMatrix() {
                     <View style={[styles.grid, isTablet && styles.gridTablet]}>
                         {HISTORY_CARDS.map((c) => renderCard(c, 'history'))}
                     </View>
-                </View>
+                </Sector>
             </View>
         </View>
     );
@@ -247,6 +328,16 @@ const styles = StyleSheet.create({
     sector: {
         flex: 1,
         minWidth: 0,
+        position: 'relative',
+        padding: VoltSpacing.lg,
+        borderRadius: VoltBorderRadius.xl,
+        borderWidth: 1,
+        borderColor: VoltColors.border,
+        backgroundColor: 'rgba(7, 10, 17, 0.4)',
+    },
+    sectorLive: {
+        borderColor: VoltColors.neonGreenHairline,
+        backgroundColor: 'rgba(0, 255, 136, 0.025)',
     },
     sectorDesktop: {
         flex: 1,

@@ -13,8 +13,8 @@ import {
     VoltLetterSpacing,
     VoltSpacing,
 } from '@/constants/Theme';
-import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 
 type Props = {
     /** Short HUD-style label (e.g. "SECTOR 01 · LIVE") */
@@ -53,6 +53,34 @@ export default function SectorHeader({ label, title, subtitle, variant }: Props)
         return () => loop.stop();
     }, [isLive, pulse]);
 
+    // One-shot horizontal scan-line at mount on the LIVE hairline.
+    // Plays once, then disappears — non-distractive, signals "data acquired".
+    const sweep = useRef(new Animated.Value(0)).current;
+    const [sweepDone, setSweepDone] = useState(false);
+    useEffect(() => {
+        if (!isLive) return;
+        const anim = Animated.timing(sweep, {
+            toValue: 1,
+            duration: 1100,
+            delay: 300,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+        });
+        anim.start(({ finished }) => {
+            if (finished) setSweepDone(true);
+        });
+        return () => anim.stop();
+    }, [isLive, sweep]);
+
+    const sweepLeft = sweep.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['-20%', '100%'],
+    });
+    const sweepOpacity = sweep.interpolate({
+        inputRange: [0, 0.1, 0.85, 1],
+        outputRange: [0, 1, 1, 0],
+    });
+
     return (
         <View style={styles.wrap}>
             <View style={styles.labelRow}>
@@ -73,16 +101,40 @@ export default function SectorHeader({ label, title, subtitle, variant }: Props)
             </View>
             <Text style={[styles.title, isLive && styles.titleLive]}>{title}</Text>
             {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-            <View
-                style={[
-                    styles.hairline,
-                    {
-                        backgroundColor: isLive
-                            ? VoltColors.neonGreenHairline
-                            : VoltColors.border,
-                    },
-                ]}
-            />
+            <View style={styles.hairlineWrap}>
+                <View
+                    style={[
+                        styles.hairline,
+                        {
+                            backgroundColor: isLive
+                                ? VoltColors.neonGreenHairline
+                                : VoltColors.border,
+                        },
+                    ]}
+                />
+                {isLive && !sweepDone && (
+                    <Animated.View
+                        pointerEvents="none"
+                        style={[
+                            styles.sweep,
+                            {
+                                left: sweepLeft,
+                                opacity: sweepOpacity,
+                            },
+                            Platform.OS === 'web'
+                                ? ({
+                                      boxShadow: `0 0 12px ${VoltColors.neonGreen}, 0 0 24px ${VoltColors.neonGreen}`,
+                                  } as unknown as object)
+                                : {
+                                      shadowColor: VoltColors.neonGreen,
+                                      shadowOffset: { width: 0, height: 0 },
+                                      shadowOpacity: 0.9,
+                                      shadowRadius: 8,
+                                  },
+                        ]}
+                    />
+                )}
+            </View>
         </View>
     );
 }
@@ -123,9 +175,25 @@ const styles = StyleSheet.create({
         letterSpacing: VoltLetterSpacing.wide,
         textTransform: 'uppercase',
     },
-    hairline: {
-        height: 1,
+    hairlineWrap: {
+        position: 'relative',
         marginTop: VoltSpacing.xs,
         width: '100%',
+        height: 2,
+        overflow: 'hidden',
+    },
+    hairline: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        height: 1,
+    },
+    sweep: {
+        position: 'absolute',
+        top: 0,
+        height: 2,
+        width: '24%',
+        backgroundColor: VoltColors.neonGreen,
     },
 });
