@@ -38,6 +38,16 @@ import {
     View,
 } from 'react-native';
 
+// Web-only: render through a portal to document.body so transformed
+// ancestors (which create a new containing block for fixed elements)
+// can't trap us inside the layout tree. Loaded via dynamic require so
+// Metro doesn't try to bundle react-dom on iOS/Android.
+const createPortalWeb: ((node: React.ReactNode, target: Element) => React.ReactElement) | null =
+    Platform.OS === 'web'
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+        ? (require('react-dom') as any).createPortal
+        : null;
+
 const SIZE = 52;
 const HOVER_GLOW = 'rgba(0, 255, 136, 0.32)';
 
@@ -117,7 +127,7 @@ export default function ReturnToBase() {
               }
             : null;
 
-    return (
+    const tree = (
         <Animated.View
             pointerEvents={visible ? 'box-none' : 'none'}
             style={[
@@ -158,6 +168,14 @@ export default function ReturnToBase() {
             </Pressable>
         </Animated.View>
     );
+
+    // Web: portal to document.body so any transformed/contained ancestor in
+    // the layout tree (Stack screens, ThemeProvider wrappers, etc.) can't
+    // create a new containing block that traps our position:fixed element.
+    if (Platform.OS === 'web' && createPortalWeb && typeof document !== 'undefined') {
+        return createPortalWeb(tree, document.body);
+    }
+    return tree;
 }
 
 const styles = StyleSheet.create({
