@@ -93,7 +93,19 @@ export default function ReturnToBase() {
     const borderColor = hovered ? VoltColors.neonGreen : VoltColors.borderStrong;
     const iconColor = hovered ? VoltColors.neonGreen : VoltColors.textPrimary;
 
-    const webStyle =
+    // Web: pin the wrap to the viewport with position:fixed so the button
+    // stays visible across long-scroll routes (legal/privacy, etc.). On
+    // native we keep position:absolute (Stack screens layer above siblings).
+    const webWrapStyle =
+        Platform.OS === 'web'
+            ? {
+                  position: 'fixed' as const,
+                  right: VoltSpacing.lg,
+                  bottom: VoltSpacing.lg,
+              }
+            : null;
+
+    const webButtonStyle =
         Platform.OS === 'web'
             ? {
                   backdropFilter: 'blur(14px) saturate(140%)',
@@ -102,10 +114,6 @@ export default function ReturnToBase() {
                   boxShadow: hovered
                       ? `0 0 0 1px ${VoltColors.neonGreenHairline}, 0 0 28px ${HOVER_GLOW}`
                       : `0 6px 20px rgba(0, 0, 0, 0.4)`,
-                  // Web only — fixed positioning so it stays in place across
-                  // scrolling. We keep `position: 'absolute'` in styles for
-                  // native compatibility and override here for web.
-                  position: 'fixed' as const,
               }
             : null;
 
@@ -118,6 +126,8 @@ export default function ReturnToBase() {
                     opacity,
                     transform: [{ translateY }, { scale }],
                 },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- web-only `position: fixed` not in RN ViewStyle
+                webWrapStyle as any,
             ]}
         >
             <Pressable
@@ -135,7 +145,7 @@ export default function ReturnToBase() {
                     styles.button,
                     { borderColor },
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- web-only CSS keys merged into RN style array
-                    webStyle as any,
+                    webButtonStyle as any,
                 ]}
             >
                 <View style={styles.iconWrap}>
