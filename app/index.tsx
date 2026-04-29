@@ -1,12 +1,12 @@
 /**
  * InspectEV — Public Landing Page (Route: /)
- * Hero with oversized VIN input + Know-How Bento Box + Global Footer
+ * Hero with oversized VIN input + Data Discovery Matrix + Global Footer
  * Accessible without authentication.
  */
 
 import BatteryWireframeSVG from '@/components/landing/BatteryWireframeSVG';
-import BentoBox from '@/components/landing/BentoBox';
 import CompatibleModelsCTA from '@/components/landing/CompatibleModelsCTA';
+import DataDiscoveryMatrix from '@/components/landing/DataDiscoveryMatrix';
 import HeroVinInput from '@/components/landing/HeroVinInput';
 import LandingFAQ, { getFaqJsonLd } from '@/components/landing/LandingFAQ';
 import VoltFooter from '@/components/layout/VoltFooter';
@@ -236,8 +236,8 @@ export default function LandingPage() {
                 </View>
             </Animated.View>
 
-            {/* Know-How Bento Box Section */}
-            <BentoBox />
+            {/* Data Discovery Matrix — Stage E3 (replaces legacy BentoBox) */}
+            <DataDiscoveryMatrix />
 
             {/* FAQ Section — public, accessible without auth */}
             <LandingFAQ />

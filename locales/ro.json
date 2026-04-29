@@ -365,6 +365,45 @@
       "awaiting": "AWAITING",
       "protocol": "PROTO · BAT v2.0"
     },
+    "matrix": {
+      "eyebrow": "DATA DISCOVERY MATRIX",
+      "heading": "Ce poți afla — în date, nu în vorbe.",
+      "lead": "Două surse, un singur raport: extragere live direct din computerul mașinii și verificări încrucișate în registrele globale.",
+      "live": {
+        "label": "SECTOR 01 · LIVE",
+        "title": "Extragere LIVE din BMS",
+        "subtitle": "Battery Management System · OAuth Smartcar",
+        "soh": {
+          "title": "Sănătatea Bateriei (SoH)",
+          "desc": "Procentul real de viață rămasă în celulele chimice, extras direct din creierul mașinii."
+        },
+        "capacity": {
+          "title": "Capacitate Degradată",
+          "desc": "Câți kWh mai poate reține bateria fizic, comparativ cu ziua ieșirii din fabrică."
+        },
+        "odometer": {
+          "title": "Kilometraj Securizat",
+          "desc": "Rulajul intern criptat în computerul motorului, imposibil de manipulat vizual."
+        },
+        "stress": {
+          "title": "Stres & Încărcare",
+          "desc": "Tiparul de utilizare — raportul dintre încărcările lente sănătoase și DC Fast-Charge."
+        }
+      },
+      "history": {
+        "label": "SECTOR 02 · HISTORY",
+        "title": "Istoric Global verificat",
+        "subtitle": "Registre internaționale · NHTSA · Poliție",
+        "damage": {
+          "title": "Daune & Accidente",
+          "desc": "Rapoarte internaționale despre coliziuni, reparații ascunse și costuri estimate."
+        },
+        "legal": {
+          "title": "Alerte de Legalitate",
+          "desc": "Verificări instantanee în registrele poliției — mașina nu este raportată furată."
+        }
+      }
+    },
     "compatCta": "Vezi Modele Compatibile",
     "compatCtaA11y": "Vezi lista completă de mașini electrice compatibile cu diagnoză live",
     "compatCtaHint": "Verifică dacă EV-ul tău e acoperit cu diagnoză live baterie",

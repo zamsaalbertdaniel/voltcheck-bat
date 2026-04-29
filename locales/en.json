@@ -365,6 +365,45 @@
             "awaiting": "AWAITING",
             "protocol": "PROTO · BAT v2.0"
         },
+        "matrix": {
+            "eyebrow": "DATA DISCOVERY MATRIX",
+            "heading": "What you'll learn — in data, not in words.",
+            "lead": "Two sources, one report: live extraction directly from the car's computer and cross-checks against global registries.",
+            "live": {
+                "label": "SECTOR 01 · LIVE",
+                "title": "LIVE extraction from the BMS",
+                "subtitle": "Battery Management System · OAuth Smartcar",
+                "soh": {
+                    "title": "Battery Health (SoH)",
+                    "desc": "The real percentage of life left in the chemical cells, pulled straight from the car's brain."
+                },
+                "capacity": {
+                    "title": "Degraded Capacity",
+                    "desc": "How many kWh the battery can physically hold today versus the day it left the factory."
+                },
+                "odometer": {
+                    "title": "Secured Mileage",
+                    "desc": "The internal mileage encrypted in the motor's computer — impossible to tamper with visually."
+                },
+                "stress": {
+                    "title": "Stress & Charging",
+                    "desc": "Usage pattern — the ratio of healthy slow charges to DC Fast-Charge sessions."
+                }
+            },
+            "history": {
+                "label": "SECTOR 02 · HISTORY",
+                "title": "Verified Global History",
+                "subtitle": "International registries · NHTSA · Police",
+                "damage": {
+                    "title": "Damage & Accidents",
+                    "desc": "International reports on collisions, hidden repairs and estimated costs."
+                },
+                "legal": {
+                    "title": "Legal Alerts",
+                    "desc": "Instant checks in police registries — the car is not reported stolen."
+                }
+            }
+        },
         "compatCta": "See Compatible Models",
         "compatCtaA11y": "View the full list of electric cars with live battery diagnostics",
         "compatCtaHint": "Check if your EV is covered with live battery diagnostics",

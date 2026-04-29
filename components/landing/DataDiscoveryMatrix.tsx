@@ -1,0 +1,271 @@
+/**
+ * DataDiscoveryMatrix — landing-page section that replaces the legacy BentoBox.
+ *
+ * Two-sector cockpit grid:
+ *   - SECTOR 01 · LIVE      (BMS-extracted data — 4 cards, brighter glow)
+ *   - SECTOR 02 · HISTORY   (Global registries — 2 cards, subdued)
+ *
+ * Layout
+ *   - Mobile (<600px):   one column, LIVE stacked above HISTORY.
+ *   - Tablet (600-899):  two columns within each sector.
+ *   - Desktop (≥900):    sectors side-by-side (LIVE left, HISTORY right),
+ *                        each with its own internal 2-col grid.
+ *
+ * Typography & motion follow Stage E2 cockpit primitives. Hover/press on a
+ * card triggers a brief scramble/decode reveal of the description (web only;
+ * native shows static text).
+ */
+
+import MatrixCard, { type MatrixCardVariant } from '@/components/landing/MatrixCard';
+import SectorHeader from '@/components/landing/SectorHeader';
+import {
+    VoltColors,
+    VoltFontFamily,
+    VoltFontSize,
+    VoltLetterSpacing,
+    VoltSpacing,
+} from '@/constants/Theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    Platform,
+    StyleSheet,
+    Text,
+    useWindowDimensions,
+    View,
+} from 'react-native';
+
+const TABLET_BREAKPOINT = 600;
+const DESKTOP_BREAKPOINT = 900;
+
+type Card = {
+    icon: keyof typeof MaterialCommunityIcons.glyphMap;
+    titleKey: string;
+    titleFallback: string;
+    descKey: string;
+    descFallback: string;
+    tag: string;
+};
+
+const LIVE_CARDS: Card[] = [
+    {
+        icon: 'battery-heart-variant',
+        titleKey: 'landing.matrix.live.soh.title',
+        titleFallback: 'Sănătatea Bateriei (SoH)',
+        descKey: 'landing.matrix.live.soh.desc',
+        descFallback:
+            'Procentul real de viață rămasă în celulele chimice, extras direct din creierul mașinii.',
+        tag: '01',
+    },
+    {
+        icon: 'battery-charging-medium',
+        titleKey: 'landing.matrix.live.capacity.title',
+        titleFallback: 'Capacitate Degradată',
+        descKey: 'landing.matrix.live.capacity.desc',
+        descFallback:
+            'Câți kWh mai poate reține bateria fizic, comparativ cu ziua ieșirii din fabrică.',
+        tag: '02',
+    },
+    {
+        icon: 'speedometer',
+        titleKey: 'landing.matrix.live.odometer.title',
+        titleFallback: 'Kilometraj Securizat',
+        descKey: 'landing.matrix.live.odometer.desc',
+        descFallback:
+            'Rulajul intern criptat în computerul motorului, imposibil de manipulat vizual.',
+        tag: '03',
+    },
+    {
+        icon: 'lightning-bolt-circle',
+        titleKey: 'landing.matrix.live.stress.title',
+        titleFallback: 'Stres & Încărcare',
+        descKey: 'landing.matrix.live.stress.desc',
+        descFallback:
+            'Tiparul de utilizare — raportul dintre încărcările lente sănătoase și DC Fast-Charge.',
+        tag: '04',
+    },
+];
+
+const HISTORY_CARDS: Card[] = [
+    {
+        icon: 'car-wrench',
+        titleKey: 'landing.matrix.history.damage.title',
+        titleFallback: 'Daune & Accidente',
+        descKey: 'landing.matrix.history.damage.desc',
+        descFallback:
+            'Rapoarte internaționale despre coliziuni, reparații ascunse și costuri estimate.',
+        tag: '05',
+    },
+    {
+        icon: 'shield-alert-outline',
+        titleKey: 'landing.matrix.history.legal.title',
+        titleFallback: 'Alerte de Legalitate',
+        descKey: 'landing.matrix.history.legal.desc',
+        descFallback:
+            'Verificări instantanee în registrele poliției — mașina nu este raportată furată.',
+        tag: '06',
+    },
+];
+
+export default function DataDiscoveryMatrix() {
+    const { t } = useTranslation();
+    const { width } = useWindowDimensions();
+    const isDesktop = Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT;
+    const isTablet = Platform.OS === 'web' && width >= TABLET_BREAKPOINT;
+
+    const renderCard = (card: Card, variant: MatrixCardVariant) => (
+        <View
+            key={card.tag}
+            style={[
+                styles.gridItem,
+                isTablet && styles.gridItemTablet,
+            ]}
+        >
+            <MatrixCard
+                icon={card.icon}
+                title={t(card.titleKey, card.titleFallback)}
+                description={t(card.descKey, card.descFallback)}
+                variant={variant}
+                tag={card.tag}
+            />
+        </View>
+    );
+
+    return (
+        <View style={[styles.section, isDesktop && styles.sectionDesktop]}>
+            {/* Section heading */}
+            <View style={styles.headWrap}>
+                <Text style={styles.eyebrow}>
+                    {t('landing.matrix.eyebrow', 'DATA DISCOVERY MATRIX')}
+                </Text>
+                <Text style={styles.heading}>
+                    {t(
+                        'landing.matrix.heading',
+                        'Ce poți afla — în date, nu în vorbe.',
+                    )}
+                </Text>
+                <Text style={styles.lead}>
+                    {t(
+                        'landing.matrix.lead',
+                        'Două surse, un singur raport: extragere live direct din computerul mașinii și verificări încrucișate în registrele globale.',
+                    )}
+                </Text>
+            </View>
+
+            <View style={[styles.matrix, isDesktop && styles.matrixDesktop]}>
+                {/* SECTOR 01 — LIVE (stânga pe desktop / sus pe mobile) */}
+                <View style={[styles.sector, isDesktop && styles.sectorDesktop]}>
+                    <SectorHeader
+                        label={t('landing.matrix.live.label', 'SECTOR 01 · LIVE')}
+                        title={t(
+                            'landing.matrix.live.title',
+                            'Extragere LIVE din BMS',
+                        )}
+                        subtitle={t(
+                            'landing.matrix.live.subtitle',
+                            'Battery Management System · OAuth Smartcar',
+                        )}
+                        variant="live"
+                    />
+                    <View style={[styles.grid, isTablet && styles.gridTablet]}>
+                        {LIVE_CARDS.map((c) => renderCard(c, 'live'))}
+                    </View>
+                </View>
+
+                {/* SECTOR 02 — HISTORY (dreapta pe desktop / jos pe mobile) */}
+                <View style={[styles.sector, isDesktop && styles.sectorDesktop]}>
+                    <SectorHeader
+                        label={t(
+                            'landing.matrix.history.label',
+                            'SECTOR 02 · HISTORY',
+                        )}
+                        title={t(
+                            'landing.matrix.history.title',
+                            'Istoric Global verificat',
+                        )}
+                        subtitle={t(
+                            'landing.matrix.history.subtitle',
+                            'Registre internaționale · NHTSA · Poliție',
+                        )}
+                        variant="history"
+                    />
+                    <View style={[styles.grid, isTablet && styles.gridTablet]}>
+                        {HISTORY_CARDS.map((c) => renderCard(c, 'history'))}
+                    </View>
+                </View>
+            </View>
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    section: {
+        paddingHorizontal: VoltSpacing.lg,
+        paddingTop: VoltSpacing.xxl,
+        paddingBottom: VoltSpacing.xxl,
+        maxWidth: 1280,
+        alignSelf: 'center',
+        width: '100%',
+    },
+    sectionDesktop: {
+        paddingHorizontal: VoltSpacing.xl,
+        paddingTop: VoltSpacing.xxxl,
+    },
+    headWrap: {
+        gap: VoltSpacing.sm,
+        marginBottom: VoltSpacing.xl,
+        maxWidth: 760,
+    },
+    eyebrow: {
+        fontSize: VoltFontSize.xs,
+        fontFamily: VoltFontFamily.mono,
+        color: VoltColors.neonGreen,
+        letterSpacing: VoltLetterSpacing.hud,
+        textTransform: 'uppercase',
+    },
+    heading: {
+        fontSize: VoltFontSize.xxl,
+        fontFamily: VoltFontFamily.display,
+        color: VoltColors.textPrimary,
+        letterSpacing: VoltLetterSpacing.tight,
+        lineHeight: 38,
+    },
+    lead: {
+        fontSize: VoltFontSize.md,
+        color: VoltColors.textSecondary,
+        lineHeight: 24,
+    },
+    matrix: {
+        gap: VoltSpacing.xl,
+    },
+    matrixDesktop: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: VoltSpacing.xl,
+    },
+    sector: {
+        flex: 1,
+        minWidth: 0,
+    },
+    sectorDesktop: {
+        flex: 1,
+    },
+    grid: {
+        gap: VoltSpacing.md,
+    },
+    gridTablet: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: VoltSpacing.md,
+    },
+    gridItem: {
+        width: '100%',
+    },
+    gridItemTablet: {
+        // Two cols within a sector, leaving room for the 16px gap.
+        flexBasis: '48%',
+        flexGrow: 1,
+        minWidth: 240,
+    },
+});
