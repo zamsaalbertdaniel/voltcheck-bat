@@ -342,6 +342,29 @@
     "back": "Înapoi"
   },
   "landing": {
+    "dashboard": "Dashboard",
+    "signup": "Creează cont",
+    "subtitle": "Cumperi un EV second-hand?\nVerifică bateria înainte.",
+    "desc": "Raport AI complet cu scor de risc, analiză baterie și istoric vehicul. În 30 de secunde.",
+    "cta": "Verifică Mașina",
+    "vinPlaceholder": "VFXXXXXXXXXXXXXXX",
+    "loginPrompt": "Ai deja cont?",
+    "loginPromptCta": "Loghează-te cu Google sau Apple →",
+    "trust_instant": "RAPORT INSTANT",
+    "trust_risk": "SCOR DE RISC",
+    "trust_pdf": "RAPORT OFICIAL",
+    "hud": {
+      "live": "LIVE · EV DIAGNOSTIC GRID",
+      "scanning": "BAT·PACK · SCANNING",
+      "celltopology": "20 CELL · ISO·VIEW",
+      "integrity": "INTEGRITY 98.4%"
+    },
+    "vinPanel": {
+      "header": "VIN · INPUT STREAM",
+      "ready": "READY",
+      "awaiting": "AWAITING",
+      "protocol": "PROTO · BAT v2.0"
+    },
     "compatCta": "Vezi Modele Compatibile",
     "compatCtaA11y": "Vezi lista completă de mașini electrice compatibile cu diagnoză live",
     "compatCtaHint": "Verifică dacă EV-ul tău e acoperit cu diagnoză live baterie",

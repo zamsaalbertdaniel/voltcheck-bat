@@ -342,6 +342,29 @@
         "back": "Back"
     },
     "landing": {
+        "dashboard": "Dashboard",
+        "signup": "Create account",
+        "subtitle": "Buying a used EV?\nCheck the battery first.",
+        "desc": "Complete AI report with risk score, battery analysis and vehicle history. In 30 seconds.",
+        "cta": "Check Vehicle",
+        "vinPlaceholder": "VFXXXXXXXXXXXXXXX",
+        "loginPrompt": "Already have an account?",
+        "loginPromptCta": "Sign in with Google or Apple →",
+        "trust_instant": "INSTANT REPORT",
+        "trust_risk": "RISK SCORE",
+        "trust_pdf": "OFFICIAL REPORT",
+        "hud": {
+            "live": "LIVE · EV DIAGNOSTIC GRID",
+            "scanning": "BAT·PACK · SCANNING",
+            "celltopology": "20 CELL · ISO·VIEW",
+            "integrity": "INTEGRITY 98.4%"
+        },
+        "vinPanel": {
+            "header": "VIN · INPUT STREAM",
+            "ready": "READY",
+            "awaiting": "AWAITING",
+            "protocol": "PROTO · BAT v2.0"
+        },
         "compatCta": "See Compatible Models",
         "compatCtaA11y": "View the full list of electric cars with live battery diagnostics",
         "compatCtaHint": "Check if your EV is covered with live battery diagnostics",

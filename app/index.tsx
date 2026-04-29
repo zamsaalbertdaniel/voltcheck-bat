@@ -4,16 +4,19 @@
  * Accessible without authentication.
  */
 
+import BatteryWireframeSVG from '@/components/landing/BatteryWireframeSVG';
 import BentoBox from '@/components/landing/BentoBox';
 import CompatibleModelsCTA from '@/components/landing/CompatibleModelsCTA';
 import HeroVinInput from '@/components/landing/HeroVinInput';
 import LandingFAQ, { getFaqJsonLd } from '@/components/landing/LandingFAQ';
 import VoltFooter from '@/components/layout/VoltFooter';
+import { GrainOverlay, HudLabel } from '@/components/design';
 import {
     VoltBorderRadius,
     VoltColors,
     VoltFontFamily,
     VoltFontSize,
+    VoltLetterSpacing,
     VoltSpacing,
 } from '@/constants/Theme';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -80,7 +83,7 @@ export default function LandingPage() {
 
     const glowStyle = Platform.OS === 'web'
         ? {
-            background: `radial-gradient(ellipse 600px 400px at center, rgba(0, 230, 118, 0.12) 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 720px 420px at 28% 50%, rgba(0, 255, 136, 0.14) 0%, transparent 70%)`,
         }
         : {};
 
@@ -139,70 +142,96 @@ export default function LandingPage() {
                 )}
             </View>
 
-            {/* Hero Section */}
-            <Animated.View style={[styles.hero, { opacity: fadeIn }]}>
-                {/* Green glow background */}
+            {/* Hero Section — Cockpit Edition (E2) */}
+            <Animated.View style={[styles.hero, isDesktop && styles.heroDesktop, { opacity: fadeIn }]}>
+                {/* Ambient neon glow + film grain atmosphere */}
                 {Platform.OS === 'web' && (
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     <View style={[styles.glowOrb, glowStyle as any]} pointerEvents="none" />
                 )}
+                <GrainOverlay opacity={0.05} />
 
-                <View style={styles.heroContent}>
-                    <View style={styles.badge}>
-                        <MaterialCommunityIcons name="shield-check" size={16} color={VoltColors.neonGreen} />
-                        <Text style={styles.badgeText}>
-                            {t('landing.badge', 'BAT — Battery Analysis Technology')}
+                <View style={[styles.heroContent, isDesktop && styles.heroContentDesktop]}>
+                    {/* ── LEFT COLUMN: editorial text + VIN panel ──────────── */}
+                    <View style={[styles.heroLeft, isDesktop && styles.heroLeftDesktop]}>
+                        {/* HUD intro marker */}
+                        <View style={styles.hudRow}>
+                            <HudLabel dot color={VoltColors.neonGreen}>
+                                {t('landing.hud.live', 'LIVE · EV DIAGNOSTIC GRID')}
+                            </HudLabel>
+                        </View>
+
+                        <Text style={[styles.heroTitle, isDesktop && styles.heroTitleDesktop]}>
+                            <Text style={styles.heroTitleAccent}>INSPECT</Text>
+                            <Text style={styles.heroTitleWhite}>EV</Text>
                         </Text>
-                    </View>
 
-                    <Text style={[styles.heroTitle, isDesktop && styles.heroTitleDesktop]}>
-                        <Text style={styles.heroTitleAccent}>INSPECT</Text>
-                        <Text style={styles.heroTitleWhite}>EV</Text>
-                    </Text>
+                        <Text style={[styles.heroSubtitle, isDesktop && styles.heroSubtitleDesktop]}>
+                            {t('landing.subtitle', 'Cumperi un EV second-hand?\nVerifică bateria înainte.')}
+                        </Text>
 
-                    <Text style={[styles.heroSubtitle, isDesktop && styles.heroSubtitleDesktop]}>
-                        {t('landing.subtitle', 'Cumperi un EV second-hand?\nVerifică bateria înainte.')}
-                    </Text>
+                        <Text style={styles.heroDesc}>
+                            {t('landing.desc', 'Raport AI complet cu scor de risc, analiză baterie și istoric vehicul. În 30 de secunde.')}
+                        </Text>
 
-                    <Text style={styles.heroDesc}>
-                        {t('landing.desc', 'Raport AI complet cu scor de risc, analiză baterie și istoric vehicul. În 30 de secunde.')}
-                    </Text>
+                        <View style={styles.heroInputContainer}>
+                            <HeroVinInput onSubmit={handleVinSubmit} autoFocus={shouldFocusVin} />
+                        </View>
 
-                    <View style={styles.heroInputContainer}>
-                        <HeroVinInput onSubmit={handleVinSubmit} autoFocus={shouldFocusVin} />
-                    </View>
+                        {/* Trust row — restyled to mono HUD */}
+                        <View style={[styles.trustRow, isDesktop && styles.trustRowDesktop]}>
+                            {[
+                                { icon: 'timer-sand' as const, label: '30s', sub: t('landing.trust_instant', 'RAPORT INSTANT') },
+                                { icon: 'robot-outline' as const, label: 'AI', sub: t('landing.trust_risk', 'SCOR DE RISC') },
+                                { icon: 'file-document-outline' as const, label: 'PDF', sub: t('landing.trust_pdf', 'RAPORT OFICIAL') },
+                            ].map((badge) => (
+                                <View key={badge.label} style={styles.trustBadge}>
+                                    <MaterialCommunityIcons name={badge.icon} size={18} color={VoltColors.neonGreen} />
+                                    <Text style={styles.trustLabel}>{badge.label}</Text>
+                                    <Text style={styles.trustSub}>{badge.sub}</Text>
+                                </View>
+                            ))}
+                        </View>
 
-                    {/* Trust badges */}
-                    <View style={[styles.trustRow, isDesktop && styles.trustRowDesktop]}>
-                        {[
-                            { icon: 'timer-sand' as const, label: '30s', sub: t('landing.trust_instant', 'RAPORT INSTANT') },
-                            { icon: 'robot-outline' as const, label: 'AI', sub: t('landing.trust_risk', 'SCOR DE RISC') },
-                            { icon: 'file-document-outline' as const, label: 'PDF', sub: t('landing.trust_pdf', 'RAPORT OFICIAL') },
-                        ].map((badge) => (
-                            <View key={badge.label} style={styles.trustBadge}>
-                                <MaterialCommunityIcons name={badge.icon} size={20} color={VoltColors.neonGreen} />
-                                <Text style={styles.trustLabel}>{badge.label}</Text>
-                                <Text style={styles.trustSub}>{badge.sub}</Text>
-                            </View>
-                        ))}
-                    </View>
+                        <CompatibleModelsCTA source="landing_hero" />
 
-                    {/* Pulsing CTA — discover covered EV brands (Premium coverage). */}
-                    <CompatibleModelsCTA source="landing_hero" />
-
-                    {/* Secondary CTA — Login prompt for unauthenticated users */}
-                    {!isAuthenticated && (
-                        <Pressable
-                            style={styles.loginPrompt}
-                            onPress={() => router.push('/login')}
-                        >
-                            <Text style={styles.loginPromptText}>
-                                {t('landing.loginPrompt', 'Ai deja cont?')}{' '}
-                                <Text style={styles.loginPromptLink}>
-                                    {t('landing.loginPromptCta', 'Loghează-te cu Google sau Apple →')}
+                        {!isAuthenticated && (
+                            <Pressable
+                                style={styles.loginPrompt}
+                                onPress={() => router.push('/login')}
+                            >
+                                <Text style={styles.loginPromptText}>
+                                    {t('landing.loginPrompt', 'Ai deja cont?')}{' '}
+                                    <Text style={styles.loginPromptLink}>
+                                        {t('landing.loginPromptCta', 'Loghează-te cu Google sau Apple →')}
+                                    </Text>
                                 </Text>
-                            </Text>
-                        </Pressable>
+                            </Pressable>
+                        )}
+                    </View>
+
+                    {/* ── RIGHT COLUMN: battery wireframe visual (desktop only inline) ── */}
+                    {isDesktop && (
+                        <View style={styles.heroRight}>
+                            <View style={styles.wireframeFrame}>
+                                <HudLabel
+                                    dot
+                                    color={VoltColors.neonGreen}
+                                    style={styles.wireframeCaption}
+                                >
+                                    {t('landing.hud.scanning', 'BAT·PACK · SCANNING')}
+                                </HudLabel>
+                                <BatteryWireframeSVG size={460} />
+                                <View style={styles.wireframeFooter}>
+                                    <HudLabel size={VoltFontSize.xs} color={VoltColors.textTertiary}>
+                                        {t('landing.hud.celltopology', '20 CELL · ISO·VIEW')}
+                                    </HudLabel>
+                                    <HudLabel size={VoltFontSize.xs} color={VoltColors.neonGreen}>
+                                        {t('landing.hud.integrity', 'INTEGRITY 98.4%')}
+                                    </HudLabel>
+                                </View>
+                            </View>
+                        </View>
                     )}
                 </View>
             </Animated.View>
@@ -268,7 +297,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: VoltSpacing.md,
         paddingVertical: VoltSpacing.sm,
         borderWidth: 1,
-        borderColor: 'rgba(0, 230, 118, 0.25)',
+        borderColor: VoltColors.neonGreenHairline,
     },
     topBarBtnText: {
         fontSize: VoltFontSize.sm,
@@ -292,11 +321,14 @@ const styles = StyleSheet.create({
     hero: {
         position: 'relative',
         paddingHorizontal: VoltSpacing.lg,
-        paddingTop: VoltSpacing.xxxl + VoltSpacing.xl,
+        paddingTop: VoltSpacing.xxxl + VoltSpacing.md,
         paddingBottom: VoltSpacing.xxl,
-        alignItems: 'center',
         overflow: 'hidden',
-        minHeight: 500,
+        minHeight: 560,
+    },
+    heroDesktop: {
+        paddingTop: VoltSpacing.xxxl + VoltSpacing.xl,
+        paddingHorizontal: VoltSpacing.xl,
     },
     glowOrb: {
         position: 'absolute',
@@ -306,35 +338,61 @@ const styles = StyleSheet.create({
         bottom: 0,
     },
     heroContent: {
-        alignItems: 'center',
-        maxWidth: 800,
+        maxWidth: 1200,
         width: '100%',
+        alignSelf: 'center',
         zIndex: 1,
     },
-    badge: {
+    heroContentDesktop: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: VoltSpacing.xs,
-        backgroundColor: VoltColors.neonGreenMuted,
-        borderRadius: VoltBorderRadius.full,
+        gap: VoltSpacing.xxl,
+    },
+    heroLeft: {
+        width: '100%',
+        alignItems: 'flex-start',
+    },
+    heroLeftDesktop: {
+        flex: 1.1,
+        maxWidth: 640,
+    },
+    heroRight: {
+        flex: 0.9,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    wireframeFrame: {
+        position: 'relative',
+        width: 500,
+        maxWidth: '100%',
         paddingHorizontal: VoltSpacing.md,
-        paddingVertical: VoltSpacing.xs + 2,
-        marginBottom: VoltSpacing.lg,
+        paddingVertical: VoltSpacing.lg,
     },
-    badgeText: {
-        fontSize: VoltFontSize.xs,
-        fontFamily: VoltFontFamily.semiBold,
-        color: VoltColors.neonGreen,
-        letterSpacing: 1.5,
+    wireframeCaption: {
+        position: 'absolute',
+        top: 0,
+        left: VoltSpacing.md,
+        zIndex: 2,
     },
-    heroTitle: {
-        fontSize: VoltFontSize.xxxl,
-        fontFamily: VoltFontFamily.bold,
-        textAlign: 'center',
+    wireframeFooter: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: VoltSpacing.xs,
+        marginTop: VoltSpacing.sm,
+    },
+    hudRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: VoltSpacing.md,
     },
+    heroTitle: {
+        fontSize: VoltFontSize.xxxl + 8,
+        fontFamily: VoltFontFamily.display,
+        marginBottom: VoltSpacing.sm,
+        letterSpacing: VoltLetterSpacing.tight,
+    },
     heroTitleDesktop: {
-        fontSize: VoltFontSize.display,
+        fontSize: VoltFontSize.mega,
     },
     heroTitleAccent: {
         color: VoltColors.neonGreen,
@@ -346,19 +404,19 @@ const styles = StyleSheet.create({
         fontSize: VoltFontSize.xl,
         fontFamily: VoltFontFamily.medium,
         color: VoltColors.textPrimary,
-        textAlign: 'center',
         marginBottom: VoltSpacing.sm,
+        lineHeight: 30,
     },
     heroSubtitleDesktop: {
         fontSize: VoltFontSize.xxl,
+        lineHeight: 38,
     },
     heroDesc: {
         fontSize: VoltFontSize.md,
         color: VoltColors.textSecondary,
-        textAlign: 'center',
         marginBottom: VoltSpacing.xl,
-        maxWidth: 550,
-        lineHeight: 22,
+        maxWidth: 560,
+        lineHeight: 24,
     },
     heroInputContainer: {
         width: '100%',
@@ -367,24 +425,30 @@ const styles = StyleSheet.create({
     trustRow: {
         flexDirection: 'row',
         gap: VoltSpacing.xl,
-        justifyContent: 'center',
+        marginBottom: VoltSpacing.lg,
+        flexWrap: 'wrap',
     },
     trustRowDesktop: {
         gap: VoltSpacing.xxl,
     },
     trustBadge: {
+        flexDirection: 'row',
         alignItems: 'center',
-        gap: VoltSpacing.xs,
+        gap: VoltSpacing.sm,
+        paddingVertical: VoltSpacing.xs,
+        paddingHorizontal: VoltSpacing.sm,
+        borderLeftWidth: 1,
+        borderLeftColor: VoltColors.neonGreenHairline,
     },
     trustLabel: {
-        fontSize: VoltFontSize.lg,
+        fontSize: VoltFontSize.md,
         fontFamily: VoltFontFamily.bold,
         color: VoltColors.textPrimary,
     },
     trustSub: {
         fontSize: VoltFontSize.xs,
-        fontFamily: VoltFontFamily.semiBold,
+        fontFamily: VoltFontFamily.mono,
         color: VoltColors.textTertiary,
-        letterSpacing: 0.5,
+        letterSpacing: VoltLetterSpacing.wide,
     },
 });

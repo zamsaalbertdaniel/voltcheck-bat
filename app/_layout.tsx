@@ -12,7 +12,7 @@ import { toastConfig } from '@/components/ToastConfig';
 import { ToastProvider } from '@/components/ToastProvider';
 import VoltErrorBoundary from '@/components/VoltErrorBoundary';
 import Toast from 'react-native-toast-message';
-import { VoltColors } from '@/constants/Theme';
+import { VoltColors, VoltWebFontCSS } from '@/constants/Theme';
 import { useAuthListener } from '@/hooks/useAuthListener';
 import { useNotificationHandler } from '@/hooks/useNotificationHandler';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -57,27 +57,24 @@ const InspectEVTheme = {
 };
 
 const WebScrollbarCSS = `
-  /* Custom Scrollbar for Web */
+  /* Cockpit scrollbar — thin neon rail */
   *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     display: block;
   }
   *::-webkit-scrollbar-track {
-    background: #0A0E17;
+    background: ${VoltColors.bgPrimary};
   }
   *::-webkit-scrollbar-thumb {
-    background: #00E676;
-    border-radius: 5px;
-    border: 2px solid #0A0E17;
+    background: ${VoltColors.neonGreenDark};
+    border-radius: 4px;
+    border: 2px solid ${VoltColors.bgPrimary};
   }
   *::-webkit-scrollbar-thumb:hover {
-    background: #00C853;
+    background: ${VoltColors.neonGreen};
   }
-  /* Global body scroll (just in case) */
-  body::-webkit-scrollbar {
-    width: 10px;
-  }
+  body::-webkit-scrollbar { width: 8px; }
 `;
 
 export default function RootLayout() {
@@ -125,7 +122,12 @@ export default function RootLayout() {
   // Inject Web scrollbar CSS directly inside standard return
   return (
     <VoltErrorBoundary>
-      {Platform.OS === 'web' && <style>{WebScrollbarCSS}</style>}
+      {Platform.OS === 'web' && (
+        <>
+          <style>{VoltWebFontCSS}</style>
+          <style>{WebScrollbarCSS}</style>
+        </>
+      )}
       <ToastProvider>
         <ThemeProvider value={InspectEVTheme}>
           <StatusBar barStyle="light-content" backgroundColor={VoltColors.bgPrimary} />
