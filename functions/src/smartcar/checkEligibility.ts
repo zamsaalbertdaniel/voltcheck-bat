@@ -47,7 +47,7 @@ const MIN_SUPPORTED_YEAR = 2018;
 export const checkCloudEligibility = onCall(
     {
         region: 'europe-west1',
-        enforceAppCheck: false,
+        enforceAppCheck: true,
         secrets: [smartcarClientId],
     },
     async (request): Promise<EligibilityResult> => {

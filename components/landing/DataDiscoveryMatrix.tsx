@@ -1,5 +1,5 @@
 /**
- * DataDiscoveryMatrix — landing-page section that replaces the legacy BentoBox.
+ * DataDiscoveryMatrix — landing-page data discovery section.
  *
  * Two-sector cockpit grid:
  *   - SECTOR 01 · LIVE      (BMS-extracted data — 4 cards, brighter glow)

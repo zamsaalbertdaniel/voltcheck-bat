@@ -40,10 +40,18 @@ export default class VoltErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, info: React.ErrorInfo) {
-        console.error('[InspectEV Error]', error, info.componentStack);
+        // Report to Sentry — works on all platforms (web + native)
+        import('@/services/sentry').then(({ captureError }) => {
+            captureError(error, {
+                componentStack: info.componentStack ?? 'N/A',
+                source: 'VoltErrorBoundary',
+            });
+        }).catch(() => {
+            // Sentry not available — ignore silently
+        });
 
         if (Platform.OS !== 'web') {
-            // Dynamic import — crashlytics is native-only, not available on web
+            // Crashlytics — native-only backup, not available on web
             import('@react-native-firebase/crashlytics')
                 .then((mod) => {
                     const cr = mod.default;

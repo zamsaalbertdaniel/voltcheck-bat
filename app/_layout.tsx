@@ -5,6 +5,7 @@
  * FAZA 1 — BAT (Battery Analysis Technology)
  */
 
+import BetaBanner from '@/components/layout/BetaBanner';
 import CookieConsent from '@/components/layout/CookieConsent';
 import RegionSelectorModal from '@/components/layout/RegionSelectorModal';
 import ReturnToBase from '@/components/layout/ReturnToBase';
@@ -33,6 +34,12 @@ import 'react-native-reanimated';
 
 // Initialize i18n
 import '../utils/i18n';
+
+// Initialize Sentry error monitoring + performance tracking
+import { initSentry } from '@/services/sentry';
+import { initWebVitals } from '@/services/webVitals';
+initSentry();
+initWebVitals();
 
 export {
   ErrorBoundary
@@ -189,6 +196,11 @@ export default function RootLayout() {
 
           {/* Floating "Return to Base" home button — hidden on landing */}
           <ReturnToBase />
+
+          {/* Beta-mode warning bar — pinned top, advises users that core features
+              (DB, Stripe, PDF, payments) are under construction. Remove this
+              mount + the import once core features ship. */}
+          <BetaBanner />
 
           {/* GDPR Cookie Consent — web only, first visit */}
           <CookieConsent />

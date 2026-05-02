@@ -344,6 +344,10 @@
     "nav": {
         "returnToBase": "Return to homepage"
     },
+    "betaBanner": {
+        "tag": "🚧 BETA",
+        "message": "The platform is currently in testing. Report generation and payment processing are temporarily disabled."
+    },
     "landing": {
         "dashboard": "Dashboard",
         "signup": "Create account",

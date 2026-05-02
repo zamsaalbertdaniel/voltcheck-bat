@@ -413,7 +413,7 @@ async function fetchNHTSAComplaints(make: string, model: string, year: number): 
 // ═══════════════════════════════════════════
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchPaidProvider(provider: string, vin: string): Promise<any> {
+export async function fetchPaidProvider(provider: string, vin: string): Promise<any> {
     switch (provider) {
         case 'carVertical':
             return fetchCarVertical(vin);
@@ -427,7 +427,7 @@ async function fetchPaidProvider(provider: string, vin: string): Promise<any> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchCarVertical(vin: string): Promise<any> {
+export async function fetchCarVertical(vin: string): Promise<any> {
     const apiKey = process.env.CARVERTICAL_API_KEY;
     if (!apiKey) {
         return { status: 'no_api_key', note: 'carVertical API key not configured' };
@@ -447,7 +447,7 @@ async function fetchCarVertical(vin: string): Promise<any> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchAutoDNA(vin: string): Promise<any> {
+export async function fetchAutoDNA(vin: string): Promise<any> {
     const apiKey = process.env.AUTODNA_API_KEY;
     if (!apiKey) {
         return { status: 'no_api_key', note: 'AutoDNA API key not configured' };
@@ -462,7 +462,7 @@ async function fetchAutoDNA(vin: string): Promise<any> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchEpicVIN(vin: string): Promise<any> {
+export async function fetchEpicVIN(vin: string): Promise<any> {
     const apiKey = process.env.EPICVIN_API_KEY;
     if (!apiKey) {
         return { status: 'no_api_key', note: 'EpicVIN API key not configured' };

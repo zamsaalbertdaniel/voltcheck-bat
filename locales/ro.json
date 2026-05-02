@@ -344,6 +344,10 @@
   "nav": {
     "returnToBase": "Înapoi la pagina principală"
   },
+  "betaBanner": {
+    "tag": "🚧 BETA",
+    "message": "Platforma este momentan în faza de testare. Sistemul de generare rapoarte și procesarea plăților sunt dezactivate temporar."
+  },
   "landing": {
     "dashboard": "Dashboard",
     "signup": "Creează cont",

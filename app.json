@@ -42,6 +42,10 @@
     },
     "plugins": [
       "expo-router",
+      ["@sentry/react-native/expo", {
+        "organization": "probabilistic-ai",
+        "project": "javascript-react"
+      }],
       [
         "@stripe/stripe-react-native",
         {

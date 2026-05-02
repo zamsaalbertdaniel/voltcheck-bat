@@ -236,7 +236,7 @@ export default function LandingPage() {
                 </View>
             </Animated.View>
 
-            {/* Data Discovery Matrix — Stage E3 (replaces legacy BentoBox) */}
+            {/* Data Discovery Matrix — Stage E3 */}
             <DataDiscoveryMatrix />
 
             {/* FAQ Section — public, accessible without auth */}

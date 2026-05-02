@@ -30,7 +30,7 @@ const USER_DATA_COLLECTIONS = [
 export const deleteUserAccount = onCall(
     {
         region: 'europe-west1',
-        enforceAppCheck: false, // TODO: enable after native App Check providers are configured
+        enforceAppCheck: true,
     },
     async (request) => {
         // Must be authenticated

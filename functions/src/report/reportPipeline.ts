@@ -24,9 +24,13 @@ import { deriveAssessmentType, deriveSourceTraceability } from '../utils/reportD
 import { PipelineLogger } from '../utils/pipelineLogger';
 import { randomUUID } from 'crypto';
 import { defineSecret } from 'firebase-functions/params';
+import { fetchPaidProvider } from '../vin/decodeVin';
 
 const smtpUser = defineSecret('SMTP_USER');
 const smtpPass = defineSecret('SMTP_PASS');
+const carVerticalKey = defineSecret('CARVERTICAL_API_KEY');
+const autoDnaKey = defineSecret('AUTODNA_API_KEY');
+const epicVinKey = defineSecret('EPICVIN_API_KEY');
 // AssessmentType and SourceTraceability used via reportDerivations
 
 if (!admin.apps.length) {
@@ -110,7 +114,7 @@ export const reportPipeline = onDocumentCreated(
         region: 'europe-west1',
         timeoutSeconds: 120,
         memory: '512MiB',
-        secrets: [smtpUser, smtpPass]
+        secrets: [smtpUser, smtpPass, carVerticalKey, autoDnaKey, epicVinKey],
     },
     async (event) => {
         const snap = event.data;
@@ -124,7 +128,7 @@ export const reportPipeline = onDocumentCreated(
             return;
         }
 
-        const { vin, userId, level, paymentId } = reportData;
+        const { vin, userId, level, paymentId, vehicleId } = reportData;
         const pipelineStart = Date.now();
 
         const pLog = new PipelineLogger({
@@ -170,16 +174,55 @@ export const reportPipeline = onDocumentCreated(
 
             await updateStatus(reportId, STATUS.SEARCHING_GLOBAL, pLog);
 
-            // Check VIN cache for paid provider data
+            // ── Check VIN cache for paid provider data ──
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let providerData: any = null;
             const cacheDoc = await db.collection('vin_cache').doc(vin).get();
             if (cacheDoc.exists) {
                 const cached = cacheDoc.data();
                 providerData = cached?.decodedData?.providers || null;
+                pLog.step('vin_cache_hit', { vin: vin.slice(-4) });
             }
 
-            // ── FAIL-SAFE: If NHTSA failed AND no cached provider data ──
+            // ── Cache miss: call paid providers directly ──
+            // This happens when the user skips the free VIN decode step (or cache expired).
+            // Providers read API keys from process.env (injected by Firebase Secrets at runtime).
+            if (!providerData) {
+                pLog.step('vin_cache_miss', { vin: vin.slice(-4) });
+
+                const market = detectMarketFromVIN(vin);
+                const providerChain =
+                    market === 'EU' ? ['carVertical', 'autoDNA'] :
+                    market === 'US' ? ['epicVIN', 'carVertical'] :
+                    ['carVertical'];
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const liveResults: any[] = [];
+                for (const providerName of providerChain) {
+                    try {
+                        const result = await fetchPaidProvider(providerName, vin);
+                        liveResults.push({ provider: providerName, success: true, data: result });
+                        pLog.step(`provider_${providerName}_ok`, {});
+                        break; // Stop at first successful provider
+                    } catch (provErr) {
+                        pLog.error(`provider_${providerName}`, provErr as Error);
+                        liveResults.push({ provider: providerName, success: false, data: null });
+                    }
+                }
+
+                const hasAnySuccess = liveResults.some(r => r.success && r.data?.status !== 'no_api_key');
+                if (hasAnySuccess) {
+                    providerData = liveResults;
+                    // Write to cache so subsequent pipeline runs (retries) benefit from it
+                    await db.collection('vin_cache').doc(vin).set({
+                        decodedData: { providers: liveResults },
+                        cachedAt: admin.firestore.FieldValue.serverTimestamp(),
+                        vin,
+                    });
+                }
+            }
+
+            // ── FAIL-SAFE: If NHTSA failed AND no provider data at all ──
             if (nhtsaFailed && !providerData) {
                 pLog.fail(STATUS.SEARCHING_GLOBAL, new Error('All VIN data providers failed'), {
                     manualReview: true,
@@ -261,7 +304,40 @@ export const reportPipeline = onDocumentCreated(
             const assessmentType = deriveAssessmentType(derivationInput);
             const sourceTraceability = deriveSourceTraceability(derivationInput);
 
-            // ── Step 5: Generate PDF ──
+            // ── Step 5: Fetch Level 2 battery health (Smartcar reading) ──
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let batteryHealthForPDF: PDFInput['batteryHealth'] | undefined;
+
+            if (level === 2) {
+                try {
+                    const readingDoc = await db.collection('smartcar_readings').doc(userId).get();
+                    if (readingDoc.exists) {
+                        const r = readingDoc.data()!;
+                        // Only use the reading if it matches the vehicle being reported
+                        const vinehicleMatch = !vehicleId || r.vehicleId === vehicleId;
+                        if (vinehicleMatch && r.stateOfHealth != null) {
+                            batteryHealthForPDF = {
+                                stateOfHealth: r.stateOfHealth,
+                                usableCapacityKwh: r.usableCapacityKwh ?? 0,
+                                nominalCapacityKwh: r.nominalCapacityKwh ?? 0,
+                                cycleCount: r.cycleCount ?? 0,
+                                dcChargingRatio: r.dcChargingRatio ?? 0,
+                                cellBalanceStatus: r.cellBalanceStatus ?? 'N/A',
+                            };
+                            pLog.step('battery_health_loaded', { stateOfHealth: r.stateOfHealth });
+                        } else {
+                            pLog.step('battery_health_skipped', { reason: 'vehicle_mismatch_or_no_soh' });
+                        }
+                    } else {
+                        pLog.step('battery_health_skipped', { reason: 'no_smartcar_reading' });
+                    }
+                } catch (bhErr) {
+                    // Non-blocking — PDF will still be generated without battery section
+                    pLog.error('battery_health_fetch', bhErr as Error);
+                }
+            }
+
+            // ── Step 6: Generate PDF ──
             await updateStatus(reportId, STATUS.GENERATING_PDF, pLog);
 
             const pdfBuffer = await generatePDFBuffer({
@@ -277,9 +353,10 @@ export const reportPipeline = onDocumentCreated(
                 confidence: riskResult.confidence,
                 assessmentType,
                 sourceTraceability,
+                batteryHealth: batteryHealthForPDF,
             });
 
-            // ── Step 6: Upload to Storage ──
+            // ── Step 7: Upload to Storage ──
             await updateStatus(reportId, STATUS.UPLOADING, pLog);
 
             const bucket = storage.bucket();
@@ -308,7 +385,7 @@ export const reportPipeline = onDocumentCreated(
                 expires: expiresAt.getTime(),
             });
 
-            // ── Step 7: Finalize ──
+            // ── Step 8: Finalize ──
             const pipelineDuration = Date.now() - pipelineStart;
 
             const isPartial = riskResult.dataCoverage.length <= 1 || riskResult.confidence < 60;
@@ -414,7 +491,7 @@ function guessBatteryType(make: string | undefined): string {
     return 'NMC'; // Most common for EU EVs
 }
 
-import { generatePDFBuffer } from './pdfGenerator';
+import { generatePDFBuffer, PDFInput } from './pdfGenerator';
 
 /**
  * Sends a push notification to the user when their report is ready.

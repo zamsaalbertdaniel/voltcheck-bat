@@ -91,6 +91,86 @@ types/firestore.ts      → Tipuri Firestore shared (client+server)
 
 ---
 
+## Cockpit / Deep-Tech Patterns (Stage E2+)
+
+Landing page-ul folosește un design system "cockpit" cu primitives reutilizabile. Înainte să creezi componente noi sau să faci layout custom, citește această secțiune.
+
+### Design Primitives — `components/design/`
+| Component | Folosește când |
+|---|---|
+| `CornerMarks` | HUD frame pe carduri/sectoare (4 colțuri L-shape) |
+| `GrainOverlay` | Atmosferă filmică pe sections largi (hero, sectoare) |
+| `HudLabel` | Mono uppercase labels (status, captions, metadata) |
+| `NeonGlow` | Decorație ambient pe focus/status |
+| `ScanLine` | Sweep one-shot pe elemente noi (NU loop — distractiv) |
+
+### Tokens cheie — `constants/Theme.ts`
+- `bgCockpit` — input wells, panouri close-up
+- `bgPanel` (rgba 0.72) — carduri standard
+- `bgPanelBright` — carduri "live" / accentuate
+- `neonGreen` — accent activ (hover, valid, live)
+- `neonGreenHairline` — borders fine inactiv
+- `VoltMotion.duration.fast` (200ms) — micro-animații icons
+- `VoltMotion.duration.base` (320ms) — anim cards/panels
+- `VoltMotion.easing.standard` — default tranziție web
+- `VoltZ.overlay` (100) — floating UI
+
+### Hooks utility
+- `hooks/useScrambleText.ts` — terminal decode reveal pe text scurt. **NU pe titluri** (SEO + a11y)
+- `hooks/useInViewOnce.ts` — IntersectionObserver one-shot, web-only. Native = true instant
+
+### ⚠️ Pattern critic: Floating UI cu `position: fixed` pe web
+
+RN-ul nu suportă `position: fixed` nativ. Pe web, când vrei un element floating ancorat la viewport (FAB, toast, banner):
+
+1. **NU** pune `position: 'fixed'` doar în webStyle pe Pressable interior — wrap-ul `Animated.View` rămâne `position: 'absolute'` și se ancorează la cel mai apropiat container poziționat.
+2. **NU** te baza doar pe `position: 'fixed'` la wrap — un ancestor cu `transform` (Stack tranziții, ThemeProvider wrappers) creează un nou containing block și anulează fixed-ul.
+3. **DA** — pe web, folosește **`ReactDOM.createPortal(tree, document.body)`** ca să scapi complet de ierarhia RN. Vezi `components/layout/ReturnToBase.tsx` ca referință.
+
+```ts
+// Pattern verificat
+const createPortalWeb = Platform.OS === 'web'
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ? (require('react-dom') as any).createPortal
+    : null;
+
+// Render:
+if (Platform.OS === 'web' && createPortalWeb && typeof document !== 'undefined') {
+    return createPortalWeb(tree, document.body);
+}
+return tree;
+```
+
+### Pattern web-only CSS în RN style array
+```ts
+// Pe Pressable / Animated.View
+const webStyle = Platform.OS === 'web'
+    ? ({ backdropFilter: 'blur(14px)', boxShadow: '...', transition: '...' } as unknown as object)
+    : null;
+
+style={[styles.base, webStyle as any]}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- web-only CSS keys nu sunt în RN ViewStyle
+```
+
+### Convenție commits redesign
+Pentru sprints redesign: `feat(landing): Stage E<N>.<sub> — <descriere>`
+Exemple: `Stage E3 Data Discovery Matrix`, `Stage E5 polish — in-view scramble + ticker`. Permite filtrare git log uşoară.
+
+### i18n namespace landing
+```
+landing.hud.*           — HUD labels în hero
+landing.vinPanel.*      — VIN input panel
+landing.matrix.*        — Data Discovery Matrix (live + history sectors)
+nav.returnToBase        — global home button
+```
+
+### Performance budget redesign
+- LCP target: < 2.5s (hero e LCP candidate, sub-fold n-are impact)
+- Bundle delta per stage: < +15KB gz
+- Animații pe web: evită box-shadow animat la loop (CPU heavy) — pulse pe `opacity` cu `useNativeDriver: true`
+
+---
+
 ## Workflows de Dezvoltare
 
 ### Start Dev

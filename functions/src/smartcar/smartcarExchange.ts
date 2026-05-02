@@ -33,12 +33,14 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// Smartcar API configuration from environment/secrets
-const SMARTCAR_CLIENT_ID = process.env.SMARTCAR_CLIENT_ID || '';
-const SMARTCAR_CLIENT_SECRET = process.env.SMARTCAR_CLIENT_SECRET || '';
-const SMARTCAR_REDIRECT_URI = process.env.SMARTCAR_REDIRECT_URI || 'inspectev://callback';
+// Static URL constants (not secrets — safe at module level)
 const SMARTCAR_API_BASE = 'https://api.smartcar.com/v2.0';
 const SMARTCAR_AUTH_BASE = 'https://auth.smartcar.com/oauth/token';
+
+// IMPORTANT: SMARTCAR_CLIENT_ID, SMARTCAR_CLIENT_SECRET, SMARTCAR_REDIRECT_URI
+// are Firebase Secrets injected at request time via defineSecret().
+// They are NOT read at module level — they are read inside each function handler
+// via process.env.* which is only populated after Firebase injects the secret.
 
 // ═══════════════════════════════════════════
 // 1. Token Exchange (Authorization Code → Access Token)
@@ -47,7 +49,7 @@ const SMARTCAR_AUTH_BASE = 'https://auth.smartcar.com/oauth/token';
 export const smartcarExchange = onCall(
     {
         region: 'europe-west1',
-        enforceAppCheck: false,
+        enforceAppCheck: true,
         secrets: [smartcarClientId, smartcarClientSecret, smartcarRedirectUri],
     },
     async (request) => {
@@ -64,7 +66,12 @@ export const smartcarExchange = onCall(
             throw new HttpsError('invalid-argument', 'Authorization code is required');
         }
 
-        if (!SMARTCAR_CLIENT_ID || !SMARTCAR_CLIENT_SECRET) {
+        // Read secrets inside the handler — available here because Firebase has injected them
+        const clientId = process.env.SMARTCAR_CLIENT_ID || '';
+        const clientSecret = process.env.SMARTCAR_CLIENT_SECRET || '';
+        const redirectUri = process.env.SMARTCAR_REDIRECT_URI || 'inspectev://callback';
+
+        if (!clientId || !clientSecret) {
             logger.error('[Smartcar] Missing client credentials in environment');
             throw new HttpsError('failed-precondition', 'Smartcar integration not configured');
         }
@@ -77,12 +84,12 @@ export const smartcarExchange = onCall(
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'Authorization': `Basic ${Buffer.from(`${SMARTCAR_CLIENT_ID}:${SMARTCAR_CLIENT_SECRET}`).toString('base64')}`,
+                    'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
                 },
                 body: new URLSearchParams({
                     grant_type: 'authorization_code',
                     code,
-                    redirect_uri: SMARTCAR_REDIRECT_URI,
+                    redirect_uri: redirectUri,
                 }).toString(),
             });
 
@@ -161,7 +168,7 @@ export const smartcarExchange = onCall(
 export const smartcarBatteryData = onCall(
     {
         region: 'europe-west1',
-        enforceAppCheck: false,
+        enforceAppCheck: true,
         secrets: [smartcarClientId, smartcarClientSecret],
     },
     async (request) => {
@@ -287,6 +294,24 @@ export const smartcarBatteryData = onCall(
                 `Plan A: ${planA ? 'SUCCESS' : 'FAILED'}, SoH source: ${sohSource}, ` +
                 `SoH: ${stateOfHealth ?? 'N/A'}%`
             );
+
+            // Persist latest battery reading so reportPipeline can include it in Level 2 PDFs.
+            // Document is overwritten on each scan — we always want the freshest reading.
+            if (planA && stateOfHealth !== null) {
+                await db.collection('smartcar_readings').doc(userId).set({
+                    vehicleId,
+                    stateOfHealth,
+                    usableCapacityKwh: result.battery.usableCapacityKwh,
+                    nominalCapacityKwh: nominalCapacityKwh || null,
+                    sohSource,
+                    odometer: result.odometer?.distance ?? null,
+                    capturedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    make: result.vehicle?.make ?? vehicleMake ?? null,
+                    model: result.vehicle?.model ?? null,
+                    year: result.vehicle?.year ?? null,
+                });
+                logger.info(`[Smartcar] Battery reading persisted for user ${userId}`);
+            }
 
             return { success: true, data: result };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -419,7 +444,7 @@ function getFactoryRange(make?: string, model?: string): number {
 export const smartcarDisconnect = onCall(
     {
         region: 'europe-west1',
-        enforceAppCheck: false,
+        enforceAppCheck: true,
     },
     async (request) => {
         if (!request.auth?.uid) {
@@ -489,11 +514,15 @@ async function getValidAccessToken(userId: string): Promise<string> {
         throw new HttpsError('failed-precondition', 'Smartcar session expired. Please reconnect.');
     }
 
+    // Read secrets here — inside function execution context where they are available
+    const refreshClientId = process.env.SMARTCAR_CLIENT_ID || '';
+    const refreshClientSecret = process.env.SMARTCAR_CLIENT_SECRET || '';
+
     const refreshResponse = await fetch(SMARTCAR_AUTH_BASE, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${Buffer.from(`${SMARTCAR_CLIENT_ID}:${SMARTCAR_CLIENT_SECRET}`).toString('base64')}`,
+            'Authorization': `Basic ${Buffer.from(`${refreshClientId}:${refreshClientSecret}`).toString('base64')}`,
         },
         body: new URLSearchParams({
             grant_type: 'refresh_token',
