@@ -44,7 +44,7 @@ const CSP_DIRECTIVES = [
     // www.gstatic.com               → reCAPTCHA v3 + Firebase UI assets
     // www.googletagmanager.com      → GTM (rezervat — nu e activ încă)
     // js.stripe.com                 → Stripe.js injectat de @stripe/stripe-js loadStripe()
-    "script-src 'self' https://apis.google.com https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://js.stripe.com",
+    "script-src 'self' 'sha256-67fhrP0+BkBqmgGGXTtgiVO/9EQs3QruYNU/7fnRkI8=' https://apis.google.com https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://js.stripe.com",
 
     // ── STILURI ──────────────────────────────────────────────────────────────
     // 'unsafe-inline' NECESAR: React Native Web generează <style> tags dinamic
